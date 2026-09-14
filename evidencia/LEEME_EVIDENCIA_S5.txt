@@ -1,0 +1,29 @@
+Esta carpeta debe llevar la evidencia de ejecucion de S5 (la de S4 se
+saco porque corresponde a la version sin JWT/HTTPS).
+
+Con el servidor levantado (mvn spring-boot:run, https://localhost:8443),
+correr y guardar la salida real de:
+
+1. Pedir token de cada canal:
+   curl -sk -X POST https://localhost:8443/api/auth/token -H "Content-Type: application/json" -d '{"canal": "WEB", "clave": "WEB-KEY-2024"}'
+   curl -sk -X POST https://localhost:8443/api/auth/token -H "Content-Type: application/json" -d '{"canal": "MOVIL", "clave": "MOVIL-KEY-2024"}'
+   curl -sk -X POST https://localhost:8443/api/auth/token -H "Content-Type: application/json" -d '{"canal": "CAJERO", "clave": "CAJERO-KEY-2024"}'
+
+2. Con cada token, probar su BFF correspondiente (reemplazar <TOKEN_X> y <ID> por un cuenta_id real del CSV):
+   curl -sk https://localhost:8443/api/web/cuentas -H "Authorization: Bearer <TOKEN_WEB>"
+   curl -sk https://localhost:8443/api/web/cuentas/<ID> -H "Authorization: Bearer <TOKEN_WEB>"
+   curl -sk https://localhost:8443/api/movil/cuentas/<ID> -H "Authorization: Bearer <TOKEN_MOVIL>"
+   curl -sk https://localhost:8443/api/cajero/cuentas/<ID>/saldo -H "Authorization: Bearer <TOKEN_CAJERO>"
+   curl -sk -X POST https://localhost:8443/api/cajero/cuentas/<ID>/retiro -H "Authorization: Bearer <TOKEN_CAJERO>" -H "Content-Type: application/json" -d '{"monto": 1000}'
+
+3. Probar que falla sin token (401) y con token de otro canal (403):
+   curl -sk -i https://localhost:8443/api/web/cuentas
+   curl -sk -i https://localhost:8443/api/web/cuentas -H "Authorization: Bearer <TOKEN_MOVIL>"
+
+4. Medir tamano de respuesta por canal, para la evidencia de optimizacion (criterio 2):
+   curl -sk -o /dev/null -w 'Web: %{size_download} bytes\n' https://localhost:8443/api/web/cuentas/<ID> -H "Authorization: Bearer <TOKEN_WEB>"
+   curl -sk -o /dev/null -w 'Movil: %{size_download} bytes\n' https://localhost:8443/api/movil/cuentas/<ID> -H "Authorization: Bearer <TOKEN_MOVIL>"
+   curl -sk -o /dev/null -w 'Cajero: %{size_download} bytes\n' https://localhost:8443/api/cajero/cuentas/<ID>/saldo -H "Authorization: Bearer <TOKEN_CAJERO>"
+
+Guardar toda la salida real en evidencia_consola.txt (formato igual al de S4),
+y una o dos capturas de pantalla si quieres complementar.

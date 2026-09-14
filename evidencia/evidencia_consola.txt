@@ -1,0 +1,40 @@
+===== 1) Emision de tokens por canal =====
+--- WEB ---
+{"token":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJXRUIiLCJjYW5hbCI6IldFQiIsImlhdCI6MTc4OTI0NDI3MSwiZXhwIjoxNzg5MjQ1MTcxfQ.NSjMpX-APIdXncw9p3DpmvGLg01dkOBEQp6HRM7aXQQUUL6qkV2JRwAjGIrg9Ecs3GGDRWQ0WgIVNWswb6uzNw","canal":"WEB","expiraEnMinutos":15}
+--- MOVIL ---
+{"token":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJNT1ZJTCIsImNhbmFsIjoiTU9WSUwiLCJpYXQiOjE3ODkyNDQyNzEsImV4cCI6MTc4OTI0NTE3MX0.6A1kkOLYfGC9x5HfKgvJ2eMX8ET76jAxhZzB448EUQ4w_n-uHvne6chSouWqO4rLrNM039y73wcaxmtH4QVstg","canal":"MOVIL","expiraEnMinutos":15}
+--- CAJERO ---
+{"token":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJDQUpFUk8iLCJjYW5hbCI6IkNBSkVSTyIsImlhdCI6MTc4OTI0NDI3MSwiZXhwIjoxNzg5MjQ1MTcxfQ.FTYouN0eBjmJHl2z0Cf7Sy9KVHVWxeTS2CaivoZH5fyeKmhUTOTdlTn00RWRrw27X_9KRW3yUaUGHncnBwNsqg","canal":"CAJERO","expiraEnMinutos":15}
+
+===== 2) Prueba de cada BFF con su token =====
+--- GET /api/web/cuentas ---
+[{"cuentaId":101,"nombre":"John Doe","saldo":5000.0,"edad":30,"tipo":"ahorro","movimientos":[{"fecha":"2024-01-01","transaccion":"deposito","monto":1000.0,"descripcion":"Ingreso mensual"},{"fecha":"2024-03-15","transaccion":"retiro","monto":-500.0,"descripcion":"Retiro parcial"}]},{"cuentaId":102,"nombre":"Jane Smith","saldo":8000.0,"edad":25,"tipo":"prestamo","movimientos":[{"fecha":"2024-05-22","transaccion":"deposito","monto":1500.0,"descripcion":"Ingreso mensual"}]},{"cuentaId":103,"nombre":"Bob Johnson","saldo":12000.0,"edad":30,"tipo":"prestamo","movimientos":[{"fecha":"2024-07-10","transaccion":"deposito","monto":2000.0,"descripcion":"Ingreso mensual"}]},{"cuentaId":104,"nombre":"Alice Brown","saldo":0.0,"edad":45,"tipo":"ahorro","movimientos":[{"fecha":"2024-09-05","transaccion":"compra","monto":-100.0,"descripcion":"Compra en tienda"}]},{"cuentaId":105,"nombre":"Charlie Green","saldo":7000.0,"edad":35,"tipo":"hipoteca","movimientos":[{"fecha":"2024-10-01","transaccion":"deposito","monto":2500.0,"descripcion":"Ingreso extra"}]},{"cuentaId":106,"nombre":"John Doe","saldo":5000.0,"edad":30,"tipo":"ahorro","movimientos":[{"fecha":"2024-11-20","transaccion":"deposito","monto":3000.0,"descripcion":"Ingreso mensual"}]},{"cuentaId":107,"nombre":"Diana Prince","saldo":15000.0,"edad":40,"tipo":"prestamo","movimientos":[{"fecha":"2024-12-25","transaccion":"deposito","monto":0.0,"descripcion":"Ingreso navideño"}]},{"cuentaId":108,"nombre":"Steve Rogers","saldo":10000.0,"edad":80,"tipo":"ahorro","movimientos":[{"fecha":"2024-12-31","transaccion":"deposito","monto":2000.0,"descripcion":"Ingreso de fin de año"}]}]
+--- GET /api/web/cuentas/101 ---
+{"cuentaId":101,"nombre":"John Doe","saldo":5000.0,"edad":30,"tipo":"ahorro","movimientos":[{"fecha":"2024-01-01","transaccion":"deposito","monto":1000.0,"descripcion":"Ingreso mensual"},{"fecha":"2024-03-15","transaccion":"retiro","monto":-500.0,"descripcion":"Retiro parcial"}]}
+--- GET /api/movil/cuentas/101 ---
+{"cuentaId":101,"saldo":5000.0,"tipo":"ahorro","ultimosMovimientos":[{"fecha":"2024-01-08","monto":1000.0,"tipo":"credito"},{"fecha":"2024-01-07","monto":3000.0,"tipo":"debito"},{"fecha":"2024-01-06","monto":1200.0,"tipo":"credito"},{"fecha":"2024-01-05","monto":700.0,"tipo":"debito"},{"fecha":"2024-01-05","monto":700.0,"tipo":"debito"}]}
+--- GET /api/cajero/cuentas/101/saldo ---
+{"cuentaId":101,"saldo":5000.0}
+--- POST /api/cajero/cuentas/101/retiro ---
+{"cuentaId":101,"montoRetirado":1000.0,"saldoResultante":4000.0}
+
+===== 3) Sin token (401) y con token de otro canal (403) =====
+--- GET /api/web/cuentas sin token ---
+HTTP/1.1 401 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Sat, 12 Sep 2026 20:18:06 GMT
+
+{"timestamp":"2026-09-12T17:18:06.96676","estado":401,"mensaje":"Falta el header Authorization con el token Bearer"}
+--- GET /api/web/cuentas con token MOVIL ---
+HTTP/1.1 403 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Sat, 12 Sep 2026 20:18:06 GMT
+
+{"timestamp":"2026-09-12T17:18:06.999523","estado":403,"mensaje":"El token pertenece al canal MOVIL y no tiene permiso para acceder al canal WEB"}
+
+===== 4) Tamano de respuesta por canal (optimizacion) =====
+Web: 280 bytes
+Movil: 340 bytes
+Cajero: 31 bytes
