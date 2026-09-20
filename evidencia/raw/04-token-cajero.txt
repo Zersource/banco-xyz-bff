@@ -1,0 +1,7 @@
+$ curl -si -X POST http://localhost:8081/api/auth/token -H "Content-Type: application/json" -d '{"canal":"CAJERO","clave":"CAJERO-KEY-2024"}'
+HTTP/1.1 200 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Sun, 20 Sep 2026 21:11:14 GMT
+
+{"token":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJDQUpFUk8iLCJjYW5hbCI6IkNBSkVSTyIsImlhdCI6MTc4OTkzODY3NCwiZXhwIjoxNzg5OTM5NTc0fQ.6wbXg1K2-rBB4zVpo9VskkoPekt5zCqviHSVilG-yavLOh-FdaoeRuXrXcetB71MFcqx6mmWNOAZY4-simbG9w","canal":"CAJERO","expiraEnMinutos":15}

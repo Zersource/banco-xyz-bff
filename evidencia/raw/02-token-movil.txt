@@ -1,0 +1,7 @@
+$ curl -si -X POST http://localhost:8081/api/auth/token -H "Content-Type: application/json" -d '{"canal":"MOVIL","clave":"MOVIL-KEY-2024"}'
+HTTP/1.1 200 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Sun, 20 Sep 2026 21:11:14 GMT
+
+{"token":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJNT1ZJTCIsImNhbmFsIjoiTU9WSUwiLCJpYXQiOjE3ODk5Mzg2NzQsImV4cCI6MTc4OTkzOTU3NH0.5L5gl6_KkWmJx5VkRoBk8SeoIhZoh9XWR1LbUnpIayJOnDs9sHw31DQKp5Fjtc0xczivvlztWaAlOcTY6ytiDA","canal":"MOVIL","expiraEnMinutos":15}

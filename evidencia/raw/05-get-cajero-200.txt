@@ -1,0 +1,7 @@
+$ curl -si http://localhost:8083/api/cajero/cuentas/101/saldo -H "Authorization: Bearer $TOKEN_CAJERO"
+HTTP/1.1 200 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Sun, 20 Sep 2026 21:11:14 GMT
+
+{"cuentaId":101,"saldo":5000.0}
