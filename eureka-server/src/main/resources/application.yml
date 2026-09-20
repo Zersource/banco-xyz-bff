@@ -1,0 +1,15 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  client:
+    # Este servidor no se registra a si mismo ni busca otros registros:
+    # es el unico nodo de Eureka del ecosistema.
+    register-with-eureka: false
+    fetch-registry: false
+  instance:
+    hostname: localhost

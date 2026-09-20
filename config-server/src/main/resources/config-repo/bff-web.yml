@@ -1,0 +1,12 @@
+server:
+  port: 8081
+
+# Llaves de canal, usadas por TokenController (unico emisor de tokens)
+# para validar la clave que cada canal envia al pedir su JWT.
+canal:
+  web:
+    llave: WEB-KEY-2024
+  movil:
+    llave: MOVIL-KEY-2024
+  cajero:
+    llave: CAJERO-KEY-2024

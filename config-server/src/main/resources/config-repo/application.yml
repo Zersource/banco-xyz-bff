@@ -1,0 +1,19 @@
+# Configuracion COMUN a los 3 microservicios (bff-web, bff-movil, bff-cajero).
+# Cada microservicio la recibe automaticamente, y ademas recibe su propio
+# archivo <spring.application.name>.yml con lo que le es exclusivo.
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+# Llave y expiracion del JWT: deben ser iguales en los 3 microservicios,
+# porque bff-web firma el token y bff-movil/bff-cajero solo lo validan
+# (misma llave simetrica HMAC).
+jwt:
+  secreto: una-llave-secreta-de-al-menos-32-caracteres-para-hmac-sha256-bancoxyz
+  expiracion-minutos: 15
