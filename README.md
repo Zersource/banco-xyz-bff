@@ -1,55 +1,64 @@
-# Banco XYZ - BFF (Exp2 S5)
+# Banco XYZ - Microservicios con Spring Cloud (Exp3 S6)
 
-Implementacion del patron **Backend for Frontend (BFF)** sobre los datos
-legacy del Banco XYZ (`KariVillagran/bank_legacy_data`), como parte de la
-Experiencia 2, Semana 5 de Desarrollo Backend III. Continua directamente
-el proyecto de Exp2 S4, agregando autenticacion con JWT, autorizacion por
-canal y HTTPS.
+  Esta es la continuacion directa del BFF de Exp2 S5. Esta semana el monolito
+con 3 fachadas (bff.web/bff.movil/bff.cajero) se separa en 5 microservicios
+independientes, cada uno con su propio proceso, coordinados con Spring Cloud:
+Config Server, Eureka para el Service Discovery, y Circuit Breaker con
+Resilience4j.
+
+  Ver PROPUESTA_TECNICA.md para el detalle del diseno, las decisiones que
+tome y los problemas que me fui encontrando en el camino.
 
 
--- Objetivo --
+-- Modulos --
 
-Exponer 3 backends independientes, cada uno adaptado al cliente que lo
-utiliza:
+| Modulo          | Puerto | Rol                                                            |
+|-----------------|--------|-----------------------------------------------------------------|
+| `eureka-server` | 8761   | Service Discovery. No depende de nadie mas.                     |
+| `config-server` | 8888   | Configuracion centralizada (backend `native`, carpeta `config-repo/`). |
+| `bff-web`       | 8081   | Unico dueno de los datos (CSV en memoria). Emite y valida JWT.  |
+| `bff-movil`     | 8082   | Ya no tiene datos propios: le pide todo a `bff-web` via Eureka. |
+| `bff-cajero`    | 8083   | Igual que movil: saldo y retiro via `bff-web`.                  |
 
-- **BFF Web** (`/api/web`): datos completos de cada cuenta, pensado para
-  una interfaz de escritorio.
-- **BFF Movil** (`/api/movil`): datos livianos, solo lo esencial para
-  minimizar el volumen de la respuesta.
-- **BFF Cajero** (`/api/cajero`): solo las operaciones criticas (consulta
-  de saldo y retiro), sin datos personales.
-
- Ver `PROPUESTA_TECNICA.md` para el detalle de la estrategia elegida, 
- la justificación, y los cambios efectuados respecto a S4.
+  bff-movil y bff-cajero llaman a bff-web a traves de /interno/** (no pensado
+para clientes externos), protegidos con Circuit Breaker: si bff-web cae,
+responden 503 en vez de quedarse esperando.
 
 
 -- Como ejecutar --
 
+  Hay que levantarlos en orden (cada uno en su propia terminal, esperando que
+el anterior este arriba antes de tirar el siguiente):
+
 ```bash
-mvn spring-boot:run
+cd eureka-server && mvn spring-boot:run     # esperar "Started EurekaServerApplication"
+cd config-server && mvn spring-boot:run     # esperar "Started ConfigServerApplication"
+cd bff-web        && mvn spring-boot:run    # esperar "Started BancoXyzBffApplication"
+cd bff-movil      && mvn spring-boot:run    # esperar "Started BffMovilApplication"
+cd bff-cajero     && mvn spring-boot:run    # esperar "Started BffCajeroApplication"
 ```
 
-La aplicacion levanta en `https://localhost:8443` (HTTPS con certificado
-autofirmado). Al ser autofirmado, curl y el navegador van a marcarlo como
-no confiable; para pruebas con curl se usa la opcion `-k`.
+  Dashboard de Eureka: `http://localhost:8761` (deberian aparecer BFF-WEB,
+BFF-MOVIL y BFF-CAJERO, los tres en UP).
+
+  Nota: a diferencia de S5, esta semana los servicios corren sobre HTTP plano,
+sin el certificado autofirmado (ver PROPUESTA_TECNICA.md, seccion de riesgos,
+para la justificacion de por que se saco).
+
 
 ## Autenticacion y autorizacion por canal (JWT)
 
-A diferencia de S4 (donde la llave viajaba en texto plano en cada
-request), ahora cada canal primero pide un token, y despues lo usa en
-todas sus llamadas al BFF que le corresponde.
+  Se mantiene igual que en S5: bff-web es el unico que emite tokens.
+bff-movil y bff-cajero solo los validan, con la misma llave HMAC compartida
+via config-server.
 
-
--- 1. Pedir el token --
+-- 1. Pedir el token (siempre contra bff-web, sin importar el canal) --
 
 ```bash
-curl -sk -X POST https://localhost:8443/api/auth/token \
+curl -s -X POST http://localhost:8081/api/auth/token \
   -H "Content-Type: application/json" \
-  -d '{"canal": "WEB", "clave": "WEB-KEY-2024"}'
+  -d '{"canal": "MOVIL", "clave": "MOVIL-KEY-2024"}'
 ```
-
-Aquí tenemos las llaves disponibles por cada canal (mismas de S4, ahora usadas solo para
-obtener el token, no en cada request):
 
 | Canal  | Clave            |
 |--------|------------------|
@@ -57,37 +66,29 @@ obtener el token, no en cada request):
 | Movil  | MOVIL-KEY-2024   |
 | Cajero | CAJERO-KEY-2024  |
 
-La respuesta trae el token, el canal y los minutos de expiracion:
-
-```json
-{"token": "eyJhbGciOiJIUzI1NiJ9...", "canal": "WEB", "expiraEnMinutos": 15}
-```
-
-
--- 2. Usar el token --
-
-Todas las llamadas al BFF correspondiente van con el token en el header
-`Authorization: Bearer <token>`:
+-- 2. Usar el token contra el BFF que corresponde --
 
 ```bash
-curl -sk https://localhost:8443/api/web/cuentas \
+curl -s http://localhost:8082/api/movil/cuentas/101 \
   -H "Authorization: Bearer <token>"
 ```
 
-
-
-
- -- Codigos de error -- 
+-- Codigos de error --
 
 - **401 Unauthorized**: no se pudo autenticar (falta el token, esta mal
   formado, vencido o mal firmado).
-- **403 Forbidden**: el token es valido, pero es de otro canal (ej. usar
-  un token de MOVIL contra `/api/web/**`).
+- **403 Forbidden**: el token es valido, pero es de otro canal.
+- **404 Not Found**: la cuenta no existe (respuesta real de `bff-web`, no
+  pasa por el Circuit Breaker).
+- **503 Service Unavailable**: `bff-web` no respondio (caido, timeout, o el
+  circuito esta abierto). Solo aparece ante una falla real de
+  infraestructura, no ante un error de negocio como el 404 de arriba.
 
- -- Endpoints --
+
+-- Endpoints --
 
 ### Autenticacion (publico, sin token)
-- `POST /api/auth/token` - recibe `{canal, clave}`, devuelve el JWT
+- `POST /api/auth/token` (bff-web) - recibe `{canal, clave}`, devuelve el JWT
 
 ### BFF Web (requiere token de canal WEB)
 - `GET /api/web/cuentas` - lista todas las cuentas con detalle completo
@@ -100,3 +101,9 @@ curl -sk https://localhost:8443/api/web/cuentas \
 ### BFF Cajero (requiere token de canal CAJERO)
 - `GET /api/cajero/cuentas/{cuentaId}/saldo` - consulta de saldo
 - `POST /api/cajero/cuentas/{cuentaId}/retiro` - realiza un retiro
+
+### Interno (solo bff-movil/bff-cajero -> bff-web, sin token)
+- `GET /interno/cuentas/{cuentaId}`
+- `GET /interno/transacciones/ultimas?cantidad=5`
+- `GET /interno/cuentas/{cuentaId}/saldo`
+- `POST /interno/cuentas/{cuentaId}/retiro?monto=`

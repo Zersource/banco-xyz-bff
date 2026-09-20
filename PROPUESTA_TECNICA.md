@@ -1,170 +1,189 @@
-# Propuesta Tecnica - Exp2 S5: BFF con autenticacion, autorizacion y HTTPS
+# Propuesta Tecnica - Exp3 S6: Microservicios y seguridad en la nube con Spring Cloud
 
---- Contexto ---  Bitácora
+--- Contexto ---
 
-Esta semana la actividad pide continuar el proyecto de Exp2 S4 (patron
-Backend for Frontend sobre los datos del Banco XYZ), agregando lo que en
-S4 quedo pendiente y documentado como riesgo: HTTPS, y una autenticacion
-y autorizacion real por canal, en vez de una llave estatica en texto
-plano.
+  Esta semana de exp3 en S6, la actividad pide avanzar en el proyecto
+en su continuidad implementando microservicios con Spring Cloud: Config Server,
+Service Discovery con Eureka, y tolerancia a fallos con Circuit Breaker, ademas de
+mantener un sistema de autenticacion. Como la instruccion dice explicitamente que
+es continuidad y no un proyecto nuevo, parti del BFF de Exp2 S5 (el que ya tenia
+JWT, autorizacion por canal y HTTPS), no de un ejemplo hecho desde cero.
 
-La estrategia de BFF (backends independientes por cliente: `bff.web`,
-`bff.movil`, `bff.cajero`) y la capa de datos comun se mantienen tal cuál, 
-que en S4. Este documento se enfoca en lo nuevo.
+--- Que cambia respecto a la semana pasada de S5 ---
 
---- Que cambia respecto a S4
+--- De monolito con 3 fachadas a 5 microservicios reales ---
 
---- Autenticacion: de llave estatica a JWT ---
+  El BFF de S5 era un solo proceso Spring Boot con tres paquetes de controllers
+(bff.web, bff.movil, bff.cajero) que le pegaban directo al mismo CuentaService en
+memoria. Eso servia para mostrar el patron BFF, pero no era realmente un
+ecosistema de microservicios: no habia ninguna llamada por red entre servicios,
+asi que tampoco habia nada de verdad que un Circuit Breaker pudiera proteger.
 
-En S4, cada request llevaba el header `X-Canal-Key` con una llave fija
-(`WEB-KEY-2024`, etc.), comparada como texto plano en cada llamada. Eso
-demostraba el concepto de "un canal, una llave", pero como quedo anotado
-en los riesgos de S4, no era un mecanismo de autenticacion real.
+  Separe el proyecto en 5 modulos, cada uno con su propio pom.xml y su propio
+proceso:
 
-Para S5 agregue un endpoint publico `POST /api/auth/token` (`TokenController`)
-donde un canal envia su nombre y su llave (las mismas de S4), y si
-coinciden recibe un JWT firmado (HMAC-SHA256, `JwtService`) valido por 15
-minutos, con un claim `canal` que identifica para que BFF sirve. Ese
-token es el que se manda despues en cada llamada, como
-`Authorization: Bearer <token>`.
+- `eureka-server` (8761): Service Discovery. No consume su propia configuracion
+  desde config-server a proposito. Si dependiera de el, y config-server a su vez
+  se descubriera via Eureka, quedaria una dependencia circular al arrancar.
+- `config-server` (8888): configuracion centralizada. Use el backend native
+  (una carpeta config-repo/ dentro del mismo modulo) en vez de un repositorio
+  Git o S3 externo como sugiere la guia, para no meter un repositorio adicional
+  fuera del alcance de la actividad. Para los microservicios que lo consumen el
+  resultado es identico.
+- `bff-web` (8081): paso a ser el unico dueno de los datos, el CSV en memoria
+  que antes compartian los tres. Ademas de su propio canal, ahora expone
+  /interno/** (InternoController) para que bff-movil y bff-cajero le pidan la
+  informacion que necesitan.
+- `bff-movil` (8082) y `bff-cajero` (8083): ya no cargan datos propios. Un
+  cliente nuevo, BffWebClient (un RestTemplate con @LoadBalanced), le pide todo
+  a bff-web por nombre de servicio via Eureka (http://bff-web/...), no por un
+  host:puerto fijo. Cada llamada esta envuelta con @CircuitBreaker de
+  Resilience4j y su fallback correspondiente.
 
-Elegi JWT y no Spring Security completo por la misma razon que en S4: la
-actividad pide "gestionar autenticacion y autorizacion especifica por
-canal", no un sistema de identidad con usuarios reales ni roles
-complejos. Un JWT con un solo claim (`canal`) resuelve exactamente eso,
-sin agregar un framework completo de seguridad que esta fuera del
-alcance del curso.
+  Antes de decidirme por esta forma, pense en una variante mas simple: que los
+tres BFF se llamaran entre si en vez de separar los datos en bff-web. Pero como
+bff-web ya era el que tenia el dataset completo desde S4, hacerlo dueno de los
+datos aprovecha lo que ya existia en vez de inventar un servicio nuevo, que era
+justo el criterio que use para no salirme del nivel de la materia.
 
---- Autorizacion separada de autenticacion
+--- Autenticacion: se mantiene, no se rehace ---
 
-El `CanalAuthInterceptor` ahora distingue dos fallos que en S4 devolvian
-el mismo codigo:
+  El JWT de S5 sigue funcionando exactamente igual: bff-web es el unico que
+emite tokens (POST /api/auth/token, sin ningun cambio), y ahora bff-movil y
+bff-cajero validan ese mismo token cada uno por su cuenta, con una copia de
+JwtService (solo para leer, no para emitir) y la misma llave HMAC (jwt.secreto),
+compartida a los tres servicios via config-server. No hay ninguna llamada de red
+para validar un token: cada microservicio lo verifica localmente contra la
+firma.
 
-- **401 (autenticacion)**: el token no vino, esta corrupto, mal firmado o
-  vencido — no se pudo confirmar quien llama. Se traduce a `TokenInvalidoException`.
-- **403 (autorizacion)**: el token es valido y pertenece a un canal real,
-  pero no es el canal de la ruta solicitada (ej. un token de MOVIL
-  llamando a `/api/web/**`). Se traduce a `AccesoCanalNoAutorizadoException`,
-  que ahora indica ambos canales en el mensaje.
+--- HTTPS: se retira esta semana (decision de alcance) ---
 
-Esta separacion es la diferencia concreta entre "no se quien eres" y "se
-quien eres, pero no puedes entrar aca", que es lo que pide el criterio de
-la pauta al hablar de autenticacion Y autorizacion como cosas distintas.
+  Le saque el HTTPS con certificado autofirmado que habia armado en S5. Meter
+TLS entre tres servicios que se descubren via Eureka significa manejar un trust
+store en cada cliente para que confien en el certificado autofirmado de
+bff-web, y eso es un problema de mTLS que la guia de esta semana no toca en
+ningun momento. El foco declarado es Config Server, Eureka y Circuit Breaker,
+nada mas. Lo dejo anotado aqui como una decision de alcance a proposito, igual
+que las excepciones que ya tengo registradas para Spring Batch: si una semana
+futura pide retomarlo, se puede.
 
---- HTTPS
-
-Genere un certificado autofirmado PKCS12 (`keystore/bff-keystore.p12`,
-valido 10 anios, alias `bff-banco-xyz`) y configure
-`server.ssl.*` en `application.properties` para que el servidor levante
-en `https://localhost:8443`. Al ser autofirmado, el navegador y curl lo
-marcan como no confiable — es esperable a nivel de actividad de curso, y
-las pruebas con curl usan `-k` para omitir esa validacion. No compre un
-certificado de una CA real porque no aplica para un proyecto que corre en
-localhost sin dominio propio.
-
---- Optimizacion de respuestas y consumo de recursos por canal
-
-Esto ya venía en parte desde S4 y lo dejo explicito aca
-porque la pauta de S5 lo pide:
-
-- Los 3 repositorios (`CuentaRepository`, `MovimientoRepository`,
-  `TransaccionRepository`) cargan los CSV una sola vez al levantar la
-  aplicacion (`@PostConstruct`), y quedan en memoria como `Map`/`List`.
-  No hay lectura de disco por request, en ningun canal.
-- La diferencia de tamaño de payload por canal es real, no solo de
-  nombre de clase: Web devuelve el historial completo de movimientos por
-  cuenta, Movil solo las ultimas 5 transacciones simplificadas y sin
-  datos personales, Cajero solo el saldo o el resultado del retiro.
- 
-Medido con el servidor levantado, para la cuenta 101 (curl -s -o /dev/null -w '%{size_download}'):
-
-| Canal  | Tamaño de respuesta |
-|--------|----------------------|
-| Web    | 280 bytes            |
-| Movil  | 340 bytes            |
-| Cajero | 31 bytes             |
-
-Cajero es, como se esperaba, el más liviano por lejos: solo devuelve 
-saldo o el resultado del retiro. El caso de Web vs Movil merece 
-una aclaración, que dejo detallada en "Problemas encontrados y 
-cómo los resolví": en este dataset de prueba Movil da más pesado 
-que Web, pero es un efecto del tamaño del dataset 
-(pocas cuentas, poco historial), no del diseño.
-Con datos reales esta relación se invertiría sin problema.
-
---- Como quedó la estructura del proyecto (actualizada) ---
+--- Como quedo la estructura del proyecto (actualizada) ---
 
 ```
-com.duoc.bancoxyzbff
- |- model            (Cuenta, MovimientoAnual, Transaccion)
- |- repository       (carga de CSV en memoria)
- |- service          (interfaz + impl, logica comun a los 3 BFF)
- |- auth             (JwtService, TokenController, DTOs de token)      <- nuevo en S5
- |- bff.web          (controller + dto)
- |- bff.movil        (controller + dto)
- |- bff.cajero       (controller + dto)
- |- config           (interceptor de autenticacion/autorizacion + WebConfig)
- |- exception        (manejo de errores, incluye TokenInvalidoException
-                       y CredencialesCanalInvalidasException)          <- nuevo en S5
+banco-xyz-bff/
+ |- eureka-server/    (EurekaServerApplication)
+ |- config-server/    (ConfigServerApplication, config-repo/ con native backend)
+ |- bff-web/
+ |    |- model, repository, service     (dueno de los datos, sin cambios de S5)
+ |    |- auth                           (JwtService, TokenController - sin cambios)
+ |    |- bff.web                        (controller + dto - sin cambios)
+ |    |- interno                        (InternoController)                    <- nuevo
+ |    |- config, exception
+ |- bff-movil/
+ |    |- client         (BffWebClient: RestTemplate @LoadBalanced + CircuitBreaker) <- nuevo
+ |    |- dto            (CuentaDTO/TransaccionDTO: espejo de los modelos de bff-web) <- nuevo
+ |    |- auth, config, exception        (copias locales de validacion JWT)
+ |    |- bff.movil, service
+ |- bff-cajero/         (misma forma que bff-movil, para saldo/retiro)
 ```
 
 --- Problemas encontrados y como los resolvi ---
 
-La compilación no me dio problemas esta vez (mvn clean compile corrió limpio a la primera, 
-igual que en S4), así que no hubo bugs de código que resolver. Lo que sí me hizo detenerme 
-un rato fue algo que encontré al medir el tamaño de las respuestas por canal: la del 
-canal Móvil (340 bytes) resultó más pesada que la de Web (280 bytes) para la cuenta 101, 
-justo al revés de lo que esperaba, así que antes de dar por buena la evidencia 
-fui a revisar por qué.
+  A diferencia de S4 y S5, esta vez mvn clean compile paso limpio a la primera
+en los cinco modulos. Los problemas de verdad aparecieron recien al correr el
+ecosistema completo y probar la tolerancia a fallos de verdad, no en la
+compilacion.
 
-Al mirar el dataset me di cuenta de que la cuenta 101 es, de hecho, la que más movimientos 
-tiene en todo cuentas_anuales.csv, y aun así son solo dos. El BFF Móvil, en cambio, siempre 
-devuelve las mismas cinco "últimas transacciones", que salen de transacciones.csv, un archivo 
-que registra actividad general del banco y no viene ligado a ninguna cuenta en particular. 
-Por eso su tamaño no cambia según la cuenta que se consulte: no está optimizado de menos, 
-es que compite contra un dataset de prueba demasiado pequeño como para que Web se note más pesado. 
-Con datos reales, donde una cuenta acumula historial de verdad, esta relación se invertiría sin problema. 
-Dejé el detalle completo en la sección anterior para que quede claro que es una limitación del dataset 
-y no un error de diseño.
+  El primero fue que el Circuit Breaker no interceptaba nada. La primera vez
+que probe matar bff-web y repetir la llamada a bff-movil, en vez del 503 que
+esperaba me llego un 500 con el stack trace crudo de
+ResourceAccessException: Connection refused. La causa: yo habia agregado
+spring-cloud-starter-circuitbreaker-resilience4j al pom.xml, pero esa
+dependencia solo expone CircuitBreakerFactory, para uso programatico, y no
+trae el aspecto AOP que procesa la anotacion @CircuitBreaker que use en
+BffWebClient. Sin ese aspecto la anotacion queda de adorno, y la excepcion de
+RestTemplate se propaga entera sin pasar por el fallback. Agregue
+io.github.resilience4j:resilience4j-spring-boot3, con su BOM para fijar la
+version en linea con lo que ya traia el starter de Spring Cloud. Compilaba
+bien, pero el circuito seguia sin cortar.
 
---- Reflexion tecnica 
+  Faltaba una segunda pieza. resilience4j-spring-boot3 aporta la clase del
+aspecto, CircuitBreakerAspect, pero sin aspectjweaver en el classpath Spring no
+lo registra como interceptor. Agregando spring-boot-starter-aop, que trae
+aspectjweaver, recien ahi el circuito empezo a cortar de verdad: mate bff-web,
+repeti la llamada cuatro veces seguidas, y las cuatro respondieron en unos 14
+ms cada una con el 503 esperado. Ese tiempo tan bajo es justamente lo que
+confirma que el aspecto esta interceptando antes de siquiera intentar la
+conexion, no esperando un timeout largo.
 
-Diseñar la separación entre 401 y 403 en el papel era fácil de justificar: el 401 
-es para cuando el sistema no logra confirmar quién está llamando, y el 403 es para 
-cuando ya sabe exactamente quién es, pero ese canal no tiene permiso sobre la ruta 
-que está pidiendo. Aun así, hasta que no lo probé contra el servidor real, esa 
-distinción era solo una idea razonable, no un hecho comprobado. Pedí /api/web/cuentas 
-sin ningún token y me llegó un 401 con "Falta el header Authorization con el token Bearer". 
-Después pedí lo mismo, pero con un token que había sacado para MOVIL, y ahí cambió a 403, 
-con "El token pertenece al canal MOVIL y no tiene permiso para acceder al canal WEB". 
-Ese cambio de código, y de mensaje, según cuál de los dos casos ocurra, es lo que me 
-confirmó que la separación no se quedó solo en el diseño: el sistema efectivamente 
-distingue entre no reconocer a alguien y reconocerlo pero no dejarlo pasar.
+  El segundo problema fue que un 404 real se me convertia en 503. Al confirmar
+que el circuito cortaba bien, probe con una cuenta que no existe (id 1), y
+bff-movil me devolvio 503 en vez del 404 real que entrega bff-web. Peor
+todavia: tres consultas seguidas a esa cuenta abrian el circuito, asi que
+consultas validas despues tambien recibian 503 por los siguientes 10 segundos.
+El fallback de BffWebClient capturaba cualquier Throwable sin distinguir un
+4xx real, que es una respuesta valida de negocio, de una caida real del
+servicio. Agregue ignore-exceptions: HttpClientErrorException a la config del
+circuito en config-server, pero eso solo evita que ese error cuente para abrir
+el circuito, no evita que el aspecto igual invoque el fallbackMethod para esa
+misma excepcion. La cuenta 1 seguia dando 503, aunque al menos el circuito ya
+no se abria por su culpa. La solucion final fue distinguir dentro del propio
+fallback: si el error es un HttpClientErrorException se relanza tal cual, para
+que lo capture un @ExceptionHandler nuevo que reenvia el status y el cuerpo
+reales de bff-web; cualquier otra causa, como timeout, conexion rechazada o
+circuito abierto, si se convierte en ServicioNoDisponibleException, o sea en
+503. Con ese cambio la cuenta inexistente volvio a dar 404 real, y el circuito
+dejo de abrirse por errores de negocio.
 
-HTTPS lo di casi por descontado, y funcionó como esperaba: el servidor 
-levantó en https://localhost:8443, y tuve que agregar el flag -k a cada 
-curl porque el certificado es autofirmado. No hubo ninguna sorpresa ahí, 
-pero de todas formas lo comprobé, porque desde S4 aprendí que dar algo 
-por resuelto sin verlo correr es la forma más fácil de llevarse una sorpresa después.
+--- Reflexion tecnica ---
 
---- Riesgos y recomendaciones
+  Los dos problemas del Circuit Breaker tienen algo en comun que recien me
+quedo claro al verlos en la practica: la anotacion @CircuitBreaker no es una
+sola pieza, son tres (la libreria base, el aspecto AOP que la procesa, y
+aspectjweaver para que Spring registre ese aspecto), y si falta cualquiera de
+las tres el codigo compila perfecto pero se comporta como si la anotacion ni
+existiera, sin ningun error visible hasta que se prueba el escenario de falla
+real. Ahi confirme otra vez algo que ya habia anotado en S5: dar algo por
+resuelto solo porque compila, sin verlo correr contra el escenario que de
+verdad le importa a la pauta, es la forma mas facil de llevarse una sorpresa.
 
-- El secreto usado para firmar los JWT (`jwt.secreto`) esta en
-  `application.properties` en texto plano, igual que las llaves de canal
-  en S4. Soporta bien el alcance que solicita esta actividad, pero en un entorno
-  real iria en una variable de entorno o un gestor de secretos.
-- El certificado HTTPS es autofirmado: esto sirve para demostrar el patron a
-  nivel de curso, pero hay que tener claro que no es valido 
-  para un dominio publico real ni para un navegador sin que 
-  el usuario acepte la excepcion de seguridad.
-- El token no tiene mecanismo de refresh: al vencer (15 minutos), el
-  canal debe volver a pedir uno nuevo con `POST /api/auth/token`. Para
-  esta actividad es aceptable porque no hay una sesion de usuario final
-  detras, solo un canal tecnico.
-- El saldo se sigue actualizando solo en memoria (decision heredada de
-  S4): al reiniciar la aplicacion, cualquier retiro hecho se pierde y
-  vuelve al valor original del CSV.
+  Lo del 404 fue distinto: no era una pieza faltante, era una suposicion mia
+que resulto incorrecta sobre lo que hace ignore-exceptions. Asumi que
+"ignorar" una excepcion en la config del circuito tambien significaba que el
+fallback la iba a ignorar, y no es asi. Son dos preguntas separadas, si esto
+cuenta como fallo para abrir el circuito y si esto deberia ir al fallback, que
+yo estaba tratando como si fueran una sola. Tuve que mirar el comportamiento
+real, ver que el 404 seguia convirtiendose en 503 pese a la config, para
+darme cuenta de que eran cosas distintas.
 
---- Repositorio en GitHub
+--- Riesgos y recomendaciones ---
+
+- jwt.secreto sigue en texto plano, ahora centralizado en config-server en vez
+  de repetido en cada application.properties como en S5. Es mas ordenado, pero
+  sigue sin ser un manejo de secretos real (variable de entorno o vault), lo
+  cual queda fuera del alcance de esta actividad.
+- El backend de config-server es native, es decir una carpeta local, no un
+  repositorio Git externo. Es valido para este alcance, pero en un entorno
+  real se perderia la trazabilidad de cambios de configuracion que da
+  versionar config-repo/ aparte.
+- Se retiro el HTTPS de S5 esta semana, como explique en la seccion de diseño.
+  Si una semana futura pide seguridad de transporte entre microservicios, hay
+  que resolver el problema de confianza del certificado autofirmado entre
+  clientes, no basta con volver a activar server.ssl.*.
+- Eureka corre como una sola instancia, sin peers: en desarrollo, con pocas
+  instancias registradas, el dashboard muestra el warning de
+  auto-preservacion ("EMERGENCY! ... RENEWALS ARE LESSER THAN THRESHOLD"). Es
+  el comportamiento esperado de Eureka con pocos nodos, no un error real.
+- El saldo se sigue actualizando solo en memoria, una decision heredada desde
+  S4: al reiniciar bff-web, cualquier retiro hecho se pierde y vuelve al valor
+  original del CSV.
+- El Circuit Breaker distingue un 4xx de una caida real solo en las dos
+  llamadas que hace BffWebClient hoy (cuenta, y transacciones o saldo o
+  retiro). Si mas adelante se agregan nuevas llamadas a bff-web, hay que
+  repetir el mismo patron a mano dentro de cada fallback
+  (if (error instanceof HttpClientErrorException) throw error;), no es algo
+  que quede resuelto solo por la configuracion.
+
+--- Repositorio en GitHub ---
 
 https://github.com/Zersource/banco-xyz-bff
