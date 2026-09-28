@@ -1,33 +1,38 @@
 package com.duoc.bancoxyzbff.transferencia.repository;
 
+import com.duoc.bancoxyzbff.exception.CuentaNoEncontradaException;
+
 import java.math.BigDecimal;
 
 /**
- * PUNTO DE INTEGRACION: no conozco el nombre real de tu entidad/repositorio
- * de cuentas (Cuenta, CuentaRepository, etc.) desde este chat, asi que la
- * saga habla con este puerto minimo en vez de asumirlo.
- *
- * TODO (Claude Code / integracion manual): implementar
- * CuentaSaldoPuertoImpl delegando a tu CuentaRepository real, por ejemplo:
- *
- *   @Autowired
- *   private CuentaRepository cuentaRepository;
- *
- *   public BigDecimal obtenerSaldo(Long cuentaId) {
- *       return cuentaRepository.findById(cuentaId)
- *           .orElseThrow(...)
- *           .getSaldo();
- *   }
- *
- *   public void actualizarSaldo(Long cuentaId, BigDecimal nuevoSaldo) {
- *       Cuenta cuenta = cuentaRepository.findById(cuentaId).orElseThrow(...);
- *       cuenta.setSaldo(nuevoSaldo);
- *       cuentaRepository.save(cuenta);
- *   }
+ * Puerto que usa la saga para hablar con las cuentas reales del proyecto
+ * (CuentaSaldoPuertoImpl delega en CuentaRepository). debitar/acreditar
+ * son atomicos: validan y modifican el saldo en un solo paso, para evitar
+ * la race condition de leer-y-escribir por separado bajo concurrencia
+ * (ver evidencia/s7_saga_jms/logs_concurrencia_antes.txt).
  */
 public interface CuentaSaldoPuerto {
 
+    /**
+     * @throws CuentaNoEncontradaException si la cuenta no existe.
+     */
     BigDecimal obtenerSaldo(Long cuentaId);
 
-    void actualizarSaldo(Long cuentaId, BigDecimal nuevoSaldo);
+    /**
+     * Debita monto de la cuenta de forma atomica.
+     *
+     * @return true si el debito se aplico (saldo suficiente); false si no
+     *         alcanzaba el saldo (no se modifica nada en ese caso).
+     * @throws IllegalArgumentException si monto es null o <= 0.
+     * @throws CuentaNoEncontradaException si la cuenta no existe.
+     */
+    boolean debitar(Long cuentaId, BigDecimal monto);
+
+    /**
+     * Acredita monto a la cuenta de forma atomica.
+     *
+     * @throws IllegalArgumentException si monto es null o <= 0.
+     * @throws CuentaNoEncontradaException si la cuenta no existe.
+     */
+    void acreditar(Long cuentaId, BigDecimal monto);
 }

@@ -13,13 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-
 /**
  * Paso 2 de la saga: consume DEBITO_REALIZADO e intenta acreditar la
- * cuenta destino. Si funciona, publica TRANSFERENCIA_COMPLETADA (fin
- * feliz). Si la cuenta destino no existe / falla, publica CREDITO_FALLIDO
- * para que CompensacionListener revierta el debito ya aplicado.
+ * cuenta destino de forma atomica (CuentaSaldoPuerto.acreditar). Si
+ * funciona, publica TRANSFERENCIA_COMPLETADA (fin feliz). Si la cuenta
+ * destino no existe / falla, publica CREDITO_FALLIDO para que
+ * CompensacionListener revierta el debito ya aplicado.
  */
 @Component
 public class CreditoListener {
@@ -43,9 +42,16 @@ public class CreditoListener {
                 .orElseThrow(() -> new IllegalStateException(
                         "Transaccion no encontrada: " + evento.getTransaccionId()));
 
+        // Guard de idempotencia: si JMS reentrega este mensaje y la
+        // transaccion ya avanzo mas alla de DEBITO_OK, no volver a acreditar.
+        if (transaccion.getEstado() != EstadoTransaccion.DEBITO_OK) {
+            log.warn("Mensaje de credito ignorado para transaccion {}: estado actual {} (no DEBITO_OK, probable reentrega de JMS)",
+                    evento.getTransaccionId(), transaccion.getEstado());
+            return;
+        }
+
         try {
-            BigDecimal saldoDestino = cuentaSaldoPuerto.obtenerSaldo(evento.getCuentaDestinoId());
-            cuentaSaldoPuerto.actualizarSaldo(evento.getCuentaDestinoId(), saldoDestino.add(evento.getMonto()));
+            cuentaSaldoPuerto.acreditar(evento.getCuentaDestinoId(), evento.getMonto());
 
             transaccion.setEstado(EstadoTransaccion.COMPLETADA);
             transaccionRepository.save(transaccion);

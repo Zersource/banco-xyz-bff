@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * Punto de entrada sincrono de la saga: recibe la solicitud de
  * transferencia, la persiste como PENDIENTE y dispara el primer evento.
@@ -31,5 +33,15 @@ public class TransferenciaController {
     public ResponseEntity<TransferenciaResponseDTO> consultarEstado(@PathVariable Long id) {
         TransferenciaResponseDTO respuesta = transferenciaService.consultarEstado(id);
         return ResponseEntity.ok(respuesta);
+    }
+
+    /**
+     * Handler local (no en el GlobalExceptionHandler compartido por los 3
+     * BFF, a pedido explicito): mapea las validaciones de entrada de la
+     * saga (monto <= 0, cuentas nulas, origen == destino) a 400.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> manejarSolicitudInvalida(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(Map.of("mensaje", ex.getMessage()));
     }
 }

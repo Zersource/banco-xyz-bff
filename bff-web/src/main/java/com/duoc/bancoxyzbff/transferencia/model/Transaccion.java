@@ -9,10 +9,10 @@ import java.time.LocalDateTime;
  * Es el "registro de estado" de la saga: cada listener actualiza este
  * registro a medida que va avanzando (o compensando) la transacción.
  *
- * NOTA: asumo que ya existe una entidad Cuenta con id Long y saldo
- * BigDecimal (ver CuentaRepository). Si el nombre real difiere,
- * ajustar cuentaOrigenId/cuentaDestinoId y las referencias en los
- * listeners y el servicio.
+ * cuentaOrigenId/cuentaDestinoId referencian Cuenta.cuentaId (Long) del
+ * modulo base; el saldo real de esa cuenta se maneja como Double (ver
+ * CuentaSaldoPuertoImpl), con conversion a BigDecimal solo dentro de la
+ * saga.
  */
 @Entity
 @Table(name = "transaccion")

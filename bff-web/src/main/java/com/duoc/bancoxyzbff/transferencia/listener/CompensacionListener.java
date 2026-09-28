@@ -13,13 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-
 /**
  * Paso compensatorio de la saga: consume CREDITO_FALLIDO y revierte el
  * debito que ya se le habia aplicado a la cuenta origen (esto es lo que
  * hace a este flujo una Saga y no solo un pipeline de eventos: hay una
  * accion compensatoria explicita ante el fallo de un paso posterior).
+ * Usa CuentaSaldoPuerto.acreditar (atomico) para devolver la plata.
  */
 @Component
 public class CompensacionListener {
@@ -43,8 +42,16 @@ public class CompensacionListener {
                 .orElseThrow(() -> new IllegalStateException(
                         "Transaccion no encontrada: " + evento.getTransaccionId()));
 
-        BigDecimal saldoOrigen = cuentaSaldoPuerto.obtenerSaldo(evento.getCuentaOrigenId());
-        cuentaSaldoPuerto.actualizarSaldo(evento.getCuentaOrigenId(), saldoOrigen.add(evento.getMonto()));
+        // Guard de idempotencia: la transaccion debe seguir en DEBITO_OK
+        // (ese es el estado normal mientras espera compensacion, ver
+        // CreditoListener). Si ya esta REVERTIDA, es una reentrega de JMS.
+        if (transaccion.getEstado() != EstadoTransaccion.DEBITO_OK) {
+            log.warn("Mensaje de compensacion ignorado para transaccion {}: estado actual {} (no DEBITO_OK, probable reentrega de JMS)",
+                    evento.getTransaccionId(), transaccion.getEstado());
+            return;
+        }
+
+        cuentaSaldoPuerto.acreditar(evento.getCuentaOrigenId(), evento.getMonto());
 
         transaccion.setEstado(EstadoTransaccion.REVERTIDA);
         transaccionRepository.save(transaccion);
