@@ -1,0 +1,35 @@
+2026-09-28T03:24:12.545-03:00  INFO 5481 --- [bff-web] [ntContainer#2-3] c.d.b.t.listener.DebitoListener          : Procesando debito para transaccion 1
+2026-09-28T03:24:12.665-03:00  INFO 5481 --- [bff-web] [ntContainer#2-3] c.d.b.t.listener.DebitoListener          : Debito realizado para transaccion 1
+2026-09-28T03:24:12.670-03:00  INFO 5481 --- [bff-web] [ntContainer#1-2] c.d.b.t.listener.CreditoListener         : Procesando credito para transaccion 1
+2026-09-28T03:24:12.674-03:00  INFO 5481 --- [bff-web] [ntContainer#1-2] c.d.b.t.listener.CreditoListener         : Transferencia 1 completada
+2026-09-28T03:24:12.675-03:00  INFO 5481 --- [bff-web] [ntContainer#4-2] c.d.b.t.l.EstadoTransaccionListener      : [NOTIFICACION] Transferencia 1 completada: 101 -> 102 por 100
+2026-09-28T03:24:29.015-03:00  INFO 5481 --- [bff-web] [ntContainer#2-1] c.d.b.t.listener.DebitoListener          : Procesando debito para transaccion 2
+2026-09-28T03:24:29.019-03:00  WARN 5481 --- [bff-web] [ntContainer#2-1] c.d.b.t.listener.DebitoListener          : Debito fallido para transaccion 2: fondos insuficientes
+2026-09-28T03:24:29.021-03:00  WARN 5481 --- [bff-web] [ntContainer#3-2] c.d.b.t.l.EstadoTransaccionListener      : [NOTIFICACION] Transferencia 2 fallida: Fondos insuficientes en cuenta origen
+2026-09-28T03:24:50.340-03:00  INFO 5481 --- [bff-web] [ntContainer#2-2] c.d.b.t.listener.DebitoListener          : Procesando debito para transaccion 3
+2026-09-28T03:24:50.344-03:00  INFO 5481 --- [bff-web] [ntContainer#2-2] c.d.b.t.listener.DebitoListener          : Debito realizado para transaccion 3
+2026-09-28T03:24:50.345-03:00  INFO 5481 --- [bff-web] [ntContainer#1-1] c.d.b.t.listener.CreditoListener         : Procesando credito para transaccion 3
+2026-09-28T03:24:50.348-03:00 ERROR 5481 --- [bff-web] [ntContainer#1-1] c.d.b.t.listener.CreditoListener         : Credito fallido para transaccion 3: No se encontro la cuenta con id: 9999
+2026-09-28T03:24:50.351-03:00  INFO 5481 --- [bff-web] [ntContainer#0-3] c.d.b.t.listener.CompensacionListener    : Compensando (revirtiendo debito) transaccion 3
+2026-09-28T03:24:50.356-03:00  INFO 5481 --- [bff-web] [ntContainer#0-3] c.d.b.t.listener.CompensacionListener    : Transaccion 3 revertida (compensacion aplicada)
+2026-09-28T03:24:50.357-03:00  WARN 5481 --- [bff-web] [ntContainer#5-2] c.d.b.t.l.EstadoTransaccionListener      : [NOTIFICACION] Transferencia 3 revertida (compensada): Error al acreditar cuenta destino: No se encontro la cuenta con id: 9999
+2026-09-28T03:25:05.847-03:00  INFO 5481 --- [bff-web] [ntContainer#2-3] c.d.b.t.listener.DebitoListener          : Procesando debito para transaccion 5
+2026-09-28T03:25:05.848-03:00  INFO 5481 --- [bff-web] [ntContainer#2-1] c.d.b.t.listener.DebitoListener          : Procesando debito para transaccion 4
+2026-09-28T03:25:05.850-03:00  INFO 5481 --- [bff-web] [ntContainer#2-2] c.d.b.t.listener.DebitoListener          : Procesando debito para transaccion 7
+2026-09-28T03:25:05.852-03:00  INFO 5481 --- [bff-web] [ntContainer#2-3] c.d.b.t.listener.DebitoListener          : Debito realizado para transaccion 5
+2026-09-28T03:25:05.854-03:00  INFO 5481 --- [bff-web] [ntContainer#2-1] c.d.b.t.listener.DebitoListener          : Debito realizado para transaccion 4
+2026-09-28T03:25:05.854-03:00  INFO 5481 --- [bff-web] [ntContainer#1-3] c.d.b.t.listener.CreditoListener         : Procesando credito para transaccion 5
+2026-09-28T03:25:05.854-03:00  INFO 5481 --- [bff-web] [ntContainer#2-3] c.d.b.t.listener.DebitoListener          : Procesando debito para transaccion 6
+2026-09-28T03:25:05.855-03:00  INFO 5481 --- [bff-web] [ntContainer#2-2] c.d.b.t.listener.DebitoListener          : Debito realizado para transaccion 7
+2026-09-28T03:25:05.856-03:00  INFO 5481 --- [bff-web] [ntContainer#1-2] c.d.b.t.listener.CreditoListener         : Procesando credito para transaccion 4
+2026-09-28T03:25:05.858-03:00  INFO 5481 --- [bff-web] [ntContainer#2-3] c.d.b.t.listener.DebitoListener          : Debito realizado para transaccion 6
+2026-09-28T03:25:05.858-03:00  INFO 5481 --- [bff-web] [ntContainer#1-1] c.d.b.t.listener.CreditoListener         : Procesando credito para transaccion 7
+2026-09-28T03:25:05.859-03:00  INFO 5481 --- [bff-web] [ntContainer#1-3] c.d.b.t.listener.CreditoListener         : Transferencia 5 completada
+2026-09-28T03:25:05.859-03:00  INFO 5481 --- [bff-web] [ntContainer#1-2] c.d.b.t.listener.CreditoListener         : Transferencia 4 completada
+2026-09-28T03:25:05.860-03:00  INFO 5481 --- [bff-web] [ntContainer#4-1] c.d.b.t.l.EstadoTransaccionListener      : [NOTIFICACION] Transferencia 4 completada: 105 -> 106 por 1
+2026-09-28T03:25:05.861-03:00  INFO 5481 --- [bff-web] [ntContainer#1-3] c.d.b.t.listener.CreditoListener         : Procesando credito para transaccion 6
+2026-09-28T03:25:05.861-03:00  INFO 5481 --- [bff-web] [ntContainer#4-2] c.d.b.t.l.EstadoTransaccionListener      : [NOTIFICACION] Transferencia 5 completada: 105 -> 106 por 4
+2026-09-28T03:25:05.863-03:00  INFO 5481 --- [bff-web] [ntContainer#1-1] c.d.b.t.listener.CreditoListener         : Transferencia 7 completada
+2026-09-28T03:25:05.864-03:00  INFO 5481 --- [bff-web] [ntContainer#4-1] c.d.b.t.l.EstadoTransaccionListener      : [NOTIFICACION] Transferencia 7 completada: 105 -> 106 por 2
+2026-09-28T03:25:05.865-03:00  INFO 5481 --- [bff-web] [ntContainer#1-3] c.d.b.t.listener.CreditoListener         : Transferencia 6 completada
+2026-09-28T03:25:05.865-03:00  INFO 5481 --- [bff-web] [ntContainer#4-2] c.d.b.t.l.EstadoTransaccionListener      : [NOTIFICACION] Transferencia 6 completada: 105 -> 106 por 3
