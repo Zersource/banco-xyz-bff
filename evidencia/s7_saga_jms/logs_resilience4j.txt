@@ -1,0 +1,170 @@
+===== Evidencia Resilience4j (Circuit Breaker) - Exp3 S6, verificado en rama exp3-s7-saga-jms =====
+Mon Sep 28 03:43:30 -03 2026
+
+===== 1) Stack completo levantado, registrado en Eureka =====
+<name>BFF-WEB</name>
+<status>UP</status>
+<name>BFF-CAJERO</name>
+<status>UP</status>
+<name>BFF-MOVIL</name>
+<status>UP</status>
+
+===== 2) Token de canal MOVIL =====
+{"token":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJNT1ZJTCIsImNhbmFsIjoiTU9WSUwiLCJpYXQiOjE3OTA1Nzc4MTUsImV4cCI6MTc5MDU3ODcxNX0.hVAiu8ZSWqt6id10Sx4If-3b1DnaUisB6suGEu1BgTkJ0h3JHmQPSbZAmt8ZXYK9oGx8SUvBMyPvReREFdXEoQ","canal":"MOVIL","expiraEnMinutos":15}
+
+===== 3) Llamada normal (bff-web arriba): GET /api/movil/cuentas/101 via bff-movil =====
+HTTP/1.1 200 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 28 Sep 2026 06:43:42 GMT
+
+{"cuentaId":101,"saldo":5000.0,"tipo":"ahorro","ultimosMovimientos":[{"fecha":"2024-01-08","monto":1000.0,"tipo":"credito"},{"fecha":"2024-01-07","monto":3000.0,"tipo":"debito"},{"fecha":"2024-01-06","monto":1200.0,"tipo":"credito"},{"fecha":"2024-01-05","monto":700.0,"tipo":"debito"},{"fecha":"2024-01-05","monto":700.0,"tipo":"debito"}]}
+
+===== 4) Deteniendo bff-web (kill del proceso) =====
+Mon Sep 28 03:43:48 -03 2026
+
+===== 5) bff-web caido: llamadas repetidas hasta que el circuito abra =====
+--- intento 1 ---
+03:44:06.3N
+HTTP/1.1 503 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 28 Sep 2026 06:44:06 GMT
+Connection: close
+
+{"timestamp":"2026-09-28T03:44:06.798128","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
+--- intento 2 ---
+03:44:06.3N
+HTTP/1.1 503 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 28 Sep 2026 06:44:06 GMT
+Connection: close
+
+{"timestamp":"2026-09-28T03:44:06.820371","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
+--- intento 3 ---
+03:44:06.3N
+HTTP/1.1 503 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 28 Sep 2026 06:44:06 GMT
+Connection: close
+
+{"timestamp":"2026-09-28T03:44:06.836232","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
+--- intento 4 ---
+03:44:06.3N
+HTTP/1.1 503 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 28 Sep 2026 06:44:06 GMT
+Connection: close
+
+{"timestamp":"2026-09-28T03:44:06.852895","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
+--- intento 5 ---
+03:44:06.3N
+HTTP/1.1 503 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 28 Sep 2026 06:44:06 GMT
+Connection: close
+
+{"timestamp":"2026-09-28T03:44:06.868401","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
+--- intento 6 ---
+03:44:06.3N
+HTTP/1.1 503 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 28 Sep 2026 06:44:06 GMT
+Connection: close
+
+{"timestamp":"2026-09-28T03:44:06.884413","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
+
+===== 6) Logs Resilience4j (bff-movil): transicion de estado CLOSED -> OPEN =====
+2026-09-28T03:43:42.338-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-1] i.g.r.c.i.CircuitBreakerStateMachine     : CircuitBreaker 'bffWeb' succeeded:
+2026-09-28T03:43:42.348-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-1] i.g.r.c.i.CircuitBreakerStateMachine     : Event SUCCESS published: 2026-09-28T03:43:42.347308-03:00[America/Santiago]: CircuitBreaker 'bffWeb' recorded a successful call. Elapsed time: 145 ms
+2026-09-28T03:43:42.361-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-1] i.g.r.c.i.CircuitBreakerStateMachine     : CircuitBreaker 'bffWeb' succeeded:
+2026-09-28T03:43:42.361-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-1] i.g.r.c.i.CircuitBreakerStateMachine     : Event SUCCESS published: 2026-09-28T03:43:42.361828-03:00[America/Santiago]: CircuitBreaker 'bffWeb' recorded a successful call. Elapsed time: 12 ms
+2026-09-28T03:44:06.791-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-3] i.g.r.c.i.CircuitBreakerStateMachine     : CircuitBreaker 'bffWeb' recorded an exception as failure:
+2026-09-28T03:44:06.796-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-3] i.g.r.c.i.CircuitBreakerStateMachine     : Event ERROR published: 2026-09-28T03:44:06.796610-03:00[America/Santiago]: CircuitBreaker 'bffWeb' recorded an error: 'org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://bff-web/interno/cuentas/101": Connection refused'. Elapsed time: 21 ms
+2026-09-28T03:44:06.815-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-4] i.g.r.c.i.CircuitBreakerStateMachine     : CircuitBreaker 'bffWeb' recorded an exception as failure:
+2026-09-28T03:44:06.816-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-4] i.g.r.c.i.CircuitBreakerStateMachine     : Event ERROR published: 2026-09-28T03:44:06.816564-03:00[America/Santiago]: CircuitBreaker 'bffWeb' recorded an error: 'org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://bff-web/interno/cuentas/101": Connection refused'. Elapsed time: 0 ms
+2026-09-28T03:44:06.816-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-4] i.g.r.c.i.CircuitBreakerStateMachine     : Event FAILURE_RATE_EXCEEDED published: 2026-09-28T03:44:06.816929-03:00[America/Santiago]: CircuitBreaker 'bffWeb' exceeded failure rate threshold. Current failure rate: 50.0
+2026-09-28T03:44:06.820-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-4] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-09-28T03:44:06.820081-03:00[America/Santiago]: CircuitBreaker 'bffWeb' changed state from CLOSED to OPEN
+2026-09-28T03:44:06.835-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-5] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-09-28T03:44:06.835974-03:00[America/Santiago]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+2026-09-28T03:44:06.852-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-6] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-09-28T03:44:06.852684-03:00[America/Santiago]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+2026-09-28T03:44:06.868-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-7] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-09-28T03:44:06.868183-03:00[America/Santiago]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+2026-09-28T03:44:06.884-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-8] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-09-28T03:44:06.884137-03:00[America/Santiago]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+
+===== 7) bff-web reactivado (arriba desde 03:44:35), wait-duration-in-open-state=10s ya paso =====
+Llamadas para forzar la transicion OPEN -> HALF_OPEN -> CLOSED (permitted-number-of-calls-in-half-open-state=3)
+--- intento half-open 1 ---
+03:44:51.3N
+HTTP/1.1 503 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 28 Sep 2026 06:44:51 GMT
+Connection: close
+
+{"timestamp":"2026-09-28T03:44:51.04326","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
+--- intento half-open 2 ---
+03:44:51.3N
+HTTP/1.1 503 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 28 Sep 2026 06:44:51 GMT
+Connection: close
+
+{"timestamp":"2026-09-28T03:44:51.061744","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
+--- intento half-open 3 ---
+03:44:51.3N
+HTTP/1.1 503 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 28 Sep 2026 06:44:51 GMT
+Connection: close
+
+{"timestamp":"2026-09-28T03:44:51.079237","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
+
+===== 8) Reintento de recuperacion (registry cache de bff-movil ya deberia ver a bff-web) =====
+--- intento 1 ---
+03:48:33.3N
+HTTP/1.1 200 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 28 Sep 2026 06:48:33 GMT
+
+{"cuentaId":101,"saldo":5000.0,"tipo":"ahorro","ultimosMovimientos":[{"fecha":"2024-01-08","monto":1000.0,"tipo":"credito"},{"fecha":"2024-01-07","monto":3000.0,"tipo":"debito"},{"fecha":"2024-01-06","monto":1200.0,"tipo":"credito"},{"fecha":"2024-01-05","monto":700.0,"tipo":"debito"},{"fecha":"2024-01-05","monto":700.0,"tipo":"debito"}]}
+--- intento 2 ---
+03:48:33.3N
+HTTP/1.1 200 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 28 Sep 2026 06:48:33 GMT
+
+{"cuentaId":101,"saldo":5000.0,"tipo":"ahorro","ultimosMovimientos":[{"fecha":"2024-01-08","monto":1000.0,"tipo":"credito"},{"fecha":"2024-01-07","monto":3000.0,"tipo":"debito"},{"fecha":"2024-01-06","monto":1200.0,"tipo":"credito"},{"fecha":"2024-01-05","monto":700.0,"tipo":"debito"},{"fecha":"2024-01-05","monto":700.0,"tipo":"debito"}]}
+--- intento 3 ---
+03:48:33.3N
+HTTP/1.1 200 
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 28 Sep 2026 06:48:33 GMT
+
+{"cuentaId":101,"saldo":5000.0,"tipo":"ahorro","ultimosMovimientos":[{"fecha":"2024-01-08","monto":1000.0,"tipo":"credito"},{"fecha":"2024-01-07","monto":3000.0,"tipo":"debito"},{"fecha":"2024-01-06","monto":1200.0,"tipo":"credito"},{"fecha":"2024-01-05","monto":700.0,"tipo":"debito"},{"fecha":"2024-01-05","monto":700.0,"tipo":"debito"}]}
+
+===== 9) Recuperacion confirmada: OPEN -> HALF_OPEN -> CLOSED (todas las transiciones) =====
+2026-09-28T03:44:06.820-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-4] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-09-28T03:44:06.820081-03:00[America/Santiago]: CircuitBreaker 'bffWeb' changed state from CLOSED to OPEN
+2026-09-28T03:44:51.040-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-9] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-09-28T03:44:51.040176-03:00[America/Santiago]: CircuitBreaker 'bffWeb' changed state from OPEN to HALF_OPEN
+2026-09-28T03:44:51.079-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-1] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-09-28T03:44:51.079024-03:00[America/Santiago]: CircuitBreaker 'bffWeb' changed state from HALF_OPEN to OPEN
+2026-09-28T03:48:33.219-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-2] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-09-28T03:48:33.219381-03:00[America/Santiago]: CircuitBreaker 'bffWeb' changed state from OPEN to HALF_OPEN
+2026-09-28T03:48:33.454-03:00 DEBUG 6305 --- [bff-movil] [nio-8082-exec-4] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-09-28T03:48:33.454134-03:00[America/Santiago]: CircuitBreaker 'bffWeb' changed state from HALF_OPEN to CLOSED
+
+===== NOTA: actuator no esta expuesto en bff-movil/bff-cajero (no hay spring-boot-starter-actuator ===
+en el pom), por eso no hay paso de /actuator/circuitbreakers en esta evidencia; se uso el log DEBUG
+de io.github.resilience4j (activado en runtime via -Dlogging.level.io.github.resilience4j=DEBUG,
+sin tocar ningun archivo de config) como fuente de verdad del estado del breaker.
+
+===== NOTA 2: entre 03:44:51 y 03:48:33 el circuito volvio a OPEN una vez en el primer intento
+de HALF_OPEN porque el cache de Eureka de bff-movil (fetch cada 30s) todavia no habia visto la
+re-registracion de bff-web (que se reinicio con una instancia/puerto nuevo). No es un fallo del
+Circuit Breaker: es la latencia normal de propagacion del Service Discovery. Con bff-web ya
+visible en el registry, el segundo ciclo de HALF_OPEN cerro el circuito sin problema.

@@ -1,0 +1,116 @@
+===== Evidencia ANTES del fix (codigo original, CuentaSaldoPuertoImpl.actualizarSaldo sin sincronizar) =====
+Commit base: 7ff886d Exp3 S7: saga coreografiada con JMS (Artemis embebido) para transferencias
+Mon Sep 28 04:07:42 -03 2026
+===== Prueba de concurrencia: 105 -> 106, montos 10 20 30 40 =====
+Mon Sep 28 04:07:42 -03 2026
+Saldo 105 (origen) antes:  7000.0
+Saldo 106 (destino) antes: 5000.0
+Disparando 4 transferencias en paralelo...
+  monto=10 -> transaccionId=1
+  monto=20 -> transaccionId=4
+  monto=30 -> transaccionId=3
+  monto=40 -> transaccionId=2
+Esperando a que las 4 transacciones lleguen a un estado terminal...
+Estados finales:
+  id=1: {"transaccionId":1,"estado":"COMPLETADA","mensaje":null}
+  id=4: {"transaccionId":4,"estado":"COMPLETADA","mensaje":null}
+  id=3: {"transaccionId":3,"estado":"COMPLETADA","mensaje":null}
+  id=2: {"transaccionId":2,"estado":"COMPLETADA","mensaje":null}
+
+Cuenta 105 (origen):  antes=7000.0  esperado=6900.0  real=6940.0
+Cuenta 106 (destino): antes=5000.0  esperado=5100.0  real=5030.0
+RESULTADO: DESCUADRE (saldo real != saldo esperado)
+===== fin de la corrida =====
+
+
+===== corrida 2 =====
+===== Prueba de concurrencia: 105 -> 106, montos 10 20 30 40 =====
+Mon Sep 28 04:07:50 -03 2026
+Saldo 105 (origen) antes:  6940.0
+Saldo 106 (destino) antes: 5030.0
+Disparando 4 transferencias en paralelo...
+  monto=10 -> transaccionId=5
+  monto=20 -> transaccionId=6
+  monto=30 -> transaccionId=8
+  monto=40 -> transaccionId=7
+Esperando a que las 4 transacciones lleguen a un estado terminal...
+Estados finales:
+  id=5: {"transaccionId":5,"estado":"COMPLETADA","mensaje":null}
+  id=6: {"transaccionId":6,"estado":"COMPLETADA","mensaje":null}
+  id=8: {"transaccionId":8,"estado":"COMPLETADA","mensaje":null}
+  id=7: {"transaccionId":7,"estado":"COMPLETADA","mensaje":null}
+
+Cuenta 105 (origen):  antes=6940.0  esperado=6840.0  real=6840.0
+Cuenta 106 (destino): antes=5030.0  esperado=5130.0  real=5120.0
+RESULTADO: DESCUADRE (saldo real != saldo esperado)
+===== fin de la corrida =====
+
+
+===== corrida 3 =====
+===== Prueba de concurrencia: 105 -> 106, montos 10 20 30 40 =====
+Mon Sep 28 04:07:51 -03 2026
+Saldo 105 (origen) antes:  6840.0
+Saldo 106 (destino) antes: 5120.0
+Disparando 4 transferencias en paralelo...
+  monto=10 -> transaccionId=9
+  monto=20 -> transaccionId=11
+  monto=30 -> transaccionId=12
+  monto=40 -> transaccionId=10
+Esperando a que las 4 transacciones lleguen a un estado terminal...
+Estados finales:
+  id=9: {"transaccionId":9,"estado":"COMPLETADA","mensaje":null}
+  id=11: {"transaccionId":11,"estado":"COMPLETADA","mensaje":null}
+  id=12: {"transaccionId":12,"estado":"COMPLETADA","mensaje":null}
+  id=10: {"transaccionId":10,"estado":"COMPLETADA","mensaje":null}
+
+Cuenta 105 (origen):  antes=6840.0  esperado=6740.0  real=6740.0
+Cuenta 106 (destino): antes=5120.0  esperado=5220.0  real=5220.0
+RESULTADO: OK (saldo real = saldo esperado en ambas cuentas)
+===== fin de la corrida =====
+
+
+===== corrida 4 =====
+===== Prueba de concurrencia: 105 -> 106, montos 10 20 30 40 =====
+Mon Sep 28 04:07:51 -03 2026
+Saldo 105 (origen) antes:  6740.0
+Saldo 106 (destino) antes: 5220.0
+Disparando 4 transferencias en paralelo...
+  monto=10 -> transaccionId=13
+  monto=20 -> transaccionId=15
+  monto=30 -> transaccionId=16
+  monto=40 -> transaccionId=14
+Esperando a que las 4 transacciones lleguen a un estado terminal...
+Estados finales:
+  id=13: {"transaccionId":13,"estado":"COMPLETADA","mensaje":null}
+  id=15: {"transaccionId":15,"estado":"COMPLETADA","mensaje":null}
+  id=16: {"transaccionId":16,"estado":"COMPLETADA","mensaje":null}
+  id=14: {"transaccionId":14,"estado":"COMPLETADA","mensaje":null}
+
+Cuenta 105 (origen):  antes=6740.0  esperado=6640.0  real=6650.0
+Cuenta 106 (destino): antes=5220.0  esperado=5320.0  real=5310.0
+RESULTADO: DESCUADRE (saldo real != saldo esperado)
+===== fin de la corrida =====
+
+
+===== corrida 5 =====
+===== Prueba de concurrencia: 105 -> 106, montos 10 20 30 40 =====
+Mon Sep 28 04:07:52 -03 2026
+Saldo 105 (origen) antes:  6650.0
+Saldo 106 (destino) antes: 5310.0
+Disparando 4 transferencias en paralelo...
+  monto=10 -> transaccionId=18
+  monto=20 -> transaccionId=20
+  monto=30 -> transaccionId=19
+  monto=40 -> transaccionId=17
+Esperando a que las 4 transacciones lleguen a un estado terminal...
+Estados finales:
+  id=18: {"transaccionId":18,"estado":"COMPLETADA","mensaje":null}
+  id=20: {"transaccionId":20,"estado":"COMPLETADA","mensaje":null}
+  id=19: {"transaccionId":19,"estado":"COMPLETADA","mensaje":null}
+  id=17: {"transaccionId":17,"estado":"COMPLETADA","mensaje":null}
+
+Cuenta 105 (origen):  antes=6650.0  esperado=6550.0  real=6550.0
+Cuenta 106 (destino): antes=5310.0  esperado=5410.0  real=5340.0
+RESULTADO: DESCUADRE (saldo real != saldo esperado)
+===== fin de la corrida =====
+
