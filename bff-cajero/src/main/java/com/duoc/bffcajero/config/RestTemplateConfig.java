@@ -11,6 +11,9 @@ public class RestTemplateConfig {
     @Bean
     @LoadBalanced
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();
+        // Reenvia el token de la peticion entrante hacia bff-web
+        restTemplate.getInterceptors().add(new ReenvioTokenInterceptor());
+        return restTemplate;
     }
 }

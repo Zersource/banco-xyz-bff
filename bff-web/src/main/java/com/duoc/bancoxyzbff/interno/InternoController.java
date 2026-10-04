@@ -21,11 +21,9 @@ import java.util.List;
  * le piden la informacion a este servicio por HTTP, protegidos con
  * Circuit Breaker en el lado del que consume.
  *
- * No lleva CanalAuthInterceptor: es trafico interno entre microservicios,
- * no trafico de un canal externo (web/movil/cajero), que es lo que ese
- * interceptor protege. Queda documentado como una simplificacion propia
- * del alcance de esta semana (el foco es Config Server, Eureka y
- * Circuit Breaker, no seguridad de comunicacion entre servicios).
+ * Protegido con SeguridadConfig: exige un token valido, pero acepta el
+ * scope de cualquiera de los 3 canales (limitacion conocida), porque
+ * bff-movil y bff-cajero reenvian el token que recibieron.
  */
 @RestController
 @RequestMapping("/interno")

@@ -13,16 +13,6 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(TokenInvalidoException.class)
-    public ResponseEntity<Map<String, Object>> manejarTokenInvalido(TokenInvalidoException ex) {
-        return construirRespuesta(HttpStatus.UNAUTHORIZED, ex.getMessage());
-    }
-
-    @ExceptionHandler(AccesoCanalNoAutorizadoException.class)
-    public ResponseEntity<Map<String, Object>> manejarAccesoNoAutorizado(AccesoCanalNoAutorizadoException ex) {
-        return construirRespuesta(HttpStatus.FORBIDDEN, ex.getMessage());
-    }
-
     @ExceptionHandler(CuentaNoEncontradaException.class)
     public ResponseEntity<Map<String, Object>> manejarCuentaNoEncontrada(CuentaNoEncontradaException ex) {
         return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());

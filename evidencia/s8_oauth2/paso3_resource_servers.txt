@@ -1,0 +1,89 @@
+
+################ SECCION FUNCIONAL ################
+Sun Oct  4 01:34:45 -03 2026
+== 0. Servicios registrados en Eureka
+    <name>BFF-WEB</name>
+      <status>UP</status>
+        <name>MyOwn</name>
+    <name>BFF-CAJERO</name>
+      <status>UP</status>
+        <name>MyOwn</name>
+    <name>BFF-MOVIL</name>
+      <status>UP</status>
+        <name>MyOwn</name>
+== 1. Access token de cada canal (auth-server, client_credentials)
+token web:    eyJraWQiOiI4ZGIwMmVkNi04NTI0LT...
+token movil:  eyJraWQiOiI4ZGIwMmVkNi04NTI0LT...
+token cajero: eyJraWQiOiI4ZGIwMmVkNi04NTI0LT...
+== 2. Endpoint de cada canal con su token (esperado 200)
+web    /api/web/cuentas              -> 200
+movil  /api/movil/cuentas/101        -> 200
+cajero /api/cajero/cuentas/101/saldo -> 200
+== 3. Sin token (esperado 401)
+web    /api/web/cuentas                -> 401
+movil  /api/movil/cuentas/101          -> 401
+cajero /api/cajero/cuentas/101/saldo   -> 401
+web    /interno/cuentas/101/saldo      -> 401
+web    POST /transferencias            -> 401
+== 4. Token de otro canal (esperado 403)
+token movil en bff-web    -> 403
+token cajero en bff-movil -> 403
+token web en bff-cajero   -> 403
+== 4b. Token SIN scope (cliente-movil sin parametro scope) en bff-movil (esperado 403)
+movil /api/movil/cuentas/101 -> 403
+== 4c. Token basura (Bearer abc) (esperado 401)
+movil /api/movil/cuentas/101 -> 401
+== 5. Saga camino feliz: 101 -> 102, monto 10 (esperado COMPLETADA)
+saldo 101 antes:   4990.0
+saldo 102 antes:   8010.0
+respuesta inicial: {"transaccionId":3,"estado":"PENDIENTE","mensaje":"Transferencia recibida, procesando de forma asincrona"}
+estado final:      COMPLETADA
+saldo 101 despues: 4980.0
+saldo 102 despues: 8020.0
+== 6. Saga compensacion: 101 -> 999 (destino inexistente), monto 10 (esperado REVERTIDA)
+saldo 101 antes:   4980.0
+respuesta inicial: {"transaccionId":4,"estado":"PENDIENTE","mensaje":"Transferencia recibida, procesando de forma asincrona"}
+estado final:      REVERTIDA
+saldo 101 despues: 4980.0  (debe ser igual al de antes)
+
+===== fin de la prueba =====
+
+################ PRUEBAS ADICIONALES DEL PASO 3 ################
+
+== a. Reenvio del token: bff-movil -> bff-web (/interno) con token movil (esperado 200 con cuerpo)
+$ curl -s -w "\nHTTP %{http_code}\n" -H "Authorization: Bearer <token movil>" http://localhost:8082/api/movil/cuentas/101
+{"cuentaId":101,"saldo":4980.0,"tipo":"ahorro","ultimosMovimientos":[{"fecha":"2024-01-08","monto":1000.0,"tipo":"credito"},{"fecha":"2024-01-07","monto":3000.0,"tipo":"debito"},{"fecha":"2024-01-06","monto":1200.0,"tipo":"credito"},{"fecha":"2024-01-05","monto":700.0,"tipo":"debito"},{"fecha":"2024-01-05","monto":700.0,"tipo":"debito"}]}
+HTTP 200
+
+== b. Cuerpo JSON real de un 401 y de un 403
+$ (401) curl -s -i http://localhost:8082/api/movil/cuentas/101   [sin token]
+HTTP/1.1 401 
+Content-Type: application/json;charset=ISO-8859-1
+{"timestamp":"2026-10-04T01:35:01.878226","estado":401,"mensaje":"Token ausente, invalido o vencido"}
+$ (401) token basura
+HTTP/1.1 401 
+Content-Type: application/json;charset=ISO-8859-1
+{"timestamp":"2026-10-04T01:35:01.890608","estado":401,"mensaje":"Token ausente, invalido o vencido"}
+$ (403) token cajero en bff-movil
+HTTP/1.1 403 
+Content-Type: application/json;charset=ISO-8859-1
+{"timestamp":"2026-10-04T01:35:01.904009","estado":403,"mensaje":"El token no tiene el scope requerido para este canal"}
+
+== c. POST /api/auth/token en bff-web ya no existe
+$ curl -s -w "\nHTTP %{http_code}\n" -X POST -H "Content-Type: application/json" -d {canal,clave} http://localhost:8081/api/auth/token   [sin token]
+{"timestamp":"2026-10-04T01:35:01.918147","estado":401,"mensaje":"Token ausente, invalido o vencido"}
+HTTP 401
+$ (mismo POST con token web valido, para distinguir "no existe" de "no autorizado")
+{"timestamp":"2026-10-04T04:35:01.958+00:00","status":404,"error":"Not Found","path":"/api/auth/token"}
+HTTP 404
+
+== d. POST protegido con reenvio del token: retiro de 50 en la cuenta 103 via bff-cajero
+saldo 103 antes:   12000.0
+$ curl -s -w "\nHTTP %{http_code}\n" -X POST -H "Authorization: Bearer <token cajero>" -H "Content-Type: application/json" -d {"monto":50} http://localhost:8083/api/cajero/cuentas/103/retiro
+{"cuentaId":103,"montoRetirado":50.0,"saldoResultante":11950.0}
+HTTP 200
+saldo 103 despues: 11950.0
+$ mismo POST SIN token (esperado 401)
+{"timestamp":"2026-10-04T01:35:02.081026","estado":401,"mensaje":"Token ausente, invalido o vencido"}
+HTTP 401
+saldo 103 tras el intento sin token: 11950.0  (no debe cambiar)

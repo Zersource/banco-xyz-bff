@@ -26,21 +26,6 @@ public class GlobalExceptionHandler {
         return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
-    @ExceptionHandler(AccesoCanalNoAutorizadoException.class)
-    public ResponseEntity<Map<String, Object>> manejarAccesoNoAutorizado(AccesoCanalNoAutorizadoException ex) {
-        return construirRespuesta(HttpStatus.FORBIDDEN, ex.getMessage());
-    }
-
-    @ExceptionHandler(TokenInvalidoException.class)
-    public ResponseEntity<Map<String, Object>> manejarTokenInvalido(TokenInvalidoException ex) {
-        return construirRespuesta(HttpStatus.UNAUTHORIZED, ex.getMessage());
-    }
-
-    @ExceptionHandler(CredencialesCanalInvalidasException.class)
-    public ResponseEntity<Map<String, Object>> manejarCredencialesInvalidas(CredencialesCanalInvalidasException ex) {
-        return construirRespuesta(HttpStatus.UNAUTHORIZED, ex.getMessage());
-    }
-
     private ResponseEntity<Map<String, Object>> construirRespuesta(HttpStatus estado, String mensaje) {
         Map<String, Object> cuerpo = new LinkedHashMap<>();
         cuerpo.put("timestamp", LocalDateTime.now());

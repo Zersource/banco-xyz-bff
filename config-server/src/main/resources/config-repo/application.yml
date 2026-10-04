@@ -11,9 +11,11 @@ eureka:
   instance:
     prefer-ip-address: true
 
-# Llave y expiracion del JWT: deben ser iguales en los 3 microservicios,
-# porque bff-web firma el token y bff-movil/bff-cajero solo lo validan
-# (misma llave simetrica HMAC).
-jwt:
-  secreto: una-llave-secreta-de-al-menos-32-caracteres-para-hmac-sha256-bancoxyz
-  expiracion-minutos: 15
+# Los 3 BFF validan los access tokens del auth-server con su clave publica (JWKS).
+# No se valida el emisor (iss), solo la firma, para que funcione igual en local y en Docker.
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:9000/oauth2/jwks
