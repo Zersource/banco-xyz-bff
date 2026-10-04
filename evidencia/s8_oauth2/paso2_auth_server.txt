@@ -1,0 +1,50 @@
+===== Paso 2 S8: pruebas del auth-server (puerto 9000) =====
+Sun Oct  4 01:21:44 -03 2026
+
+##### 3a. Token por cliente (client_credentials)
+
+$ curl -s -w '\nHTTP %{http_code}\n' -u cliente-web:WEB-KEY-2024 -d grant_type=client_credentials -d scope=web http://localhost:9000/oauth2/token
+{"access_token":"eyJraWQiOiJhMmUyYzQ1YS05NzkzLTQ5OWYtYWM0NC1kYzZhNjg1YjZjYzgiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJjbGllbnRlLXdlYiIsImF1ZCI6ImNsaWVudGUtd2ViIiwibmJmIjoxNzkxMDg3NzA0LCJzY29wZSI6WyJ3ZWIiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo5MDAwIiwiZXhwIjoxNzkxMDg4NjA0LCJpYXQiOjE3OTEwODc3MDQsImp0aSI6IjU2ZjU1OGRlLWY1OTUtNDlhMS1iZTgyLTY0MDI5ZTE5ZTIyOCJ9.j_jKblkKtlnvU8pWd7iM_jIOdGJEDVUk8II3ZMLpeEpygAj9G-wdxfrKO0pxjlZg6ZCJ8ntBPOdIfzLNimC02MQ8zWW6_OVOwCB2EYo_21b3fMqOuZ9jnj98LEat25dR1Zg_WP_Dbh0-9HB6doGEqnMyDG3ez3n9aXDy8GMCKhLO8G3_kmB8ndhHa0JwaGhRnHUUHLxakn-JG2KfONLE9Adyc-3zqZoHJt__pKaEsorRNPPMeA0Zp5fTBNz366oetZOsz5BiouI4dqsavdiOeTju6Ut-djoxPbo6UNXQlyeoZKuBRTrXndg6dFr3AVCv9GLQS55V7eRpiP1_vHQz3g","scope":"web","token_type":"Bearer","expires_in":899}
+HTTP 200
+
+$ curl -s -w '\nHTTP %{http_code}\n' -u cliente-movil:MOVIL-KEY-2024 -d grant_type=client_credentials -d scope=movil http://localhost:9000/oauth2/token
+{"access_token":"eyJraWQiOiJhMmUyYzQ1YS05NzkzLTQ5OWYtYWM0NC1kYzZhNjg1YjZjYzgiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJjbGllbnRlLW1vdmlsIiwiYXVkIjoiY2xpZW50ZS1tb3ZpbCIsIm5iZiI6MTc5MTA4NzcwNCwic2NvcGUiOlsibW92aWwiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo5MDAwIiwiZXhwIjoxNzkxMDg4NjA0LCJpYXQiOjE3OTEwODc3MDQsImp0aSI6ImFjZWQ0NTIxLTVjZjQtNGM0Yy1hYzMxLWE2NzYxMzNhOTNlNiJ9.A5G6n4SxmXnwXOP2J9uYbq7nIiRa92vxgirkvDOe9KViJ4P506sbFgpLs5ulObg52zX_zajUGA1sJBDflL2eIbWjAONPa9xEI6qkFHn06gSoHUTX6QCBGhT9e_dTlgNCYpGNBGEYp0t3t2EYmNV1PGZSyBYRJqH3zmEj-6DDTj374YpYcb9-v_yDWLrbsfHLOsckOWEank90njMpO5cZSfalRcvECe40V1-GPLth1nuGwXzZFAOo6XGnOppuabuAHmHD3QFkyl8dPqygxY_F3RM2LECNSjMi9vQxkbq0ptyBkHf9fgDYtjidBS9Nigrpf006JdS6CLVrv7pEqb8YFA","scope":"movil","token_type":"Bearer","expires_in":899}
+HTTP 200
+
+$ curl -s -w '\nHTTP %{http_code}\n' -u cliente-cajero:CAJERO-KEY-2024 -d grant_type=client_credentials -d scope=cajero http://localhost:9000/oauth2/token
+{"access_token":"eyJraWQiOiJhMmUyYzQ1YS05NzkzLTQ5OWYtYWM0NC1kYzZhNjg1YjZjYzgiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJjbGllbnRlLWNhamVybyIsImF1ZCI6ImNsaWVudGUtY2FqZXJvIiwibmJmIjoxNzkxMDg3NzA0LCJzY29wZSI6WyJjYWplcm8iXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo5MDAwIiwiZXhwIjoxNzkxMDg4NjA0LCJpYXQiOjE3OTEwODc3MDQsImp0aSI6IjY2YWUzYWU1LWJiZmItNDlkYy05NzJlLTBkOWEyN2RkYTZiYyJ9.Xg8H6krNq_H1CvrVqcXfBx8R5Whmfv6pwkL1MxP6jUDQue1Hxr7JWJMnVxxuacTq1nU_e868Wu4PUoOMT5luq6mUlSwcX6TfaG3QfKP8aczM8Nk3WHj-TnVaR_bvak042k4D8jWb-tt_cW2jURxOBby_P_HtVc0r8gJL2-ZoG3U3HOf0kOqaGP-ck9nI9ZUTNtSUebK0xnj2z_v5M9AHV-Qfv2TqFDWO0HhC163prAo0icQZeI0qYhhXhYGzU4116Pr9N-MRbZBZTqWdoKgPiJcVQucKe8lARQ6K1_zcddq2yrqx3OlCW25sLRpvV87iRM06G7E5Xg0BX0dAynICvg","scope":"cajero","token_type":"Bearer","expires_in":899}
+HTTP 200
+
+$ (cliente-movil SIN parametro scope)
+$ curl -s -w '\nHTTP %{http_code}\n' -u cliente-movil:MOVIL-KEY-2024 -d grant_type=client_credentials http://localhost:9000/oauth2/token
+{"access_token":"eyJraWQiOiJhMmUyYzQ1YS05NzkzLTQ5OWYtYWM0NC1kYzZhNjg1YjZjYzgiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJjbGllbnRlLW1vdmlsIiwiYXVkIjoiY2xpZW50ZS1tb3ZpbCIsIm5iZiI6MTc5MTA4NzcwNCwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo5MDAwIiwiZXhwIjoxNzkxMDg4NjA0LCJpYXQiOjE3OTEwODc3MDQsImp0aSI6IjhjYWUwOWY2LTMwOTEtNDgxOS05MmU4LTM4NmMyMmMxNGYzYyJ9.Hg3to4wpFXVNtiZYrTnHVh6qcwXcCv2b9P_nTXIPzRIunFXkeTr8Tp3Eyy9TxuNBz4mAFrIR_f21_ZOdtQ07jNTtmlfzA-E4iAmG80pCsm45R2MOcPCk7J48GBeVbScdXkPCiKjuNJD1TM7oJGbDvZNjvTtzKtNIf8Ui8Daoa3OX0msVqg-mzUWUZMNMlVNhjJj3bCPdC5b2tiimtGAIAgtLw9fl3NmgUu7XbBBH4ydgdH1iRFYk-Ym8Tg1mTJfg5mnXVm3k0gsGd0oRuvVSk75rwg-flieB-grZNKPJwdrXUtZatlfMn8c3xefxG54mzzOUzJMw-hIMXSnSYayhbQ","token_type":"Bearer","expires_in":899}
+HTTP 200
+
+##### 3b. Payload decodificado del JWT de cada cliente
+cliente-web:
+{'sub': 'cliente-web', 'scope': ['web'], 'iss': 'http://localhost:9000', 'iat': 1791087704, 'exp': 1791088604, 'aud': 'cliente-web'} vida_seg= 900
+cliente-movil:
+{'sub': 'cliente-movil', 'scope': ['movil'], 'iss': 'http://localhost:9000', 'iat': 1791087705, 'exp': 1791088605, 'aud': 'cliente-movil'} vida_seg= 900
+cliente-cajero:
+{'sub': 'cliente-cajero', 'scope': ['cajero'], 'iss': 'http://localhost:9000', 'iat': 1791087705, 'exp': 1791088605, 'aud': 'cliente-cajero'} vida_seg= 900
+
+##### 3c. Errores esperados
+$ secreto equivocado
+{"error":"invalid_client"}
+HTTP 401
+$ cliente-web pidiendo scope=movil
+{"error":"invalid_scope"}
+HTTP 400
+$ grant_type=password
+{"error_description":"OAuth 2.0 Parameter: grant_type","error":"unsupported_grant_type","error_uri":"https://datatracker.ietf.org/doc/html/rfc6749#section-5.2"}
+HTTP 400
+$ grant_type=authorization_code
+{"error":"invalid_grant"}
+HTTP 400
+
+##### 3d. JWKS
+$ curl -s -w '\nHTTP %{http_code}\n' http://localhost:9000/oauth2/jwks
+{"keys":[{"kty":"RSA","e":"AQAB","kid":"a2e2c45a-9793-499f-ac44-dc6a685b6cc8","n":"kZR9om_m072Z3kqOep-LRcubGoUPWQEnd-bfCz2KtiEgXIeVIh83fwdmJ-iFs5MaGH4OwiRYHrpMPrXD2R8Tq9iJpjUYRFnDHPy-vgp6gOd-o1VlM09fTqW3FBm1z5uyLt24LhYYkU1861HAx0YlEEuSXeG2xeeiV1lsQd5w-n3XM9UPkSLvQF75jJEEpZmjLT01QKUBdTrNDoStty46jLF2WPI_GCXJqLTThdGkH47XHuobXEHMKA2VH3qFP0xAb_cBogIFAc9r0Rnr8C3jxhd8sQqqz0lLQxjLm4z7h-q0gT4uufT2rgqzI9ZY9pdTrYeNpWL0IOgT3JKhDSh4Fw"}]}
+HTTP 200
+
+===== fin =====

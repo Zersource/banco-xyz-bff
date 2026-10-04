@@ -68,3 +68,11 @@ services:
       eureka-server:
         condition: service_started
     restart: unless-stopped
+
+  auth-server:
+    build: ./auth-server
+    ports:
+      - "9000:9000"
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xmx256m
+    restart: unless-stopped

@@ -1,0 +1,48 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: auth-server
+  security:
+    oauth2:
+      authorizationserver:
+        # Un cliente por canal. El secreto reutiliza la llave de canal de S5
+        # ({noop} = sin cifrar, solo para este proyecto academico).
+        client:
+          cliente-web:
+            registration:
+              client-id: cliente-web
+              client-secret: "{noop}WEB-KEY-2024"
+              client-authentication-methods:
+                - client_secret_basic
+              authorization-grant-types:
+                - client_credentials
+              scopes:
+                - web
+            token:
+              access-token-time-to-live: 15m
+          cliente-movil:
+            registration:
+              client-id: cliente-movil
+              client-secret: "{noop}MOVIL-KEY-2024"
+              client-authentication-methods:
+                - client_secret_basic
+              authorization-grant-types:
+                - client_credentials
+              scopes:
+                - movil
+            token:
+              access-token-time-to-live: 15m
+          cliente-cajero:
+            registration:
+              client-id: cliente-cajero
+              client-secret: "{noop}CAJERO-KEY-2024"
+              client-authentication-methods:
+                - client_secret_basic
+              authorization-grant-types:
+                - client_credentials
+              scopes:
+                - cajero
+            token:
+              access-token-time-to-live: 15m
