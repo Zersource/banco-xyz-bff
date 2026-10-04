@@ -1,9 +1,9 @@
 REPOSITORY                    TAG         IMAGE ID       SIZE
-banco-xyz-bff-bff-web         latest      f9eb30c59a80   665MB
-banco-xyz-bff-eureka-server   latest      d97e3b2f6359   594MB
-banco-xyz-bff-config-server   latest      6d9513a90d17   567MB
-banco-xyz-bff-bff-movil       latest      719b19e10040   582MB
-banco-xyz-bff-bff-cajero      latest      1208635548fc   585MB
+banco-xyz-bff-bff-web         latest      cd6f4ee91028   665MB
+banco-xyz-bff-eureka-server   latest      20a0c645a60a   594MB
+banco-xyz-bff-config-server   latest      5d5c180b308c   567MB
+banco-xyz-bff-bff-movil       latest      720f2c6870aa   582MB
+banco-xyz-bff-bff-cajero      latest      6922731a8eab   585MB
 
 ## Arquitectura
 banco-xyz-bff-config-server: arm64

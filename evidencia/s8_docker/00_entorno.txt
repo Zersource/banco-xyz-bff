@@ -7,8 +7,8 @@ Docker Compose version v5.3.1
 ## docker info | grep -i 'total memory'
  Total Memory: 7.75GiB
 ## git log -1
-commit f172384c2050b189e55f87c47bd944778ec13cf0
+commit c2044c7e827ccf64e3a4f24acea3ef177b3919ce
 Author: Zersource <206506428+Zersource@users.noreply.github.com>
-Date:   Sat Oct 3 23:51:33 2026 -0300
+Date:   Sun Oct 4 00:51:37 2026 -0300
 
-    Exp3 S8: Dockerfiles, docker-compose y perfil docker (sin verificar en Docker)
+    Exp3 S8: ajustes de evidencia del Circuit Breaker (logs DEBUG y grep de transiciones)

@@ -1,6 +1,16 @@
 
 ################ SECCION FUNCIONAL ################
-Sun Oct  4 00:00:57 -03 2026
+Sun Oct  4 00:59:21 -03 2026
+== 0. Servicios registrados en Eureka
+    <name>BFF-WEB</name>
+      <status>UP</status>
+        <name>MyOwn</name>
+    <name>BFF-CAJERO</name>
+      <status>UP</status>
+        <name>MyOwn</name>
+    <name>BFF-MOVIL</name>
+      <status>UP</status>
+        <name>MyOwn</name>
 == 1. Token de cada canal (POST bff-web /api/auth/token)
 token WEB:    eyJhbGciOiJIUzUxMiJ9.eyJzdWIiO...
 token MOVIL:  eyJhbGciOiJIUzUxMiJ9.eyJzdWIiO...
@@ -31,7 +41,7 @@ estado final:      REVERTIDA
 saldo 101 despues: 4990.0  (debe ser igual al de antes)
 
 ################ SECCION RESILIENCIA ################
-Sun Oct  4 00:00:58 -03 2026
+Sun Oct  4 00:59:22 -03 2026
 == 1. Estado inicial: bff-movil responde con bff-web arriba
 movil /api/movil/cuentas/101 -> 200
 == 2. Se baja bff-web (docker compose stop bff-web)
@@ -47,13 +57,15 @@ llamada 6 -> 503
 llamada 7 -> 503
 llamada 8 -> 503
 -- cuerpo de la respuesta con el circuito abierto:
-{"timestamp":"2026-10-04T03:01:41.253654884","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
--- logs de bff-movil mientras bff-web esta abajo:
-bff-movil-1  | 2026-10-04T03:00:16.022Z  WARN 1 --- [bff-movil] [io-8082-exec-10] o.s.c.l.core.RoundRobinLoadBalancer      : No servers available for service: bff-web
-bff-movil-1  | 2026-10-04T03:00:21.062Z  WARN 1 --- [bff-movil] [nio-8082-exec-1] o.s.c.l.core.RoundRobinLoadBalancer      : No servers available for service: bff-web
-bff-movil-1  | 2026-10-04T03:00:26.094Z  WARN 1 --- [bff-movil] [nio-8082-exec-2] o.s.c.l.core.RoundRobinLoadBalancer      : No servers available for service: bff-web
-bff-movil-1  | 2026-10-04T03:01:41.156Z  WARN 1 --- [bff-movil] [nio-8082-exec-7] o.s.c.l.core.RoundRobinLoadBalancer      : No servers available for service: bff-web
-bff-movil-1  | 2026-10-04T03:01:41.177Z  WARN 1 --- [bff-movil] [nio-8082-exec-8] o.s.c.l.core.RoundRobinLoadBalancer      : No servers available for service: bff-web
+{"timestamp":"2026-10-04T04:00:38.301940013","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
+-- logs de bff-movil sobre el circuito (transiciones y llamadas rechazadas):
+bff-movil-1  | 2026-10-04T04:00:38.213Z DEBUG 1 --- [bff-movil] [nio-8082-exec-1] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:00:38.213437013Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from CLOSED to OPEN
+bff-movil-1  | 2026-10-04T04:00:38.233Z DEBUG 1 --- [bff-movil] [nio-8082-exec-2] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:00:38.233446013Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+bff-movil-1  | 2026-10-04T04:00:38.248Z DEBUG 1 --- [bff-movil] [nio-8082-exec-3] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:00:38.248633180Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+bff-movil-1  | 2026-10-04T04:00:38.262Z DEBUG 1 --- [bff-movil] [nio-8082-exec-4] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:00:38.262880221Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+bff-movil-1  | 2026-10-04T04:00:38.276Z DEBUG 1 --- [bff-movil] [nio-8082-exec-5] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:00:38.276178263Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+bff-movil-1  | 2026-10-04T04:00:38.289Z DEBUG 1 --- [bff-movil] [nio-8082-exec-6] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:00:38.289214721Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+bff-movil-1  | 2026-10-04T04:00:38.301Z DEBUG 1 --- [bff-movil] [nio-8082-exec-7] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:00:38.301679430Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
 == 4. Se levanta bff-web (docker compose start bff-web); puede volver con otra IP
  Container banco-xyz-bff-config-server-1 Waiting 
  Container banco-xyz-bff-config-server-1 Healthy 
@@ -65,9 +77,19 @@ intento 2 (t=10s) -> 503
 intento 3 (t=15s) -> 503
 intento 4 (t=20s) -> 503
 intento 5 (t=25s) -> 503
-intento 6 (t=30s) -> 200
+intento 6 (t=30s) -> 503
+intento 7 (t=35s) -> 200
+llamada de cierre 1 -> 200
+llamada de cierre 2 -> 200
+llamada de cierre 3 -> 200
 -- bff-web registrado de nuevo en Eureka:
 BFF-WEB UP 172.19.0.5
+-- logs de bff-movil sobre el circuito (transiciones):
+bff-movil-1  | 2026-10-04T04:00:38.213Z DEBUG 1 --- [bff-movil] [nio-8082-exec-1] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:00:38.213437013Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from CLOSED to OPEN
+bff-movil-1  | 2026-10-04T04:00:49.336Z DEBUG 1 --- [bff-movil] [nio-8082-exec-9] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:00:49.336588921Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from OPEN to HALF_OPEN
+bff-movil-1  | 2026-10-04T04:00:59.429Z DEBUG 1 --- [bff-movil] [nio-8082-exec-1] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:00:59.429384467Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from HALF_OPEN to OPEN
+bff-movil-1  | 2026-10-04T04:01:09.511Z DEBUG 1 --- [bff-movil] [nio-8082-exec-3] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:01:09.511849347Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from OPEN to HALF_OPEN
+bff-movil-1  | 2026-10-04T04:01:14.656Z DEBUG 1 --- [bff-movil] [nio-8082-exec-4] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:01:14.656874418Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from HALF_OPEN to CLOSED
 Recuperado (200 de nuevo): si
 
 ===== fin de la prueba =====

@@ -1,6 +1,6 @@
 CONTAINER ID   NAME                            CPU %     MEM USAGE / LIMIT    MEM %     NET I/O           BLOCK I/O     PIDS
-14c9458b1224   banco-xyz-bff-bff-movil-1       0.20%     392.6MiB / 7.75GiB   4.95%     59.6kB / 47kB     0B / 205kB    55
-7ce0ff242e14   banco-xyz-bff-bff-web-1         3.22%     517MiB / 7.75GiB     6.51%     8.6kB / 5.78kB    0B / 65.5kB   132
-3f392523a418   banco-xyz-bff-bff-cajero-1      0.21%     388.1MiB / 7.75GiB   4.89%     28kB / 14.2kB     0B / 176kB    53
-069c03042ee0   banco-xyz-bff-config-server-1   0.19%     295.2MiB / 7.75GiB   3.72%     17.5kB / 26kB     0B / 205kB    44
-00e01a224b6c   banco-xyz-bff-eureka-server-1   0.79%     406.7MiB / 7.75GiB   5.13%     39.3kB / 34.4kB   0B / 188kB    76
+8cb272ee9b39   banco-xyz-bff-bff-web-1         1.36%     510MiB / 7.75GiB     6.43%     8.6kB / 5.28kB    0B / 69.6kB   129
+84fe6227b28a   banco-xyz-bff-bff-movil-1       0.22%     315.9MiB / 7.75GiB   3.98%     9.84kB / 5.28kB   0B / 69.6kB   51
+66c74295eabe   banco-xyz-bff-bff-cajero-1      0.26%     344.8MiB / 7.75GiB   4.35%     9.92kB / 5.42kB   0B / 65.5kB   51
+6e19ab74a040   banco-xyz-bff-config-server-1   0.24%     295.6MiB / 7.75GiB   3.72%     7kB / 14.8kB      0B / 81.9kB   44
+0507e38a306f   banco-xyz-bff-eureka-server-1   0.93%     382.8MiB / 7.75GiB   4.82%     13.3kB / 9.95kB   0B / 73.7kB   76
