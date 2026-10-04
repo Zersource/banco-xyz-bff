@@ -1,6 +1,6 @@
 
 ################ SECCION FUNCIONAL ################
-Sun Oct  4 00:59:21 -03 2026
+Sun Oct  4 01:41:12 -03 2026
 == 0. Servicios registrados en Eureka
     <name>BFF-WEB</name>
       <status>UP</status>
@@ -11,22 +11,28 @@ Sun Oct  4 00:59:21 -03 2026
     <name>BFF-MOVIL</name>
       <status>UP</status>
         <name>MyOwn</name>
-== 1. Token de cada canal (POST bff-web /api/auth/token)
-token WEB:    eyJhbGciOiJIUzUxMiJ9.eyJzdWIiO...
-token MOVIL:  eyJhbGciOiJIUzUxMiJ9.eyJzdWIiO...
-token CAJERO: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiO...
+== 1. Access token de cada canal (auth-server, client_credentials)
+token web:    eyJraWQiOiIwNDBiYjRmOS0zYmVkLT...
+token movil:  eyJraWQiOiIwNDBiYjRmOS0zYmVkLT...
+token cajero: eyJraWQiOiIwNDBiYjRmOS0zYmVkLT...
 == 2. Endpoint de cada canal con su token (esperado 200)
-web    /api/web/cuentas            -> 200
-movil  /api/movil/cuentas/101      -> 200
+web    /api/web/cuentas              -> 200
+movil  /api/movil/cuentas/101        -> 200
 cajero /api/cajero/cuentas/101/saldo -> 200
 == 3. Sin token (esperado 401)
-web    -> 401
-movil  -> 401
-cajero -> 401
+web    /api/web/cuentas                -> 401
+movil  /api/movil/cuentas/101          -> 401
+cajero /api/cajero/cuentas/101/saldo   -> 401
+web    /interno/cuentas/101/saldo      -> 401
+web    POST /transferencias            -> 401
 == 4. Token de otro canal (esperado 403)
-token MOVIL en bff-web    -> 403
-token CAJERO en bff-movil -> 403
-token WEB en bff-cajero   -> 403
+token movil en bff-web    -> 403
+token cajero en bff-movil -> 403
+token web en bff-cajero   -> 403
+== 4b. Token SIN scope (cliente-movil sin parametro scope) en bff-movil (esperado 403)
+movil /api/movil/cuentas/101 -> 403
+== 4c. Token basura (Bearer abc) (esperado 401)
+movil /api/movil/cuentas/101 -> 401
 == 5. Saga camino feliz: 101 -> 102, monto 10 (esperado COMPLETADA)
 saldo 101 antes:   5000.0
 saldo 102 antes:   8000.0
@@ -41,7 +47,7 @@ estado final:      REVERTIDA
 saldo 101 despues: 4990.0  (debe ser igual al de antes)
 
 ################ SECCION RESILIENCIA ################
-Sun Oct  4 00:59:22 -03 2026
+Sun Oct  4 01:41:14 -03 2026
 == 1. Estado inicial: bff-movil responde con bff-web arriba
 movil /api/movil/cuentas/101 -> 200
 == 2. Se baja bff-web (docker compose stop bff-web)
@@ -57,15 +63,15 @@ llamada 6 -> 503
 llamada 7 -> 503
 llamada 8 -> 503
 -- cuerpo de la respuesta con el circuito abierto:
-{"timestamp":"2026-10-04T04:00:38.301940013","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
+{"timestamp":"2026-10-04T04:41:58.296926667","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
 -- logs de bff-movil sobre el circuito (transiciones y llamadas rechazadas):
-bff-movil-1  | 2026-10-04T04:00:38.213Z DEBUG 1 --- [bff-movil] [nio-8082-exec-1] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:00:38.213437013Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from CLOSED to OPEN
-bff-movil-1  | 2026-10-04T04:00:38.233Z DEBUG 1 --- [bff-movil] [nio-8082-exec-2] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:00:38.233446013Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
-bff-movil-1  | 2026-10-04T04:00:38.248Z DEBUG 1 --- [bff-movil] [nio-8082-exec-3] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:00:38.248633180Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
-bff-movil-1  | 2026-10-04T04:00:38.262Z DEBUG 1 --- [bff-movil] [nio-8082-exec-4] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:00:38.262880221Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
-bff-movil-1  | 2026-10-04T04:00:38.276Z DEBUG 1 --- [bff-movil] [nio-8082-exec-5] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:00:38.276178263Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
-bff-movil-1  | 2026-10-04T04:00:38.289Z DEBUG 1 --- [bff-movil] [nio-8082-exec-6] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:00:38.289214721Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
-bff-movil-1  | 2026-10-04T04:00:38.301Z DEBUG 1 --- [bff-movil] [nio-8082-exec-7] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:00:38.301679430Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+bff-movil-1  | 2026-10-04T04:41:58.209Z DEBUG 1 --- [bff-movil] [nio-8082-exec-5] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:41:58.209948417Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from CLOSED to OPEN
+bff-movil-1  | 2026-10-04T04:41:58.230Z DEBUG 1 --- [bff-movil] [nio-8082-exec-6] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:41:58.230578959Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+bff-movil-1  | 2026-10-04T04:41:58.244Z DEBUG 1 --- [bff-movil] [nio-8082-exec-7] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:41:58.244904334Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+bff-movil-1  | 2026-10-04T04:41:58.258Z DEBUG 1 --- [bff-movil] [nio-8082-exec-8] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:41:58.258239542Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+bff-movil-1  | 2026-10-04T04:41:58.271Z DEBUG 1 --- [bff-movil] [nio-8082-exec-9] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:41:58.271670751Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+bff-movil-1  | 2026-10-04T04:41:58.284Z DEBUG 1 --- [bff-movil] [io-8082-exec-10] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:41:58.284690334Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
+bff-movil-1  | 2026-10-04T04:41:58.296Z DEBUG 1 --- [bff-movil] [nio-8082-exec-1] i.g.r.c.i.CircuitBreakerStateMachine     : Event NOT_PERMITTED published: 2026-10-04T04:41:58.296685917Z[Etc/UTC]: CircuitBreaker 'bffWeb' recorded a call which was not permitted.
 == 4. Se levanta bff-web (docker compose start bff-web); puede volver con otra IP
  Container banco-xyz-bff-config-server-1 Waiting 
  Container banco-xyz-bff-config-server-1 Healthy 
@@ -78,18 +84,23 @@ intento 3 (t=15s) -> 503
 intento 4 (t=20s) -> 503
 intento 5 (t=25s) -> 503
 intento 6 (t=30s) -> 503
-intento 7 (t=35s) -> 200
+intento 7 (t=35s) -> 503
+intento 8 (t=40s) -> 503
+intento 9 (t=45s) -> 503
+intento 10 (t=50s) -> 200
 llamada de cierre 1 -> 200
 llamada de cierre 2 -> 200
 llamada de cierre 3 -> 200
 -- bff-web registrado de nuevo en Eureka:
-BFF-WEB UP 172.19.0.5
+BFF-WEB UP 172.19.0.6
 -- logs de bff-movil sobre el circuito (transiciones):
-bff-movil-1  | 2026-10-04T04:00:38.213Z DEBUG 1 --- [bff-movil] [nio-8082-exec-1] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:00:38.213437013Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from CLOSED to OPEN
-bff-movil-1  | 2026-10-04T04:00:49.336Z DEBUG 1 --- [bff-movil] [nio-8082-exec-9] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:00:49.336588921Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from OPEN to HALF_OPEN
-bff-movil-1  | 2026-10-04T04:00:59.429Z DEBUG 1 --- [bff-movil] [nio-8082-exec-1] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:00:59.429384467Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from HALF_OPEN to OPEN
-bff-movil-1  | 2026-10-04T04:01:09.511Z DEBUG 1 --- [bff-movil] [nio-8082-exec-3] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:01:09.511849347Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from OPEN to HALF_OPEN
-bff-movil-1  | 2026-10-04T04:01:14.656Z DEBUG 1 --- [bff-movil] [nio-8082-exec-4] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:01:14.656874418Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from HALF_OPEN to CLOSED
+bff-movil-1  | 2026-10-04T04:41:58.209Z DEBUG 1 --- [bff-movil] [nio-8082-exec-5] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:41:58.209948417Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from CLOSED to OPEN
+bff-movil-1  | 2026-10-04T04:42:09.283Z DEBUG 1 --- [bff-movil] [nio-8082-exec-3] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:42:09.283091631Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from OPEN to HALF_OPEN
+bff-movil-1  | 2026-10-04T04:42:19.363Z DEBUG 1 --- [bff-movil] [nio-8082-exec-5] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:42:19.363318886Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from HALF_OPEN to OPEN
+bff-movil-1  | 2026-10-04T04:42:29.441Z DEBUG 1 --- [bff-movil] [nio-8082-exec-7] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:42:29.441620251Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from OPEN to HALF_OPEN
+bff-movil-1  | 2026-10-04T04:42:39.535Z DEBUG 1 --- [bff-movil] [nio-8082-exec-9] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:42:39.535921839Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from HALF_OPEN to OPEN
+bff-movil-1  | 2026-10-04T04:42:49.604Z DEBUG 1 --- [bff-movil] [nio-8082-exec-1] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:42:49.604356011Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from OPEN to HALF_OPEN
+bff-movil-1  | 2026-10-04T04:42:50.903Z DEBUG 1 --- [bff-movil] [nio-8082-exec-3] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-04T04:42:50.903803387Z[Etc/UTC]: CircuitBreaker 'bffWeb' changed state from HALF_OPEN to CLOSED
 Recuperado (200 de nuevo): si
 
 ===== fin de la prueba =====

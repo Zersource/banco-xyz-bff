@@ -1,201 +1,167 @@
-# Salida condensada de: docker compose build --progress=plain (primer build, sin cache)
-# Solo pasos del build, DONE/CACHED, BUILD SUCCESS, Total time, imagenes Built y tiempo total.
+# Salida condensada de: docker compose build --no-cache --progress=plain (build desde cero, 6 imagenes)
+# Solo pasos del build, BUILD SUCCESS, Total time de Maven, imagenes Built y tiempo total.
+# La salida completa (~19.000 lineas de descargas de Maven) no se versiona.
 
 #1 [internal] load local bake definitions
-#1 DONE 0.0s
-#2 [config-server internal] load build definition from Dockerfile
-#2 DONE 0.0s
-#3 [bff-movil internal] load build definition from Dockerfile
-#3 DONE 0.0s
-#4 [bff-cajero internal] load build definition from Dockerfile
-#4 DONE 0.0s
-#5 [bff-web internal] load build definition from Dockerfile
-#5 DONE 0.0s
+#2 [bff-cajero internal] load build definition from Dockerfile
+#3 [bff-web internal] load build definition from Dockerfile
+#4 [config-server internal] load build definition from Dockerfile
+#5 [bff-movil internal] load build definition from Dockerfile
 #6 [eureka-server internal] load build definition from Dockerfile
-#6 DONE 0.0s
-#7 [eureka-server internal] load metadata for docker.io/library/maven:3.9-eclipse-temurin-21
-#7 DONE 2.0s
-#8 [bff-web internal] load metadata for docker.io/library/eclipse-temurin:21-jre
-#8 DONE 2.0s
-#9 [bff-web internal] load .dockerignore
-#9 DONE 0.0s
-#10 [bff-cajero internal] load .dockerignore
-#10 DONE 0.0s
-#11 [bff-movil internal] load .dockerignore
-#11 DONE 0.0s
-#12 [eureka-server internal] load .dockerignore
-#12 DONE 0.0s
-#13 [config-server internal] load .dockerignore
-#13 DONE 0.0s
-#14 [bff-cajero internal] load build context
-#14 DONE 0.0s
-#15 [bff-web stage-1 1/3] FROM docker.io/library/eclipse-temurin:21-jre@sha256:cff19e6215689161eb6162c11b86b0c60ddf802164f2eaf48d570f8fb79a36c5
-#16 [eureka-server internal] load build context
-#16 DONE 0.1s
-#17 [bff-movil internal] load build context
-#17 DONE 0.1s
-#18 [config-server internal] load build context
-#18 DONE 0.1s
-#19 [bff-web internal] load build context
-#19 DONE 0.1s
-#15 [bff-cajero stage-1 1/3] FROM docker.io/library/eclipse-temurin:21-jre@sha256:cff19e6215689161eb6162c11b86b0c60ddf802164f2eaf48d570f8fb79a36c5
-#15 DONE 4.6s
-#20 [bff-web build 1/6] FROM docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320
-#21 [config-server stage-1 2/3] WORKDIR /app
-#21 DONE 0.3s
-#20 [bff-web build 1/6] FROM docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320
-#20 DONE 10.2s
-#22 [eureka-server build 2/6] WORKDIR /app
-#22 DONE 0.4s
-#23 [bff-cajero build 3/6] COPY pom.xml .
-#23 DONE 0.0s
-#24 [eureka-server build 3/6] COPY pom.xml .
-#24 DONE 0.0s
-#25 [bff-web build 3/6] COPY pom.xml .
-#25 DONE 0.0s
-#26 [bff-movil build 3/6] COPY pom.xml .
-#26 DONE 0.0s
-#27 [config-server build 3/6] COPY pom.xml .
-#27 DONE 0.0s
+#7 [auth-server internal] load build definition from Dockerfile
+#8 [auth-server internal] load metadata for docker.io/library/maven:3.9-eclipse-temurin-21
+#9 [bff-cajero internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#10 [config-server internal] load .dockerignore
+#11 [bff-web internal] load .dockerignore
+#12 [bff-cajero internal] load .dockerignore
+#13 [eureka-server internal] load .dockerignore
+#14 [bff-movil internal] load .dockerignore
+#15 [auth-server internal] load .dockerignore
+#16 [bff-movil stage-1 1/4] FROM docker.io/library/eclipse-temurin:21-jre@sha256:cff19e6215689161eb6162c11b86b0c60ddf802164f2eaf48d570f8fb79a36c5
+#17 [bff-movil stage-1 2/4] WORKDIR /app
+#18 [bff-cajero build 1/6] FROM docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320
+#19 [bff-web build 2/6] WORKDIR /app
+#20 [config-server internal] load build context
+#21 [eureka-server internal] load build context
+#22 [bff-cajero internal] load build context
+#23 [bff-web internal] load build context
+#24 [bff-movil internal] load build context
+#25 [auth-server internal] load build context
+#26 [config-server build 3/6] COPY pom.xml .
+#27 [eureka-server build 3/6] COPY pom.xml .
 #28 [config-server build 4/6] RUN mvn -B dependency:go-offline
-#29 [config-server stage-1 3/4] RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
-#29 DONE 9.9s
+#29 [bff-cajero build 3/6] COPY pom.xml .
+#30 [bff-web build 3/6] COPY pom.xml .
+#31 [bff-movil build 3/6] COPY pom.xml .
+#32 [auth-server build 3/6] COPY pom.xml .
+#33 [auth-server build 4/6] RUN mvn -B dependency:go-offline
 #28 [config-server build 4/6] RUN mvn -B dependency:go-offline
-#30 [bff-web build 4/6] RUN mvn -B dependency:go-offline
-#31 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
-#32 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
-#33 [eureka-server build 4/6] RUN mvn -B dependency:go-offline
-#32 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
-#30 [bff-web build 4/6] RUN mvn -B dependency:go-offline
-#32 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
+#33 [auth-server build 4/6] RUN mvn -B dependency:go-offline
+#34 [config-server stage-1 3/4] RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+#33 [auth-server build 4/6] RUN mvn -B dependency:go-offline
+#35 [eureka-server build 4/6] RUN mvn -B dependency:go-offline
+#36 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
+#37 [bff-web build 4/6] RUN mvn -B dependency:go-offline
+#38 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
+#37 [bff-web build 4/6] RUN mvn -B dependency:go-offline
+#36 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
+#33 [auth-server build 4/6] RUN mvn -B dependency:go-offline
+#37 [bff-web build 4/6] RUN mvn -B dependency:go-offline
 #28 [config-server build 4/6] RUN mvn -B dependency:go-offline
-#32 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
-#31 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
-#33 [eureka-server build 4/6] RUN mvn -B dependency:go-offline
-#31 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
+#33 [auth-server build 4/6] RUN mvn -B dependency:go-offline
+#35 [eureka-server build 4/6] RUN mvn -B dependency:go-offline
+#33 [auth-server build 4/6] RUN mvn -B dependency:go-offline
+#38 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
+#33 [auth-server build 4/6] RUN mvn -B dependency:go-offline
 #28 [config-server build 4/6] RUN mvn -B dependency:go-offline
-#31 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
-#30 [bff-web build 4/6] RUN mvn -B dependency:go-offline
+#36 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
+#35 [eureka-server build 4/6] RUN mvn -B dependency:go-offline
+#36 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
+#37 [bff-web build 4/6] RUN mvn -B dependency:go-offline
+#36 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
+#38 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
+#36 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
+#33 [auth-server build 4/6] RUN mvn -B dependency:go-offline
+#33 34.64 [INFO] BUILD SUCCESS
+#33 34.65 [INFO] Total time:  32.483 s
+#39 [auth-server build 5/6] COPY src ./src
+#36 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
 #28 [config-server build 4/6] RUN mvn -B dependency:go-offline
-#32 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
-#31 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
-#33 [eureka-server build 4/6] RUN mvn -B dependency:go-offline
+#37 [bff-web build 4/6] RUN mvn -B dependency:go-offline
+#35 [eureka-server build 4/6] RUN mvn -B dependency:go-offline
 #28 [config-server build 4/6] RUN mvn -B dependency:go-offline
-#31 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
-#30 [bff-web build 4/6] RUN mvn -B dependency:go-offline
-#31 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
-#32 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
-#31 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
-#33 [eureka-server build 4/6] RUN mvn -B dependency:go-offline
-#30 [bff-web build 4/6] RUN mvn -B dependency:go-offline
+#40 [auth-server build 6/6] RUN mvn -B -DskipTests package
+#40 3.492 [INFO] BUILD SUCCESS
+#40 3.494 [INFO] Total time:  2.612 s
 #28 [config-server build 4/6] RUN mvn -B dependency:go-offline
-#30 [bff-web build 4/6] RUN mvn -B dependency:go-offline
-#32 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
+#41 [auth-server stage-1 3/3] COPY --from=build /app/target/*.jar app.jar
 #28 [config-server build 4/6] RUN mvn -B dependency:go-offline
-#31 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
+#42 [auth-server] exporting to image
+#43 [auth-server] resolving provenance for metadata file
 #28 [config-server build 4/6] RUN mvn -B dependency:go-offline
-#33 [eureka-server build 4/6] RUN mvn -B dependency:go-offline
+#38 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
 #28 [config-server build 4/6] RUN mvn -B dependency:go-offline
-#31 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
-#31 52.89 [INFO] BUILD SUCCESS
-#31 52.89 [INFO] Total time:  50.927 s
-#31 DONE 53.2s
-#34 [bff-cajero build 5/6] COPY src ./src
-#34 DONE 0.1s
-#32 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
-#32 53.36 [INFO] BUILD SUCCESS
-#32 53.36 [INFO] Total time:  51.455 s
-#32 DONE 53.4s
-#35 [bff-movil build 5/6] COPY src ./src
-#35 DONE 0.1s
-#36 [bff-movil build 6/6] RUN mvn -B -DskipTests package
-#33 [eureka-server build 4/6] RUN mvn -B dependency:go-offline
-#33 57.23 [INFO] BUILD SUCCESS
-#33 57.23 [INFO] Total time:  55.078 s
-#33 DONE 57.3s
-#37 [eureka-server build 5/6] COPY src ./src
-#37 DONE 0.1s
-#36 [bff-movil build 6/6] RUN mvn -B -DskipTests package
-#30 [bff-web build 4/6] RUN mvn -B dependency:go-offline
-#30 57.38 [INFO] BUILD SUCCESS
-#30 57.38 [INFO] Total time:  55.216 s
-#30 DONE 57.4s
-#36 [bff-movil build 6/6] RUN mvn -B -DskipTests package
-#38 [bff-web build 5/6] COPY src ./src
-#38 DONE 0.1s
+#36 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
 #28 [config-server build 4/6] RUN mvn -B dependency:go-offline
-#28 59.14 [INFO] BUILD SUCCESS
-#28 59.14 [INFO] Total time:  56.998 s
-#28 DONE 59.2s
-#39 [bff-cajero build 6/6] RUN mvn -B -DskipTests package
-#40 [config-server build 5/6] COPY src ./src
-#40 DONE 0.1s
-#39 [bff-cajero build 6/6] RUN mvn -B -DskipTests package
-#41 [config-server build 6/6] RUN mvn -B -DskipTests package
-#39 [bff-cajero build 6/6] RUN mvn -B -DskipTests package
-#39 7.623 [INFO] BUILD SUCCESS
-#39 7.624 [INFO] Total time:  6.428 s
-#39 DONE 7.7s
-#36 [bff-movil build 6/6] RUN mvn -B -DskipTests package
-#36 7.501 [INFO] BUILD SUCCESS
-#36 7.502 [INFO] Total time:  6.243 s
-#36 DONE 7.5s
-#42 [eureka-server build 6/6] RUN mvn -B -DskipTests package
-#43 [bff-cajero stage-1 3/3] COPY --from=build /app/target/*.jar app.jar
-#43 DONE 0.1s
-#42 [eureka-server build 6/6] RUN mvn -B -DskipTests package
-#44 [bff-movil stage-1 3/3] COPY --from=build /app/target/*.jar app.jar
-#44 DONE 0.1s
-#42 [eureka-server build 6/6] RUN mvn -B -DskipTests package
-#45 [bff-movil] exporting to image
-#45 DONE 2.5s
-#46 [bff-cajero] exporting to image
-#46 DONE 2.6s
-#42 [eureka-server build 6/6] RUN mvn -B -DskipTests package
-#47 [bff-movil] resolving provenance for metadata file
-#47 DONE 0.0s
-#48 [bff-cajero] resolving provenance for metadata file
-#48 DONE 0.0s
-#42 [eureka-server build 6/6] RUN mvn -B -DskipTests package
-#41 [config-server build 6/6] RUN mvn -B -DskipTests package
-#41 6.767 [INFO] BUILD SUCCESS
-#41 6.770 [INFO] Total time:  4.585 s
-#41 DONE 7.0s
-#42 [eureka-server build 6/6] RUN mvn -B -DskipTests package
-#49 [config-server stage-1 4/4] COPY --from=build /app/target/*.jar app.jar
-#49 DONE 0.1s
-#42 [eureka-server build 6/6] RUN mvn -B -DskipTests package
-#42 9.947 [INFO] BUILD SUCCESS
-#42 9.948 [INFO] Total time:  7.879 s
-#42 DONE 10.0s
-#50 [bff-web build 6/6] RUN mvn -B -DskipTests package
-#51 [eureka-server stage-1 3/3] COPY --from=build /app/target/*.jar app.jar
-#51 DONE 0.1s
-#50 [bff-web build 6/6] RUN mvn -B -DskipTests package
-#52 [eureka-server] exporting to image
-#50 [bff-web build 6/6] RUN mvn -B -DskipTests package
-#50 10.42 [INFO] BUILD SUCCESS
-#50 10.42 [INFO] Total time:  8.325 s
-#50 DONE 10.5s
-#53 [config-server] exporting to image
-#54 [bff-web stage-1 3/3] COPY --from=build /app/target/*.jar app.jar
-#54 DONE 0.1s
-#53 [config-server] exporting to image
-#53 DONE 1.9s
-#55 [config-server] resolving provenance for metadata file
-#55 DONE 0.0s
-#56 [bff-web] exporting to image
-#52 [eureka-server] exporting to image
-#52 DONE 1.9s
-#57 [eureka-server] resolving provenance for metadata file
-#57 DONE 0.0s
-#56 [bff-web] exporting to image
-#56 DONE 2.9s
-#58 [bff-web] resolving provenance for metadata file
-#58 DONE 0.0s
+#37 [bff-web build 4/6] RUN mvn -B dependency:go-offline
+#35 [eureka-server build 4/6] RUN mvn -B dependency:go-offline
+#28 [config-server build 4/6] RUN mvn -B dependency:go-offline
+#35 [eureka-server build 4/6] RUN mvn -B dependency:go-offline
+#35 50.15 [INFO] BUILD SUCCESS
+#35 50.15 [INFO] Total time:  47.758 s
+#28 [config-server build 4/6] RUN mvn -B dependency:go-offline
+#44 [eureka-server build 5/6] COPY src ./src
+#28 [config-server build 4/6] RUN mvn -B dependency:go-offline
+#38 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
+#28 [config-server build 4/6] RUN mvn -B dependency:go-offline
+#36 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
+#36 51.33 [INFO] BUILD SUCCESS
+#36 51.33 [INFO] Total time:  49.027 s
+#45 [bff-movil build 5/6] COPY src ./src
+#28 [config-server build 4/6] RUN mvn -B dependency:go-offline
+#38 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
+#38 51.81 [INFO] BUILD SUCCESS
+#38 51.82 [INFO] Total time:  49.619 s
+#28 [config-server build 4/6] RUN mvn -B dependency:go-offline
+#46 [bff-cajero build 5/6] COPY src ./src
+#28 [config-server build 4/6] RUN mvn -B dependency:go-offline
+#28 53.60 [INFO] BUILD SUCCESS
+#28 53.60 [INFO] Total time:  51.226 s
+#37 [bff-web build 4/6] RUN mvn -B dependency:go-offline
+#47 [config-server build 5/6] COPY src ./src
+#48 [config-server build 6/6] RUN mvn -B -DskipTests package
+#37 [bff-web build 4/6] RUN mvn -B dependency:go-offline
+#37 58.11 [INFO] BUILD SUCCESS
+#37 58.11 [INFO] Total time:  55.821 s
+#48 [config-server build 6/6] RUN mvn -B -DskipTests package
+#49 [bff-web build 5/6] COPY src ./src
+#48 [config-server build 6/6] RUN mvn -B -DskipTests package
+#50 [bff-movil build 6/6] RUN mvn -B -DskipTests package
+#50 8.018 [INFO] BUILD SUCCESS
+#50 8.021 [INFO] Total time:  6.533 s
+#48 [config-server build 6/6] RUN mvn -B -DskipTests package
+#51 [eureka-server build 6/6] RUN mvn -B -DskipTests package
+#51 9.238 [INFO] BUILD SUCCESS
+#51 9.238 [INFO] Total time:  8.267 s
+#48 [config-server build 6/6] RUN mvn -B -DskipTests package
+#52 [bff-movil stage-1 3/3] COPY --from=build /app/target/*.jar app.jar
+#48 [config-server build 6/6] RUN mvn -B -DskipTests package
+#53 [eureka-server stage-1 3/3] COPY --from=build /app/target/*.jar app.jar
+#48 [config-server build 6/6] RUN mvn -B -DskipTests package
+#54 [bff-cajero build 6/6] RUN mvn -B -DskipTests package
+#54 8.841 [INFO] BUILD SUCCESS
+#54 8.842 [INFO] Total time:  7.296 s
+#48 [config-server build 6/6] RUN mvn -B -DskipTests package
+#55 [bff-cajero stage-1 3/3] COPY --from=build /app/target/*.jar app.jar
+#48 [config-server build 6/6] RUN mvn -B -DskipTests package
+#48 8.302 [INFO] BUILD SUCCESS
+#48 8.304 [INFO] Total time:  6.643 s
+#56 [bff-cajero] exporting to image
+#57 [config-server stage-1 4/4] COPY --from=build /app/target/*.jar app.jar
+#58 [config-server] exporting to image
+#59 [bff-movil] exporting to image
+#60 [bff-movil] resolving provenance for metadata file
+#61 [eureka-server] exporting to image
+#62 [bff-web build 6/6] RUN mvn -B -DskipTests package
+#63 [eureka-server] resolving provenance for metadata file
+#62 [bff-web build 6/6] RUN mvn -B -DskipTests package
+#56 [bff-cajero] exporting to image
+#62 [bff-web build 6/6] RUN mvn -B -DskipTests package
+#64 [bff-cajero] resolving provenance for metadata file
+#62 [bff-web build 6/6] RUN mvn -B -DskipTests package
+#58 [config-server] exporting to image
+#62 [bff-web build 6/6] RUN mvn -B -DskipTests package
+#65 [config-server] resolving provenance for metadata file
+#62 [bff-web build 6/6] RUN mvn -B -DskipTests package
+#62 8.454 [INFO] BUILD SUCCESS
+#62 8.455 [INFO] Total time:  5.959 s
+#66 [bff-web stage-1 3/3] COPY --from=build /app/target/*.jar app.jar
+#67 [bff-web] exporting to image
+#68 [bff-web] resolving provenance for metadata file
  Image banco-xyz-bff-config-server Built 
  Image banco-xyz-bff-eureka-server Built 
+ Image banco-xyz-bff-auth-server Built 
  Image banco-xyz-bff-bff-cajero Built 
  Image banco-xyz-bff-bff-movil Built 
  Image banco-xyz-bff-bff-web Built 
-docker compose build --progress=plain  1.52s user 2.04s system 4% cpu 1:26.34 total
+docker compose build --no-cache --progress=plain  1.61s user 2.12s system 5% cpu 1:12.34 total
