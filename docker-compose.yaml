@@ -45,6 +45,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - JAVA_TOOL_OPTIONS=-Xmx256m
+      - LOGGING_LEVEL_IO_GITHUB_RESILIENCE4J_CIRCUITBREAKER=DEBUG
     depends_on:
       config-server:
         condition: service_healthy
@@ -60,6 +61,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - JAVA_TOOL_OPTIONS=-Xmx256m
+      - LOGGING_LEVEL_IO_GITHUB_RESILIENCE4J_CIRCUITBREAKER=DEBUG
     depends_on:
       config-server:
         condition: service_healthy

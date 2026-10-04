@@ -48,6 +48,9 @@ funcional() {
   echo "################ SECCION FUNCIONAL ################"
   date
 
+  echo "== 0. Servicios registrados en Eureka"
+  curl -s http://localhost:8761/eureka/apps | grep -E "<name>|<status>"
+
   echo "== 1. Token de cada canal (POST bff-web /api/auth/token)"
   TOKEN_WEB=$(token WEB WEB-KEY-2024)
   TOKEN_MOVIL=$(token MOVIL MOVIL-KEY-2024)
@@ -111,10 +114,8 @@ resiliencia() {
   echo "-- cuerpo de la respuesta con el circuito abierto:"
   curl -s -H "Authorization: Bearer $TOKEN_MOVIL" "$MOVIL/api/movil/cuentas/101"
   echo
-  # bff-movil no registra en log los cambios de estado del circuito; lo que
-  # si queda en el log es el aviso del balanceador cuando bff-web no esta.
-  echo "-- logs de bff-movil mientras bff-web esta abajo:"
-  docker compose logs bff-movil 2>&1 | grep -i -E "No servers available|Connection refused|CallNotPermitted" | tail -5
+  echo "-- logs de bff-movil sobre el circuito (transiciones y llamadas rechazadas):"
+  docker compose logs bff-movil 2>&1 | grep -E "STATE_TRANSITION|NOT_PERMITTED" | tail -8
 
   echo "== 4. Se levanta bff-web (docker compose start bff-web); puede volver con otra IP"
   docker compose start bff-web
@@ -127,12 +128,20 @@ resiliencia() {
     echo "intento $i (t=$((i*5))s) -> $COD"
     if [ "$COD" = "200" ]; then
       RECUPERADO=si
+      # 3 llamadas mas para completar la ventana HALF_OPEN (3 llamadas permitidas)
+      # y que el circuito llegue a CLOSED
+      for j in 1 2 3; do
+        sleep 1
+        echo "llamada de cierre $j -> $(codigo_get $MOVIL/api/movil/cuentas/101 "$TOKEN_MOVIL")"
+      done
       break
     fi
   done
   echo "-- bff-web registrado de nuevo en Eureka:"
   curl -s -H "Accept: application/json" http://localhost:8761/eureka/apps/BFF-WEB \
     | python3 -c "import sys,json;[print(i['app'],i['status'],i['ipAddr']) for i in json.load(sys.stdin)['application']['instance']]"
+  echo "-- logs de bff-movil sobre el circuito (transiciones):"
+  docker compose logs bff-movil 2>&1 | grep "STATE_TRANSITION" | tail -8
   echo "Recuperado (200 de nuevo): $RECUPERADO"
 }
 
