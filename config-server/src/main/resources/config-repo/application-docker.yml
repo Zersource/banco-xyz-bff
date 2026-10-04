@@ -1,0 +1,8 @@
+# Configuracion extra para cuando los servicios corren en Docker
+# (perfil "docker"). Dentro de la red de compose, Eureka se alcanza
+# por el nombre de su servicio y no por localhost.
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
