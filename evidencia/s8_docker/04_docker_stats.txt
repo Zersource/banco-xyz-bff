@@ -1,0 +1,6 @@
+CONTAINER ID   NAME                            CPU %     MEM USAGE / LIMIT    MEM %     NET I/O           BLOCK I/O     PIDS
+14c9458b1224   banco-xyz-bff-bff-movil-1       0.20%     392.6MiB / 7.75GiB   4.95%     59.6kB / 47kB     0B / 205kB    55
+7ce0ff242e14   banco-xyz-bff-bff-web-1         3.22%     517MiB / 7.75GiB     6.51%     8.6kB / 5.78kB    0B / 65.5kB   132
+3f392523a418   banco-xyz-bff-bff-cajero-1      0.21%     388.1MiB / 7.75GiB   4.89%     28kB / 14.2kB     0B / 176kB    53
+069c03042ee0   banco-xyz-bff-config-server-1   0.19%     295.2MiB / 7.75GiB   3.72%     17.5kB / 26kB     0B / 205kB    44
+00e01a224b6c   banco-xyz-bff-eureka-server-1   0.79%     406.7MiB / 7.75GiB   5.13%     39.3kB / 34.4kB   0B / 188kB    76

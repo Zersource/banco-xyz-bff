@@ -1,0 +1,8 @@
+## GET http://localhost:8761/eureka/apps
+BFF-WEB UP 172.19.0.5 8081
+BFF-CAJERO UP 172.19.0.4 8083
+BFF-MOVIL UP 172.19.0.6 8082
+
+## curl -s http://localhost:8888/bff-movil/docker (defaultZone por fuente)
+classpath:/config-repo/application-docker.yml -> http://eureka-server:8761/eureka/
+classpath:/config-repo/application.yml -> http://localhost:8761/eureka/

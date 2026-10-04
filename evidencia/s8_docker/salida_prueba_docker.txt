@@ -1,0 +1,73 @@
+
+################ SECCION FUNCIONAL ################
+Sun Oct  4 00:00:57 -03 2026
+== 1. Token de cada canal (POST bff-web /api/auth/token)
+token WEB:    eyJhbGciOiJIUzUxMiJ9.eyJzdWIiO...
+token MOVIL:  eyJhbGciOiJIUzUxMiJ9.eyJzdWIiO...
+token CAJERO: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiO...
+== 2. Endpoint de cada canal con su token (esperado 200)
+web    /api/web/cuentas            -> 200
+movil  /api/movil/cuentas/101      -> 200
+cajero /api/cajero/cuentas/101/saldo -> 200
+== 3. Sin token (esperado 401)
+web    -> 401
+movil  -> 401
+cajero -> 401
+== 4. Token de otro canal (esperado 403)
+token MOVIL en bff-web    -> 403
+token CAJERO en bff-movil -> 403
+token WEB en bff-cajero   -> 403
+== 5. Saga camino feliz: 101 -> 102, monto 10 (esperado COMPLETADA)
+saldo 101 antes:   5000.0
+saldo 102 antes:   8000.0
+respuesta inicial: {"transaccionId":1,"estado":"PENDIENTE","mensaje":"Transferencia recibida, procesando de forma asincrona"}
+estado final:      COMPLETADA
+saldo 101 despues: 4990.0
+saldo 102 despues: 8010.0
+== 6. Saga compensacion: 101 -> 999 (destino inexistente), monto 10 (esperado REVERTIDA)
+saldo 101 antes:   4990.0
+respuesta inicial: {"transaccionId":2,"estado":"PENDIENTE","mensaje":"Transferencia recibida, procesando de forma asincrona"}
+estado final:      REVERTIDA
+saldo 101 despues: 4990.0  (debe ser igual al de antes)
+
+################ SECCION RESILIENCIA ################
+Sun Oct  4 00:00:58 -03 2026
+== 1. Estado inicial: bff-movil responde con bff-web arriba
+movil /api/movil/cuentas/101 -> 200
+== 2. Se baja bff-web (docker compose stop bff-web)
+ Container banco-xyz-bff-bff-web-1 Stopping 
+ Container banco-xyz-bff-bff-web-1 Stopped 
+== 3. Llamadas a bff-movil hasta que el circuito se abra (esperado 503 con fallback)
+llamada 1 -> 503
+llamada 2 -> 503
+llamada 3 -> 503
+llamada 4 -> 503
+llamada 5 -> 503
+llamada 6 -> 503
+llamada 7 -> 503
+llamada 8 -> 503
+-- cuerpo de la respuesta con el circuito abierto:
+{"timestamp":"2026-10-04T03:01:41.253654884","estado":503,"mensaje":"El servicio bff-web no esta disponible en este momento"}
+-- logs de bff-movil mientras bff-web esta abajo:
+bff-movil-1  | 2026-10-04T03:00:16.022Z  WARN 1 --- [bff-movil] [io-8082-exec-10] o.s.c.l.core.RoundRobinLoadBalancer      : No servers available for service: bff-web
+bff-movil-1  | 2026-10-04T03:00:21.062Z  WARN 1 --- [bff-movil] [nio-8082-exec-1] o.s.c.l.core.RoundRobinLoadBalancer      : No servers available for service: bff-web
+bff-movil-1  | 2026-10-04T03:00:26.094Z  WARN 1 --- [bff-movil] [nio-8082-exec-2] o.s.c.l.core.RoundRobinLoadBalancer      : No servers available for service: bff-web
+bff-movil-1  | 2026-10-04T03:01:41.156Z  WARN 1 --- [bff-movil] [nio-8082-exec-7] o.s.c.l.core.RoundRobinLoadBalancer      : No servers available for service: bff-web
+bff-movil-1  | 2026-10-04T03:01:41.177Z  WARN 1 --- [bff-movil] [nio-8082-exec-8] o.s.c.l.core.RoundRobinLoadBalancer      : No servers available for service: bff-web
+== 4. Se levanta bff-web (docker compose start bff-web); puede volver con otra IP
+ Container banco-xyz-bff-config-server-1 Waiting 
+ Container banco-xyz-bff-config-server-1 Healthy 
+ Container banco-xyz-bff-bff-web-1 Starting 
+ Container banco-xyz-bff-bff-web-1 Started 
+== 5. Se reintenta bff-movil hasta ~90 s (cache de Eureka + HALF_OPEN -> CLOSED)
+intento 1 (t=5s) -> 503
+intento 2 (t=10s) -> 503
+intento 3 (t=15s) -> 503
+intento 4 (t=20s) -> 503
+intento 5 (t=25s) -> 503
+intento 6 (t=30s) -> 200
+-- bff-web registrado de nuevo en Eureka:
+BFF-WEB UP 172.19.0.5
+Recuperado (200 de nuevo): si
+
+===== fin de la prueba =====

@@ -111,8 +111,10 @@ resiliencia() {
   echo "-- cuerpo de la respuesta con el circuito abierto:"
   curl -s -H "Authorization: Bearer $TOKEN_MOVIL" "$MOVIL/api/movil/cuentas/101"
   echo
-  echo "-- logs de bff-movil sobre el circuito (busca OPEN):"
-  docker compose logs bff-movil 2>&1 | grep -i -E "circuitbreaker|OPEN|CallNotPermitted" | tail -5
+  # bff-movil no registra en log los cambios de estado del circuito; lo que
+  # si queda en el log es el aviso del balanceador cuando bff-web no esta.
+  echo "-- logs de bff-movil mientras bff-web esta abajo:"
+  docker compose logs bff-movil 2>&1 | grep -i -E "No servers available|Connection refused|CallNotPermitted" | tail -5
 
   echo "== 4. Se levanta bff-web (docker compose start bff-web); puede volver con otra IP"
   docker compose start bff-web
@@ -128,8 +130,9 @@ resiliencia() {
       break
     fi
   done
-  echo "-- logs de bff-movil sobre el circuito:"
-  docker compose logs bff-movil 2>&1 | grep -i -E "circuitbreaker|HALF_OPEN|CLOSED" | tail -5
+  echo "-- bff-web registrado de nuevo en Eureka:"
+  curl -s -H "Accept: application/json" http://localhost:8761/eureka/apps/BFF-WEB \
+    | python3 -c "import sys,json;[print(i['app'],i['status'],i['ipAddr']) for i in json.load(sys.stdin)['application']['instance']]"
   echo "Recuperado (200 de nuevo): $RECUPERADO"
 }
 

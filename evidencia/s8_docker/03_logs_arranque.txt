@@ -1,0 +1,26 @@
+## Lineas 'Started ... in X seconds' (docker compose logs)
+config-server-1  | 2026-10-04T02:58:25.837Z  INFO 1 --- [config-server] [           main] c.d.c.ConfigServerApplication            : Started ConfigServerApplication in 2.516 seconds (process running for 3.063)
+bff-movil-1      | 2026-10-04T02:58:35.005Z  INFO 1 --- [bff-movil] [           main] com.duoc.bffmovil.BffMovilApplication    : Started BffMovilApplication in 5.974 seconds (process running for 6.605)
+bff-cajero-1     | 2026-10-04T02:58:35.000Z  INFO 1 --- [bff-cajero] [           main] c.duoc.bffcajero.BffCajeroApplication    : Started BffCajeroApplication in 5.928 seconds (process running for 6.621)
+eureka-server-1  | 2026-10-04T02:58:26.813Z  INFO 1 --- [eureka-server] [           main] c.d.e.EurekaServerApplication            : Started EurekaServerApplication in 3.417 seconds (process running for 4.036)
+bff-web-1        | 2026-10-04T02:58:36.477Z  INFO 1 --- [bff-web] [           main] c.d.bancoxyzbff.BancoXyzBffApplication   : Started BancoXyzBffApplication in 7.346 seconds (process running for 8.088)
+
+## Perfil activo y origen de la configuracion de cada BFF
+--- bff-web
+bff-web-1  | 2026-10-04T02:58:30.320Z  INFO 1 --- [bff-web] [           main] c.d.bancoxyzbff.BancoXyzBffApplication   : The following 1 profile is active: "docker"
+bff-web-1  | 2026-10-04T02:58:30.428Z  INFO 1 --- [bff-web] [           main] o.s.c.c.c.ConfigServerConfigDataLoader   : Fetching config from server at : http://config-server:8888
+bff-web-1  | 2026-10-04T02:58:30.429Z  INFO 1 --- [bff-web] [           main] o.s.c.c.c.ConfigServerConfigDataLoader   : Fetching config from server at : http://config-server:8888
+bff-web-1  | 2026-10-04T02:58:30.429Z  INFO 1 --- [bff-web] [           main] o.s.c.c.c.ConfigServerConfigDataLoader   : Located environment: name=bff-web, profiles=[docker], label=null, version=null, state=null
+--- bff-movil
+bff-movil-1  | 2026-10-04T02:58:30.109Z  INFO 1 --- [bff-movil] [           main] com.duoc.bffmovil.BffMovilApplication    : The following 1 profile is active: "docker"
+bff-movil-1  | 2026-10-04T02:58:30.160Z  INFO 1 --- [bff-movil] [           main] o.s.c.c.c.ConfigServerConfigDataLoader   : Fetching config from server at : http://config-server:8888
+bff-movil-1  | 2026-10-04T02:58:30.161Z  INFO 1 --- [bff-movil] [           main] o.s.c.c.c.ConfigServerConfigDataLoader   : Fetching config from server at : http://config-server:8888
+bff-movil-1  | 2026-10-04T02:58:30.161Z  INFO 1 --- [bff-movil] [           main] o.s.c.c.c.ConfigServerConfigDataLoader   : Located environment: name=bff-movil, profiles=[docker], label=null, version=null, state=null
+--- bff-cajero
+bff-cajero-1  | 2026-10-04T02:58:30.166Z  INFO 1 --- [bff-cajero] [           main] c.duoc.bffcajero.BffCajeroApplication    : The following 1 profile is active: "docker"
+bff-cajero-1  | 2026-10-04T02:58:30.227Z  INFO 1 --- [bff-cajero] [           main] o.s.c.c.c.ConfigServerConfigDataLoader   : Fetching config from server at : http://config-server:8888
+bff-cajero-1  | 2026-10-04T02:58:30.228Z  INFO 1 --- [bff-cajero] [           main] o.s.c.c.c.ConfigServerConfigDataLoader   : Fetching config from server at : http://config-server:8888
+bff-cajero-1  | 2026-10-04T02:58:30.228Z  INFO 1 --- [bff-cajero] [           main] o.s.c.c.c.ConfigServerConfigDataLoader   : Located environment: name=bff-cajero, profiles=[docker], label=null, version=null, state=null
+
+## Nota: el import de application.properties (localhost:8888) tambien se intenta; es optional y falla con Connection refused a nivel INFO, luego se usa config-server:8888
+bff-web-1  | 2026-10-04T02:58:30.429Z  INFO 1 --- [bff-web] [           main] o.s.c.c.c.ConfigServerConfigDataLoader   : Exception on Url - http://localhost:8888:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8888/bff-web/default": Connection refused. Will be trying the next url if available

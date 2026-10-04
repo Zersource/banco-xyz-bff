@@ -1,0 +1,6 @@
+NAME                            IMAGE                         COMMAND               SERVICE         CREATED          STATUS                    PORTS
+banco-xyz-bff-bff-cajero-1      banco-xyz-bff-bff-cajero      "java -jar app.jar"   bff-cajero      14 seconds ago   Up 8 seconds              0.0.0.0:8083->8083/tcp, [::]:8083->8083/tcp
+banco-xyz-bff-bff-movil-1       banco-xyz-bff-bff-movil       "java -jar app.jar"   bff-movil       14 seconds ago   Up 8 seconds              0.0.0.0:8082->8082/tcp, [::]:8082->8082/tcp
+banco-xyz-bff-bff-web-1         banco-xyz-bff-bff-web         "java -jar app.jar"   bff-web         14 seconds ago   Up 8 seconds              0.0.0.0:8081->8081/tcp, [::]:8081->8081/tcp
+banco-xyz-bff-config-server-1   banco-xyz-bff-config-server   "java -jar app.jar"   config-server   14 seconds ago   Up 14 seconds (healthy)   0.0.0.0:8888->8888/tcp, [::]:8888->8888/tcp
+banco-xyz-bff-eureka-server-1   banco-xyz-bff-eureka-server   "java -jar app.jar"   eureka-server   14 seconds ago   Up 14 seconds             0.0.0.0:8761->8761/tcp, [::]:8761->8761/tcp
