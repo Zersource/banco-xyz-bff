@@ -1,0 +1,30 @@
+# 1.4e Conteo exacto: JOB=transacciones, perfiles dev,semana_3 (1000 filas), volumen LIMPIO, UNA corrida -> exit code: 0
+# Fuente: log de LoggingSkipListener (SKIP en lectura/processor/escritura) + H2 Shell
+
+== Steps (log)
+  Step [cargarTransaccionesWorkerStep:partition0] leidos=334 escritos=142 omitidos(lectura/proceso/escritura)=0/189/3
+  Step [cargarTransaccionesWorkerStep:partition1] leidos=333 escritos=128 omitidos(lectura/proceso/escritura)=0/198/7
+  Step [cargarTransaccionesWorkerStep:partition2] leidos=333 escritos=117 omitidos(lectura/proceso/escritura)=0/212/4
+
+== BD (H2 Shell)
+  TRANSACCION_VALIDADA
+  387
+
+== Desglose de las 613 omitidas (1000 leidas - 387 escritas)
+  reglas de negocio (DatoInvalidoException, SKIP en processor): 599
+       230 Tipo de transaccion no reconocido (se esperaba debito/credito) 
+       160 Monto no numerico 
+       154 Monto invalido: negativo o cero 
+        55 Formato de fecha invalido (se esperaba yyyy-MM-dd, yyyy/MM/dd, dd-MM-yyyy o dd/MM/yyyy) 
+  formato (FlatFileParseException, SKIP en lectura):          0
+  UNIQUE (DuplicateKeyException, SKIP en escritura):                 14
+        14 Unique index or primary key violation: "PUBLIC.UK_TRANSACCION_CLAVE_NEGOCIO_INDEX_
+  (las 14 son H2 23505 sobre uk_transaccion_clave_negocio = UNIQUE (fecha, monto, tipo); ninguna sobre la PK id)
+
+== Chequeo 387 vs 401
+  1000 leidas = 387 escritas + 599 negocio + 0 formato + 14 UNIQUE
+  401 (PROPUESTA_TECNICA.md 2.4, columna 'validos') = 387 + 14: filas que pasan el processor; 14 de ellas
+  se descartan al escribir por la clave de negocio duplicada. En la BD quedan 387.
+  'Anomalias detectadas y auditadas' = 599 (solo las de negocio; los duplicados UNIQUE no se auditan).
+  Nota: el reparto por particion varia entre corridas (p.ej. 1.4d: 129/141/117 escritos, 6/4/4 UNIQUE),
+  pero en todas las corridas observadas los totales fueron los mismos (387 escritas / 14 UNIQUE).

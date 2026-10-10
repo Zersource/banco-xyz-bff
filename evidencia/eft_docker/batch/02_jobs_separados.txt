@@ -1,0 +1,34 @@
+# 1.4a Los 3 Jobs por separado, volumen LIMPIO antes de cada uno (bind mount /tmp/batch-data -> /app/data)
+# Comando: docker compose --profile batch run --rm -e JOB=<job> batch   (+ override local con los bind mounts)
+
+== JOB=transacciones  -> exit code: 0
+  profiles are active: "dev", "semana_3"
+  Job: [SimpleJob: [name=dailyTransactionsJob]] completed status: [COMPLETED] in 205ms
+  Step [cargarTransaccionesWorkerStep:partition0] leidos=334 escritos=142 omitidos(lectura/proceso/escritura)=0/189/3
+  Step [cargarTransaccionesWorkerStep:partition2] leidos=333 escritos=117 omitidos(lectura/proceso/escritura)=0/212/4
+  Step [cargarTransaccionesWorkerStep:partition1] leidos=333 escritos=128 omitidos(lectura/proceso/escritura)=0/198/7
+  Anomalias detectadas y auditadas: 599
+  BD (H2 Shell):
+    TRANSACCION_VALIDADA | RESUMEN_DIARIO | ANOMALIA_DATO
+    387                  | 236            | 599
+
+== JOB=intereses  -> exit code: 0
+  profiles are active: "dev", "semana_3"
+  Job: [SimpleJob: [name=monthlyInterestJob]] completed status: [COMPLETED] in 295ms
+  Step [calcularInteresesStep] leidos=1000 escritos=50 omitidos(lectura/proceso/escritura)=0/601/349
+  Anomalias detectadas y auditadas: 601
+  BD (H2 Shell):
+    CUENTA_INTERES_MENSUAL | ANOMALIA_DATO
+    50                     | 601
+
+== JOB=estados-cuenta  -> exit code: 0
+  profiles are active: "dev", "semana_3"
+  Job: [SimpleJob: [name=annualStatementJob]] completed status: [COMPLETED] in 218ms
+  Step [cargarMovimientosStep] leidos=1000 escritos=614 omitidos(lectura/proceso/escritura)=0/386/0
+  Anomalias detectadas y auditadas: 538
+  BD (H2 Shell):
+    MOVIMIENTO_CUENTA_ANUAL | ESTADO_CUENTA_ANUAL | ANOMALIA_DATO
+    614                     | 20                  | 538
+
+== Un docker compose up normal NO incluye batch:
+  servicios sin perfil: auth-server bff-cajero bff-movil bff-web clientes config-server cuentas eureka-server kafka 

@@ -9,8 +9,8 @@ Evidencia EFT - Docker 2 (rama eft-docker-2 = origin/eft-final + merge de eft-do
 10_prueba_e2e_docker.txt        prueba-e2e.sh contra Docker: 43/43 OK
 11_token_uri_y_cb_docker.txt    perfil docker, token-uri auth-server:9000 desde cada BFF,
                                 transiciones del Circuit Breaker
-raw_mvn/                        mvn clean verify por modulo tras el merge (8/8 OK) y tras
-                                agregar actuator; fallo_red_ultimas20.txt = ultimas 20 lineas del primer build (fallo de red
+raw_mvn/                        verify_<modulo>.txt: ultimas 15 lineas de mvn clean verify
+                                (sin -q) por modulo, 8/8 BUILD SUCCESS; fallo_red_ultimas20.txt = ultimas 20 lineas del primer build (fallo de red
                                 al bajar una dependencia de Maven Central, no de codigo)
 
 Nota sobre resiliencia en Docker: prueba-e2e.sh apaga con `pkill -f <svc>-1.0.0.jar` y

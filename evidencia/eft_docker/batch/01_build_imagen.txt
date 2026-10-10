@@ -1,0 +1,15 @@
+# docker compose --profile batch build batch  -> exit 0
+# Verificacion del .dockerignore (docker/batch/Dockerfile.dockerignore): se agregaron senuelos de
+# 10 MB en batch/target/ y batch/data/; batch/ pesaba 22M (incluye 1.4M de *.log).
+  #7 transferring context: 201.45kB done
+
+# Imagen
+  user=batch workdir=/app healthcheck=no size=132390185
+  entrypoint=["sh","-c","exec java -jar /app/batch.jar \"${JOB:-transacciones}\""]
+  id: uid=999(batch) gid=999(batch) groups=999(batch)
+  total 17444
+  drwxr-xr-x 1 batch batch     4096 Oct 10 02:11 .
+  drwxr-xr-x 1 root  root      4096 Oct 10 02:11 ..
+  -rw-r--r-- 1 batch batch 17846398 Oct 10 02:11 batch.jar
+  drwxr-xr-x 2 batch batch     4096 Oct 10 02:07 data
+  openjdk version "21.0.12.1" 2026-08-18 LTS

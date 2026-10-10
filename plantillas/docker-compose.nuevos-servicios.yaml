@@ -7,7 +7,14 @@
 # Para activarla, cuando exista la carpeta del servicio (usar su nombre real, igual a
 # spring.application.name, al <nombre>.yml de config-repo y al http://<nombre> de los BFF):
 #   1. Copiar plantillas/Dockerfile.servicio a <carpeta>/Dockerfile.
-#   2. Crear <nombre>.yml en config-server/src/main/resources/config-repo con server.port.
+#   2. Crear <nombre>.yml en config-server/src/main/resources/config-repo con server.port y,
+#      si el servicio se va a escalar (--scale), un instance-id unico en Eureka. Sin esto,
+#      cuando el id depende del puerto las replicas colisionan (ver config-repo/cuentas.yml):
+#        server:
+#          port: 8086
+#        eureka:
+#          instance:
+#            instance-id: ${spring.application.name}:${HOSTNAME:${random.value}}
 #   3. Pegar estos servicios en docker-compose.yaml (o levantar con
 #      docker compose -f docker-compose.yaml -f plantillas/docker-compose.nuevos-servicios.yaml up --build).
 # Las rutas son relativas a la raiz del repo (donde esta docker-compose.yaml).
