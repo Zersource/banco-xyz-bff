@@ -1,0 +1,29 @@
+# Override para probar el batch con el perfil "postgres" (no va en el compose principal):
+#   docker compose -f docker-compose.yaml -f docker/batch/compose.postgres.yaml \
+#     --profile batch run --rm -e JOB=todos batch
+# postgres queda en la red del stack (host "postgres"), sin puerto publicado en el host.
+services:
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["batch"]
+    environment:
+      - POSTGRES_DB=bancoxyz
+      - POSTGRES_USER=bancoxyz
+      - POSTGRES_PASSWORD=bancoxyz
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bancoxyz -d bancoxyz"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  batch:
+    environment:
+      - SPRING_PROFILES_ACTIVE=postgres,semana_3
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=bancoxyz
+      - DB_USER=bancoxyz
+      - DB_PASSWORD=bancoxyz
+    depends_on:
+      postgres:
+        condition: service_healthy

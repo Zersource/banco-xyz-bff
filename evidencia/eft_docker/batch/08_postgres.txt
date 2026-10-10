@@ -1,0 +1,26 @@
+# 1.4g Perfil postgres: postgres:16-alpine en la red del stack (override docker/batch/compose.postgres.yaml)
+# docker compose -f docker-compose.yaml -f docker/batch/compose.postgres.yaml --profile batch run --rm -e JOB=todos batch  (x2)
+
+== corrida 1 -> exit code: 0
+  profiles are active: "postgres", "semana_3"
+  Job [dailyTransactionsJob] finalizado con EXITO. Anomalias detectadas y auditadas: 599
+  Job [monthlyInterestJob] finalizado con EXITO. Anomalias detectadas y auditadas: 601
+  Job [annualStatementJob] finalizado con EXITO. Anomalias detectadas y auditadas: 538
+  lineas de nivel ERROR en el log: 0 (el texto 'ERROR: duplicate key ... uk_transaccion_clave_negocio' aparece
+  solo dentro de los WARN 'SKIP en escritura' de las 14 omisiones UNIQUE)
+
+== corrida 2 -> exit code: 0
+  profiles are active: "postgres", "semana_3"
+  Job [dailyTransactionsJob] finalizado con EXITO. Anomalias detectadas y auditadas: 1198
+  Job [monthlyInterestJob] finalizado con EXITO. Anomalias detectadas y auditadas: 1202
+  Job [annualStatementJob] finalizado con EXITO. Anomalias detectadas y auditadas: 1076
+  lineas de nivel ERROR en el log: 0 (el texto 'ERROR: duplicate key ... uk_transaccion_clave_negocio' aparece
+  solo dentro de los WARN 'SKIP en escritura' de las 14 omisiones UNIQUE)
+
+== psql tras las 2 corridas
+   tx  | resumen | intereses | movs | estados | anomalias | ejec_ok 
+  -----+---------+-----------+------+---------+-----------+---------
+   387 |     236 |        50 |  614 |      20 |      3476 |       6
+  (1 row)
+  
+  Mismos conteos de salida que H2; anomalia_dato acumula (1738 por pasada de 'todos') igual que en H2.
