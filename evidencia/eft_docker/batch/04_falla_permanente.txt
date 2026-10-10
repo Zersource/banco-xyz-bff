@@ -1,0 +1,23 @@
+# 1.4c Falla permanente: APP_CSV_TRANSACCIONES=file:/datos/inexistente.csv (override local de environment)
+
+== 1) El Job no tolera el archivo ausente: docker compose --profile batch run --rm -e APP_CSV_TRANSACCIONES=... batch -> exit code: 1
+  Caused by: java.io.FileNotFoundException: /datos/inexistente.csv (No such file or directory)
+  ==> Job [dailyTransactionsJob] finalizado con ESTADO FAILED. Revisar el stacktrace anterior.
+
+== 2) docker compose run NO aplica la politica restart (run -d sin --rm, misma falla, 25 s despues):
+  RestartPolicy=no:0 Status=exited ExitCode=1 RestartCount=0 Name=/banco-xyz-bff-batch-run-5e4a355f8aac
+
+== 3) docker compose --profile batch up batch  (restart: on-failure:3)
+  salida de 'docker compose up' (exit del propio comando: 0, aunque el contenedor sale con 1):
+  batch-1  | 2026-10-10T02:14:45.486Z ERROR 1 --- [banco-xyz-batch] [           main] .d.b.c.JobCompletionNotificationListener : ==> Job [dailyTransactionsJob] finalizado con ESTADO FAILED. Revisar el stacktrace anterior.
+  batch-1 exited with code 1 (restarting)
+  batch-1  | 2026-10-10T02:14:46.394Z ERROR 1 --- [banco-xyz-batch] [           main] .d.b.c.JobCompletionNotificationListener : ==> Job [dailyTransactionsJob] finalizado con ESTADO FAILED. Revisar el stacktrace anterior.
+  batch-1 exited with code 1 (restarting)
+  batch-1  | 2026-10-10T02:14:47.430Z ERROR 1 --- [banco-xyz-batch] [           main] .d.b.c.JobCompletionNotificationListener : ==> Job [dailyTransactionsJob] finalizado con ESTADO FAILED. Revisar el stacktrace anterior.
+  batch-1 exited with code 1 (restarting)
+  batch-1  | 2026-10-10T02:14:48.854Z ERROR 1 --- [banco-xyz-batch] [           main] .d.b.c.JobCompletionNotificationListener : ==> Job [dailyTransactionsJob] finalizado con ESTADO FAILED. Revisar el stacktrace anterior.
+  batch-1 exited with code 1
+
+  docker inspect -f '{{.State.ExitCode}} {{.RestartCount}}' -> 1 3
+  Status=exited RestartPolicy=on-failure:3
+  intentos con 'finalizado con ESTADO FAILED' en el log: 4 (1 inicial + 3 reintentos)
