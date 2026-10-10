@@ -7,6 +7,8 @@ import com.duoc.bancoxyzbff.dto.TransaccionDTO;
 import com.duoc.bancoxyzbff.exception.ServicioNoDisponibleException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
@@ -23,6 +25,8 @@ import java.util.List;
  */
 @Component
 public class CuentasClient {
+
+    private static final Logger log = LoggerFactory.getLogger(CuentasClient.class);
 
     @Autowired
     private RestClient.Builder restClientBuilder;
@@ -124,6 +128,7 @@ public class CuentasClient {
         if (error instanceof HttpClientErrorException httpError) {
             return httpError;
         }
+        log.warn("cuentas no disponible, se responde 503: {}", error.toString());
         return new ServicioNoDisponibleException("cuentas", error);
     }
 }

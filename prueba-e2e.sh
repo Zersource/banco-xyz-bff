@@ -65,11 +65,30 @@ esperar_codigo() { # url token esperado segundos
     echo "$real"
 }
 
+# Deja cerrados los Circuit Breaker de los 3 BFF: exige 3 respuestas 200 seguidas de cada
+# canal. La ventana del breaker es de 5 llamadas y conserva las fallas de corridas
+# anteriores, asi que sin esto una corrida puede heredar un circuito abierto de la otra.
+cerrar_circuitos() { # segundos
+    local urls=("http://localhost:8081/api/web/cuentas/101" "http://localhost:8082/api/movil/cuentas/101" "http://localhost:8083/api/cajero/cuentas/101/saldo")
+    local toks=("$TOKEN_WEB" "$TOKEN_MOVIL" "$TOKEN_CAJERO")
+    local seguidas intentos
+    for i in 0 1 2; do
+        seguidas=0
+        intentos=0
+        while [ "$seguidas" -lt 3 ] && [ "$intentos" -lt "$1" ]; do
+            if [ "$(http_code "${urls[$i]}" "${toks[$i]}")" == 200 ]; then seguidas=$((seguidas + 1)); else seguidas=0; sleep 2; fi
+            intentos=$((intentos + 1))
+        done
+    done
+}
+
 # ---------- secciones ----------
 
 registro() {
     echo "== Registro en Eureka"
     for app in CUENTAS CLIENTES BFF-WEB BFF-MOVIL BFF-CAJERO; do
+        # Eureka cachea su respuesta hasta ~30 s: se espera a que un reinicio reciente aparezca
+        esperar_eureka "$app" 45
         estado=$(curl -s -H 'Accept: application/json' http://localhost:8761/eureka/apps/$app \
             | python3 -c 'import json,sys; print(json.load(sys.stdin)["application"]["instance"][0]["status"])' 2>/dev/null)
         chequear "$app registrado en Eureka" UP "${estado:-NO_REGISTRADO}"
@@ -188,7 +207,9 @@ fi
 
 SECCION=${1:-todo}
 if [ "$SECCION" == todo ]; then
+    cerrar_circuitos 40
     registro; seguridad; retiro; payload; resiliencia
+    cerrar_circuitos 40
 else
     "$SECCION"
 fi
