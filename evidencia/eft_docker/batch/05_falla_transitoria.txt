@@ -1,0 +1,27 @@
+# 1.4d Falla TRANSITORIA con recuperacion automatica (restart: on-failure:3)
+# APP_CSV_TRANSACCIONES=file:/datos/transacciones.csv (bind mount /tmp/batch-datos -> /datos), archivo AUSENTE al inicio;
+# volumen de BD limpio. 'docker compose --profile batch up batch' en segundo plano + script que espera
+# RestartCount >= 1 y entonces copia el CSV de semana_3 (cp a temporal + mv atomico).
+
+== Script (evidencia/eft_docker/batch/recuperar_csv.sh):
+  02:15:25 [script] RestartCount=1 -> CSV de semana_3 copiado a /tmp/batch-datos/transacciones.csv (    1001 lineas)
+
+== Log resumido de 'up batch' (exit del comando up: 0)
+  batch-1  | Caused by: java.io.FileNotFoundException: /datos/transacciones.csv (No such file or directory)
+  batch-1  | 2026-10-10T02:15:25.213Z ERROR 1 ==> Job [dailyTransactionsJob] finalizado con ESTADO FAILED. 
+  batch-1  | Caused by: java.io.FileNotFoundException: /datos/transacciones.csv (No such file or directory)
+  batch-1 exited with code 1 (restarting)
+  batch-1  | 2026-10-10T02:15:26.277Z  INFO 1 --> Step [cargarTransaccionesWorkerStep:partition1] finalizado en 0 ms | leidos=333 escritos=129 omitidos(lectura/proceso/escritura)=0/198/6
+  batch-1  | 2026-10-10T02:15:26.287Z  INFO 1 --> Step [cargarTransaccionesWorkerStep:partition0] finalizado en 0 ms | leidos=334 escritos=141 omitidos(lectura/proceso/escritura)=0/189/4
+  batch-1  | 2026-10-10T02:15:26.290Z  INFO 1 --> Step [cargarTransaccionesWorkerStep:partition2] finalizado en 0 ms | leidos=333 escritos=117 omitidos(lectura/proceso/escritura)=0/212/4
+  batch-1  | 2026-10-10T02:15:26.299Z  INFO 1 ==> Job [dailyTransactionsJob] finalizado con EXITO. Anomalias detectadas y auditadas: 599
+  batch-1 exited with code 0
+
+== docker inspect -f '{{.State.ExitCode}} {{.RestartCount}}' -> 0 1
+
+== BD tras la recuperacion (H2 Shell, contenedor detenido)
+  TRANSACCION_VALIDADA | RESUMEN_DIARIO | DUP_ID | DUP_CLAVE_NEGOCIO | ANOMALIA_DATO
+  387                  | 236            | 0      | 0                 | 599
+  STATUS    | EXIT_CODE | EJECUCIONES
+  COMPLETED | COMPLETED | 1
+  FAILED    | FAILED    | 1
