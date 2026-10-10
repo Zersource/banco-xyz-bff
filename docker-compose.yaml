@@ -1,13 +1,9 @@
-services:
-  eureka-server:
-    build: ./eureka-server
-    ports:
-      - "8761:8761"
-    environment:
-      - EUREKA_INSTANCE_HOSTNAME=eureka-server
-      - JAVA_TOOL_OPTIONS=-Xmx256m
-    restart: unless-stopped
+# Orden de arranque (cada uno espera a que el anterior este healthy):
+#   config-server -> eureka-server -> auth-server -> bff-web / bff-movil / bff-cajero
+# kafka arranca en paralelo; todavia ningun servicio lo usa.
+# Plantilla (inactiva) para los servicios nuevos cuentas/clientes/pagos: plantillas/
 
+services:
   config-server:
     build: ./config-server
     ports:
@@ -15,13 +11,51 @@ services:
     environment:
       - JAVA_TOOL_OPTIONS=-Xmx256m
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      test: ["CMD", "curl", "-fs", "http://localhost:8888/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 30s
     restart: unless-stopped
 
+  eureka-server:
+    build: ./eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - EUREKA_INSTANCE_HOSTNAME=eureka-server
+      - JAVA_TOOL_OPTIONS=-Xmx256m
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    depends_on:
+      config-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  auth-server:
+    build: ./auth-server
+    ports:
+      - "9000:9000"
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xmx256m
+    healthcheck:
+      # Sin actuator: el JWKS publico es lo que necesitan los BFF
+      test: ["CMD", "curl", "-fs", "http://localhost:9000/oauth2/jwks"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Los BFF usan el "test" del HEALTHCHECK de su Dockerfile (token del auth-server +
+  # /actuator/health). Aqui solo se fijan los tiempos y el cliente OAuth2 que usa.
   bff-web:
     build: ./bff-web
     ports:
@@ -30,13 +64,19 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - JAVA_TOOL_OPTIONS=-Xmx256m
+      - HC_CLIENT=cliente-web:WEB-KEY-2024
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
     depends_on:
       config-server:
         condition: service_healthy
       eureka-server:
-        condition: service_started
+        condition: service_healthy
       auth-server:
-        condition: service_started
+        condition: service_healthy
     restart: unless-stopped
 
   bff-movil:
@@ -48,13 +88,19 @@ services:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - JAVA_TOOL_OPTIONS=-Xmx256m
       - LOGGING_LEVEL_IO_GITHUB_RESILIENCE4J_CIRCUITBREAKER=DEBUG
+      - HC_CLIENT=cliente-movil:MOVIL-KEY-2024
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
     depends_on:
       config-server:
         condition: service_healthy
       eureka-server:
-        condition: service_started
+        condition: service_healthy
       auth-server:
-        condition: service_started
+        condition: service_healthy
     restart: unless-stopped
 
   bff-cajero:
@@ -66,19 +112,46 @@ services:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - JAVA_TOOL_OPTIONS=-Xmx256m
       - LOGGING_LEVEL_IO_GITHUB_RESILIENCE4J_CIRCUITBREAKER=DEBUG
+      - HC_CLIENT=cliente-cajero:CAJERO-KEY-2024
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
     depends_on:
       config-server:
         condition: service_healthy
       eureka-server:
-        condition: service_started
+        condition: service_healthy
       auth-server:
-        condition: service_started
+        condition: service_healthy
     restart: unless-stopped
 
-  auth-server:
-    build: ./auth-server
+  # Kafka en modo KRaft (sin ZooKeeper), un solo nodo que es broker y controller.
+  # Dentro de la red de compose: kafka:9092. Desde el host: localhost:9094.
+  kafka:
+    image: apache/kafka:3.9.1
     ports:
-      - "9000:9000"
+      - "9094:9094"
     environment:
-      - JAVA_TOOL_OPTIONS=-Xmx256m
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      # Con un solo nodo los topics internos no pueden tener mas de 1 replica
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+      - KAFKA_HEAP_OPTS=-Xmx512m -Xms512m
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
     restart: unless-stopped

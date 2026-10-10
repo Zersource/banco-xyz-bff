@@ -1,0 +1,30 @@
+== config-server
+test: ["CMD","curl","-fs","http://localhost:8888/actuator/health"]
+estado: healthy
+== eureka-server
+test: ["CMD","curl","-fs","http://localhost:8761/actuator/health"]
+estado: healthy
+== auth-server
+test: ["CMD","curl","-fs","http://localhost:9000/oauth2/jwks"]
+estado: healthy
+== bff-web
+test: ["CMD-SHELL","TOKEN=$(curl -fs -u \"$HC_CLIENT\" -d grant_type=client_credentials \"$HC_AUTH_URL/oauth2/token\"         | sed -n 's/.*\"access_token\":\"\\([^\"]*\\)\".*/\\1/p')       && curl -fs -H \"Authorization: Bearer $TOKEN\" http://localhost:8081/actuator/health | grep -q '\"status\":\"UP\"'       || exit 1"]
+estado: healthy
+== bff-movil
+test: ["CMD-SHELL","TOKEN=$(curl -fs -u \"$HC_CLIENT\" -d grant_type=client_credentials \"$HC_AUTH_URL/oauth2/token\"         | sed -n 's/.*\"access_token\":\"\\([^\"]*\\)\".*/\\1/p')       && curl -fs -H \"Authorization: Bearer $TOKEN\" http://localhost:8082/actuator/health | grep -q '\"status\":\"UP\"'       || exit 1"]
+estado: healthy
+== bff-cajero
+test: ["CMD-SHELL","TOKEN=$(curl -fs -u \"$HC_CLIENT\" -d grant_type=client_credentials \"$HC_AUTH_URL/oauth2/token\"         | sed -n 's/.*\"access_token\":\"\\([^\"]*\\)\".*/\\1/p')       && curl -fs -H \"Authorization: Bearer $TOKEN\" http://localhost:8083/actuator/health | grep -q '\"status\":\"UP\"'       || exit 1"]
+estado: healthy
+== kafka
+test: ["CMD-SHELL","/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+estado: healthy
+
+== orden de arranque (StartedAt)
+2026-10-10T00:08:22.933400256Z config-server
+2026-10-10T00:08:22.933889423Z kafka
+2026-10-10T00:08:28.570026342Z eureka-server
+2026-10-10T00:08:34.16808372Z auth-server
+2026-10-10T00:08:39.777333542Z bff-cajero
+2026-10-10T00:08:39.777971792Z bff-web
+2026-10-10T00:08:39.778491833Z bff-movil

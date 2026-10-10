@@ -1,0 +1,646 @@
+ Image apache/kafka:3.9.1 Pulling 
+ de950be33e5e Pulling fs layer 0B
+ 6049c5689637 Pulling fs layer 0B
+ 5c0bd46ee16a Pulling fs layer 0B
+ 9d1ed55baa7f Pulling fs layer 0B
+ 6e771e15690e Pulling fs layer 0B
+ d43093295be6 Pulling fs layer 0B
+ 5eaea4238323 Pulling fs layer 0B
+ 3f55c417cbd1 Pulling fs layer 0B
+ f48ca9244b55 Pulling fs layer 0B
+ 5e54fdbff4d1 Pulling fs layer 0B
+ c063ad40c20e Download complete 0B
+ de950be33e5e Download complete 0B
+ 6049c5689637 Download complete 0B
+ 3f55c417cbd1 Download complete 0B
+ f48ca9244b55 Download complete 0B
+ d43093295be6 Downloading 1.049MB
+ 5e54fdbff4d1 Downloading 2.097MB
+ 5c0bd46ee16a Downloading 1.049MB
+ 5e54fdbff4d1 Downloading 4.194MB
+ 5c0bd46ee16a Downloading 1.049MB
+ 6e771e15690e Downloading 1.049MB
+ 9d1ed55baa7f Downloading 1.049MB
+ d43093295be6 Downloading 2.097MB
+ 5c0bd46ee16a Downloading 1.049MB
+ 6e771e15690e Downloading 1.049MB
+ 9d1ed55baa7f Downloading 1.049MB
+ d43093295be6 Downloading 2.097MB
+ 5e54fdbff4d1 Downloading 4.194MB
+ 5e54fdbff4d1 Downloading 6.291MB
+ 5c0bd46ee16a Downloading 2.097MB
+ 6e771e15690e Downloading 2.097MB
+ 9d1ed55baa7f Downloading 2.097MB
+ d43093295be6 Downloading 2.097MB
+ 5c0bd46ee16a Downloading 2.097MB
+ 6e771e15690e Downloading 2.097MB
+ 9d1ed55baa7f Downloading 2.097MB
+ d43093295be6 Downloading 2.097MB
+ 5e54fdbff4d1 Downloading 6.291MB
+ 6e771e15690e Downloading 3.146MB
+ 9d1ed55baa7f Downloading 3.146MB
+ d43093295be6 Downloading 4.194MB
+ 5e54fdbff4d1 Downloading 8.389MB
+ 5c0bd46ee16a Downloading 2.097MB
+ 5c0bd46ee16a Downloading 3.146MB
+ 6e771e15690e Download complete 0B
+ 9d1ed55baa7f Download complete 0B
+ 5eaea4238323 Downloading 1.049MB
+ d43093295be6 Downloading 5.243MB
+ 5e54fdbff4d1 Downloading 11.53MB
+ 6e771e15690e Extracting 1B
+ 5eaea4238323 Downloading 1.049MB
+ d43093295be6 Downloading 5.243MB
+ 5e54fdbff4d1 Downloading 11.53MB
+ 5c0bd46ee16a Downloading 3.146MB
+ 6e771e15690e Pull complete 0B
+ 5eaea4238323 Downloading 1.049MB
+ d43093295be6 Downloading 7.34MB
+ 5e54fdbff4d1 Downloading 13.63MB
+ 5c0bd46ee16a Downloading 4.194MB
+ 5eaea4238323 Downloading 1.049MB
+ d43093295be6 Downloading 7.34MB
+ 5e54fdbff4d1 Downloading 14.68MB
+ 5c0bd46ee16a Downloading 4.194MB
+ 5e54fdbff4d1 Downloading 16.14MB
+ 5c0bd46ee16a Downloading 4.194MB
+ 5eaea4238323 Downloading 1.049MB
+ d43093295be6 Downloading 8.389MB
+ 5c0bd46ee16a Downloading 5.243MB
+ 5eaea4238323 Downloading 1.049MB
+ d43093295be6 Downloading 10.49MB
+ 5e54fdbff4d1 Download complete 0B
+ 5e54fdbff4d1 Extracting 1B
+ 5eaea4238323 Downloading 1.049MB
+ d43093295be6 Downloading 10.49MB
+ 5c0bd46ee16a Downloading 5.243MB
+ 5e54fdbff4d1 Extracting 1B
+ 5eaea4238323 Downloading 1.049MB
+ d43093295be6 Downloading 12.58MB
+ 5c0bd46ee16a Downloading 5.243MB
+ 5e54fdbff4d1 Pull complete 0B
+ 5c0bd46ee16a Downloading 6.291MB
+ 5eaea4238323 Downloading 2.097MB
+ d43093295be6 Downloading 12.58MB
+ 5c0bd46ee16a Downloading 6.291MB
+ 5eaea4238323 Downloading 2.097MB
+ d43093295be6 Downloading 13.63MB
+ 5eaea4238323 Downloading 2.097MB
+ d43093295be6 Downloading 15.73MB
+ 5c0bd46ee16a Downloading 7.34MB
+ 5eaea4238323 Downloading 2.097MB
+ d43093295be6 Downloading 16.78MB
+ 5c0bd46ee16a Downloading 8.389MB
+ 5eaea4238323 Downloading 2.097MB
+ d43093295be6 Downloading 17.83MB
+ 5c0bd46ee16a Downloading 8.389MB
+ 5eaea4238323 Downloading 2.097MB
+ d43093295be6 Downloading 18.87MB
+ 5c0bd46ee16a Downloading 9.437MB
+ 5c0bd46ee16a Downloading 9.437MB
+ 5eaea4238323 Downloading 3.146MB
+ d43093295be6 Downloading 19.92MB
+ 5eaea4238323 Downloading 3.146MB
+ d43093295be6 Downloading 22.02MB
+ 5c0bd46ee16a Downloading 10.49MB
+ 5eaea4238323 Downloading 3.146MB
+ d43093295be6 Downloading 24.12MB
+ 5c0bd46ee16a Downloading 11.53MB
+ 5eaea4238323 Downloading 3.146MB
+ d43093295be6 Downloading 25.17MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 3.146MB
+ d43093295be6 Downloading 27.26MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 3.342MB
+ d43093295be6 Downloading 27.26MB
+ 5eaea4238323 Downloading 4.194MB
+ d43093295be6 Downloading 30.41MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 4.194MB
+ d43093295be6 Downloading 32.51MB
+ 5eaea4238323 Downloading 4.194MB
+ d43093295be6 Downloading 33.55MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 5.243MB
+ d43093295be6 Downloading 35.65MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 5.243MB
+ d43093295be6 Downloading 36.7MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 5.243MB
+ d43093295be6 Downloading 38.8MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 5.243MB
+ d43093295be6 Downloading 42.99MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 5.243MB
+ d43093295be6 Downloading 44.04MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 6.291MB
+ d43093295be6 Downloading 46.14MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 6.291MB
+ d43093295be6 Downloading 47.19MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 6.291MB
+ d43093295be6 Downloading 50.33MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 7.34MB
+ d43093295be6 Download complete 0B
+ d43093295be6 Extracting 1B
+ 5eaea4238323 Downloading 7.34MB
+ 5c0bd46ee16a Downloading 12.58MB
+ d43093295be6 Extracting 1B
+ 5eaea4238323 Downloading 7.34MB
+ 5c0bd46ee16a Downloading 12.58MB
+ d43093295be6 Extracting 1B
+ 5eaea4238323 Downloading 8.389MB
+ 5c0bd46ee16a Downloading 12.58MB
+ d43093295be6 Extracting 1B
+ 5eaea4238323 Downloading 8.389MB
+ 5c0bd46ee16a Downloading 12.58MB
+ d43093295be6 Extracting 1B
+ 5eaea4238323 Downloading 9.437MB
+ 5c0bd46ee16a Downloading 12.58MB
+ d43093295be6 Extracting 1B
+ 5eaea4238323 Downloading 9.437MB
+ 5c0bd46ee16a Downloading 12.58MB
+ d43093295be6 Extracting 1B
+ 5eaea4238323 Downloading 10.49MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 6049c5689637 Pull complete 0B
+ f48ca9244b55 Pull complete 0B
+ d43093295be6 Pull complete 0B
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 10.49MB
+ 5eaea4238323 Downloading 11.53MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 11.53MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 13.63MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 14.68MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 15.73MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 16.78MB
+ 5eaea4238323 Downloading 17.83MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 18.87MB
+ 5eaea4238323 Downloading 18.87MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 19.92MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 22.02MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 22.02MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 23.07MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 24.12MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 25.17MB
+ 5eaea4238323 Downloading 27.26MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 28.31MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 29.36MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 30.41MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 31.46MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 33.55MB
+ 5eaea4238323 Downloading 35.65MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 36.7MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 38.8MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 38.8MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 41.94MB
+ 5eaea4238323 Downloading 45.09MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 46.14MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 48.23MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 49.28MB
+ 5eaea4238323 Downloading 52.43MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 55.57MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 57.67MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 58.72MB
+ 5eaea4238323 Downloading 60.82MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 62.91MB
+ 5eaea4238323 Downloading 67.11MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 70.25MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 71.3MB
+ 5eaea4238323 Downloading 74.45MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 74.45MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 79.69MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 84.93MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 88.08MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 92.27MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 94.37MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 99.61MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 105.9MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 108MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 111.7MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 113.2MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 116.4MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 122.7MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 125.8MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 125.8MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 125.8MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Downloading 126.6MB
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Download complete 0B
+ 5eaea4238323 Extracting 1B
+ 5c0bd46ee16a Downloading 12.58MB
+ 5eaea4238323 Extracting 1B
+ 5c0bd46ee16a Download complete 0B
+ 5eaea4238323 Extracting 1B
+ 5eaea4238323 Extracting 1B
+ 5eaea4238323 Extracting 1B
+ 5eaea4238323 Pull complete 0B
+ 5c0bd46ee16a Extracting 1B
+ 5c0bd46ee16a Extracting 1B
+ 9d1ed55baa7f Extracting 1B
+ 5c0bd46ee16a Pull complete 0B
+ de950be33e5e Pull complete 0B
+ 3f55c417cbd1 Pull complete 0B
+ 9d1ed55baa7f Pull complete 0B
+ Image apache/kafka:3.9.1 Pulled 
+ Image banco-xyz-bff-auth-server Building 
+ Image banco-xyz-bff-bff-web Building 
+ Image banco-xyz-bff-bff-movil Building 
+ Image banco-xyz-bff-bff-cajero Building 
+ Image banco-xyz-bff-config-server Building 
+ Image banco-xyz-bff-eureka-server Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 2.88kB done
+#1 DONE 0.0s
+
+#2 [config-server internal] load build definition from Dockerfile
+#2 transferring dockerfile: 749B done
+#2 DONE 0.0s
+
+#3 [bff-web internal] load build definition from Dockerfile
+#3 transferring dockerfile: 1.33kB done
+#3 DONE 0.0s
+
+#4 [eureka-server internal] load build definition from Dockerfile
+#4 transferring dockerfile: 749B done
+#4 DONE 0.0s
+
+#5 [auth-server internal] load build definition from Dockerfile
+#5 transferring dockerfile: 876B done
+#5 DONE 0.0s
+
+#6 [bff-movil internal] load build definition from Dockerfile
+#6 transferring dockerfile: 1.33kB done
+#6 DONE 0.0s
+
+#7 [bff-cajero internal] load build definition from Dockerfile
+#7 transferring dockerfile: 1.33kB done
+#7 DONE 0.0s
+
+#8 [bff-cajero internal] load metadata for docker.io/library/maven:3.9-eclipse-temurin-21
+#8 DONE 1.0s
+
+#9 [auth-server internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#9 DONE 1.0s
+
+#10 [bff-movil internal] load .dockerignore
+#10 transferring context: 69B done
+#10 DONE 0.0s
+
+#11 [config-server internal] load .dockerignore
+#11 transferring context: 69B done
+#11 DONE 0.0s
+
+#12 [auth-server internal] load .dockerignore
+#12 transferring context: 69B done
+#12 DONE 0.0s
+
+#13 [bff-cajero internal] load .dockerignore
+#13 transferring context: 69B done
+#13 DONE 0.0s
+
+#14 [eureka-server internal] load .dockerignore
+#14 transferring context: 69B done
+#14 DONE 0.0s
+
+#15 [bff-web internal] load .dockerignore
+#15 transferring context: 69B done
+#15 DONE 0.0s
+
+#16 [config-server build 1/6] FROM docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320
+#16 resolve docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320 0.0s done
+#16 DONE 0.0s
+
+#17 [config-server stage-1 1/4] FROM docker.io/library/eclipse-temurin:21-jre@sha256:cff19e6215689161eb6162c11b86b0c60ddf802164f2eaf48d570f8fb79a36c5
+#17 resolve docker.io/library/eclipse-temurin:21-jre@sha256:cff19e6215689161eb6162c11b86b0c60ddf802164f2eaf48d570f8fb79a36c5 0.0s done
+#17 DONE 0.0s
+
+#18 [eureka-server internal] load build context
+#18 transferring context: 423B done
+#18 DONE 0.0s
+
+#19 [config-server internal] load build context
+#19 transferring context: 802B done
+#19 DONE 0.0s
+
+#20 [auth-server internal] load build context
+#20 transferring context: 417B done
+#20 DONE 0.0s
+
+#21 [bff-movil internal] load build context
+#21 transferring context: 2.31kB done
+#21 DONE 0.0s
+
+#22 [bff-cajero internal] load build context
+#22 transferring context: 2.31kB done
+#22 DONE 0.0s
+
+#23 [bff-web internal] load build context
+#23 transferring context: 6.41kB done
+#23 DONE 0.0s
+
+#24 [eureka-server build 6/6] RUN mvn -B -DskipTests package
+#24 CACHED
+
+#25 [eureka-server build 3/6] COPY pom.xml .
+#25 CACHED
+
+#26 [eureka-server build 5/6] COPY src ./src
+#26 CACHED
+
+#27 [eureka-server build 4/6] RUN mvn -B dependency:go-offline
+#27 CACHED
+
+#28 [eureka-server stage-1 4/4] COPY --from=build /app/target/*.jar app.jar
+#28 CACHED
+
+#29 [auth-server build 6/6] RUN mvn -B -DskipTests package
+#29 CACHED
+
+#30 [auth-server build 3/6] COPY pom.xml .
+#30 CACHED
+
+#31 [auth-server build 4/6] RUN mvn -B dependency:go-offline
+#31 CACHED
+
+#32 [auth-server build 5/6] COPY src ./src
+#32 CACHED
+
+#33 [bff-cajero build 5/6] COPY src ./src
+#33 CACHED
+
+#34 [bff-cajero build 4/6] RUN mvn -B dependency:go-offline
+#34 CACHED
+
+#35 [bff-cajero build 3/6] COPY pom.xml .
+#35 CACHED
+
+#36 [bff-cajero build 6/6] RUN mvn -B -DskipTests package
+#36 CACHED
+
+#37 [auth-server stage-1 4/4] COPY --from=build /app/target/*.jar app.jar
+#37 CACHED
+
+#38 [bff-cajero stage-1 4/4] COPY --from=build /app/target/*.jar app.jar
+#38 CACHED
+
+#39 [bff-movil build 5/6] COPY src ./src
+#39 CACHED
+
+#40 [bff-movil build 6/6] RUN mvn -B -DskipTests package
+#40 CACHED
+
+#41 [bff-movil build 3/6] COPY pom.xml .
+#41 CACHED
+
+#42 [bff-movil build 4/6] RUN mvn -B dependency:go-offline
+#42 CACHED
+
+#43 [config-server build 6/6] RUN mvn -B -DskipTests package
+#43 CACHED
+
+#44 [config-server build 3/6] COPY pom.xml .
+#44 CACHED
+
+#45 [config-server build 4/6] RUN mvn -B dependency:go-offline
+#45 CACHED
+
+#46 [config-server build 5/6] COPY src ./src
+#46 CACHED
+
+#47 [bff-movil stage-1 4/4] COPY --from=build /app/target/*.jar app.jar
+#47 CACHED
+
+#48 [config-server stage-1 4/4] COPY --from=build /app/target/*.jar app.jar
+#48 CACHED
+
+#49 [bff-web build 4/6] RUN mvn -B dependency:go-offline
+#49 CACHED
+
+#50 [bff-web build 6/6] RUN mvn -B -DskipTests package
+#50 CACHED
+
+#51 [bff-web stage-1 3/4] RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+#51 CACHED
+
+#52 [bff-web build 3/6] COPY pom.xml .
+#52 CACHED
+
+#53 [bff-web stage-1 2/4] WORKDIR /app
+#53 CACHED
+
+#54 [bff-web build 2/6] WORKDIR /app
+#54 CACHED
+
+#55 [bff-web build 5/6] COPY src ./src
+#55 CACHED
+
+#56 [bff-web stage-1 4/4] COPY --from=build /app/target/*.jar app.jar
+#56 CACHED
+
+#57 [config-server] exporting to image
+#57 exporting layers done
+#57 exporting manifest sha256:07b7dae83efc1c15c7befec94952b547bc373c8ead9b39a7770fe512cfe748ee done
+#57 exporting config sha256:0b20243121842752f2e7e465ceeca0467b44f6bc3ed7cac8841e74606292d288 done
+#57 exporting attestation manifest sha256:7c32ae283cf33c75e395e9e20ef4696a55318c6f1a9d43e64b22ce509fc83d80 0.0s done
+#57 exporting manifest list sha256:653c54ff4fd2516c7a54e10131509d693727671ad5f01744b60acf07cfadf6d5
+#57 exporting manifest list sha256:653c54ff4fd2516c7a54e10131509d693727671ad5f01744b60acf07cfadf6d5 0.0s done
+#57 naming to docker.io/library/banco-xyz-bff-config-server:latest done
+#57 unpacking to docker.io/library/banco-xyz-bff-config-server:latest done
+#57 DONE 0.1s
+
+#58 [bff-cajero] exporting to image
+#58 exporting layers done
+#58 exporting manifest sha256:bdb2e3d92ff56f2c009d0d56ad475ff0fc7dbf8fc1cf2111e585810b8f1ec175 done
+#58 exporting config sha256:50df1429584a4378ff7f0f55392e8e807a18c0ab92b8f7dba1598a2693d1e529 done
+#58 exporting attestation manifest sha256:2b0906d339e18f79ea79516866fda889299e682a9c5c4c2ea213feb2e8b0a564 0.0s done
+#58 exporting manifest list sha256:6401513c5c29a82085bc694ba8c40a265c498f7e883c86d0f25678b24502450e 0.0s done
+#58 naming to docker.io/library/banco-xyz-bff-bff-cajero:latest done
+#58 unpacking to docker.io/library/banco-xyz-bff-bff-cajero:latest 0.0s done
+#58 DONE 0.1s
+
+#59 [eureka-server] exporting to image
+#59 exporting layers done
+#59 exporting manifest sha256:c35496d99004838ca0574283b30d24543ddb5a198d55556b5b0d2575e6b6ee07 done
+#59 exporting config sha256:31ec56663ae14844e3ae3ab0a08b02c6e8f2597435be4cc0a1c8589a6aa068bc done
+#59 exporting attestation manifest sha256:5b795f577c6da08dec70937b4f6b684525908eebebd7915412f6d0b036634f7f 0.0s done
+#59 exporting manifest list sha256:f4784bb05cf51f5f6cd6721224ea79289e48029a515664366ad93febb959494f 0.0s done
+#59 naming to docker.io/library/banco-xyz-bff-eureka-server:latest done
+#59 unpacking to docker.io/library/banco-xyz-bff-eureka-server:latest 0.0s done
+#59 DONE 0.1s
+
+#60 [auth-server] exporting to image
+#60 exporting layers done
+#60 exporting manifest sha256:243f176b22a604a7595f2026f443c77c39b8fa14752ce746f54459d87e1fa758 done
+#60 exporting config sha256:a7bd8a5b51174dfc38152aee11d85f5d4d6fb7f9fb0f2b4a8415ae9e03e8f403 done
+#60 exporting attestation manifest sha256:bc663d7fc5b0cac7d8eafc0d46c436ebb97ddaaf91aaf23fd434a7689be654c6 0.0s done
+#60 exporting manifest list sha256:b28c269d07ac83e24772791eb44fd8dc953a4bcb5ffd2cb57a745fd83b2a19f8 0.0s done
+#60 naming to docker.io/library/banco-xyz-bff-auth-server:latest done
+#60 unpacking to docker.io/library/banco-xyz-bff-auth-server:latest 0.0s done
+#60 DONE 0.1s
+
+#61 [bff-movil] exporting to image
+#61 exporting layers done
+#61 exporting manifest sha256:e27577a4f6566bcd8c04a06e98eff2a769be61cb09c50a0bc6f2ae8ee61f6355 done
+#61 exporting config sha256:4652906025ecbabaab75cf808aead8840b127b622068f5e74dbb2ead9ad461fd done
+#61 exporting attestation manifest sha256:fa13fcb53bdeed2ca744701be20c311ba03f27c97981d601300ed48646bb0054 0.0s done
+#61 exporting manifest list sha256:4a153b415505645acc2ed12f98cdfa1117c76bfc64a3662c1e550594c87b454e 0.0s done
+#61 naming to docker.io/library/banco-xyz-bff-bff-movil:latest done
+#61 unpacking to docker.io/library/banco-xyz-bff-bff-movil:latest 0.0s done
+#61 DONE 0.1s
+
+#62 [bff-web] exporting to image
+#62 exporting layers done
+#62 exporting manifest sha256:7632ca764d4bff722e028b2d105ee2f8c9ca354c147f8766a08e188e602b0001 done
+#62 exporting config sha256:0217be7a35d8014958cc1aadd9096a913ee702eb062d46b79911f13d10173b0b done
+#62 exporting attestation manifest sha256:a9a6ef416fe55f6b122ac91485046657e71991bc11b33e6a82a27551c663a451 0.0s done
+#62 exporting manifest list sha256:7b37093bbe00f2765dcdc4255b6bb2b0a977364614fa06a3f521283feb73c519 0.0s done
+#62 naming to docker.io/library/banco-xyz-bff-bff-web:latest done
+#62 unpacking to docker.io/library/banco-xyz-bff-bff-web:latest 0.0s done
+#62 DONE 0.1s
+
+#63 [config-server] resolving provenance for metadata file
+#63 DONE 0.1s
+
+#64 [bff-cajero] resolving provenance for metadata file
+#64 DONE 0.1s
+
+#65 [eureka-server] resolving provenance for metadata file
+#65 DONE 0.1s
+
+#66 [auth-server] resolving provenance for metadata file
+#66 DONE 0.0s
+
+#67 [bff-web] resolving provenance for metadata file
+#67 DONE 0.0s
+
+#68 [bff-movil] resolving provenance for metadata file
+#68 DONE 0.0s
+ Image banco-xyz-bff-bff-web Built 
+ Image banco-xyz-bff-bff-cajero Built 
+ Image banco-xyz-bff-config-server Built 
+ Image banco-xyz-bff-eureka-server Built 
+ Image banco-xyz-bff-auth-server Built 
+ Image banco-xyz-bff-bff-movil Built 
+ Network banco-xyz-bff_default Creating 
+ Network banco-xyz-bff_default Created 
+ Container banco-xyz-bff-config-server-1 Creating 
+ Container banco-xyz-bff-kafka-1 Creating 
+ Container banco-xyz-bff-config-server-1 Created 
+ Container banco-xyz-bff-eureka-server-1 Creating 
+ Container banco-xyz-bff-kafka-1 Created 
+ Container banco-xyz-bff-eureka-server-1 Created 
+ Container banco-xyz-bff-auth-server-1 Creating 
+ Container banco-xyz-bff-auth-server-1 Created 
+ Container banco-xyz-bff-bff-cajero-1 Creating 
+ Container banco-xyz-bff-bff-movil-1 Creating 
+ Container banco-xyz-bff-bff-web-1 Creating 
+ Container banco-xyz-bff-bff-web-1 Created 
+ Container banco-xyz-bff-bff-movil-1 Created 
+ Container banco-xyz-bff-bff-cajero-1 Created 
+ Container banco-xyz-bff-config-server-1 Starting 
+ Container banco-xyz-bff-kafka-1 Starting 
+ Container banco-xyz-bff-kafka-1 Started 
+ Container banco-xyz-bff-config-server-1 Started 
+ Container banco-xyz-bff-config-server-1 Waiting 
+ Container banco-xyz-bff-config-server-1 Healthy 
+ Container banco-xyz-bff-eureka-server-1 Starting 
+ Container banco-xyz-bff-eureka-server-1 Started 
+ Container banco-xyz-bff-eureka-server-1 Waiting 
+ Container banco-xyz-bff-eureka-server-1 Healthy 
+ Container banco-xyz-bff-auth-server-1 Starting 
+ Container banco-xyz-bff-auth-server-1 Started 
+ Container banco-xyz-bff-eureka-server-1 Waiting 
+ Container banco-xyz-bff-auth-server-1 Waiting 
+ Container banco-xyz-bff-auth-server-1 Waiting 
+ Container banco-xyz-bff-auth-server-1 Waiting 
+ Container banco-xyz-bff-config-server-1 Waiting 
+ Container banco-xyz-bff-eureka-server-1 Waiting 
+ Container banco-xyz-bff-config-server-1 Waiting 
+ Container banco-xyz-bff-config-server-1 Waiting 
+ Container banco-xyz-bff-eureka-server-1 Waiting 
+ Container banco-xyz-bff-eureka-server-1 Healthy 
+ Container banco-xyz-bff-config-server-1 Healthy 
+ Container banco-xyz-bff-eureka-server-1 Healthy 
+ Container banco-xyz-bff-eureka-server-1 Healthy 
+ Container banco-xyz-bff-config-server-1 Healthy 
+ Container banco-xyz-bff-config-server-1 Healthy 
+ Container banco-xyz-bff-auth-server-1 Healthy 
+ Container banco-xyz-bff-auth-server-1 Healthy 
+ Container banco-xyz-bff-bff-cajero-1 Starting 
+ Container banco-xyz-bff-bff-movil-1 Starting 
+ Container banco-xyz-bff-auth-server-1 Healthy 
+ Container banco-xyz-bff-bff-web-1 Starting 
+ Container banco-xyz-bff-bff-movil-1 Started 
+ Container banco-xyz-bff-bff-cajero-1 Started 
+ Container banco-xyz-bff-bff-web-1 Started 

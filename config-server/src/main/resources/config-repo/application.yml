@@ -12,10 +12,11 @@ eureka:
     prefer-ip-address: true
 
 # Los 3 BFF validan los access tokens del auth-server con su clave publica (JWKS).
-# No se valida el emisor (iss), solo la firma, para que funcione igual en local y en Docker.
+# No se valida el emisor (iss), solo la firma. Se usa el nombre del servicio en la red
+# de compose (auth-server) porque dentro de un contenedor "localhost" es el propio BFF.
 spring:
   security:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: http://localhost:9000/oauth2/jwks
+          jwk-set-uri: http://auth-server:9000/oauth2/jwks

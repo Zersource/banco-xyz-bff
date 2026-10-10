@@ -10,6 +10,18 @@ RUN mvn -B -DskipTests package
 # Etapa 2: imagen liviana solo con el jar
 FROM eclipse-temurin:21-jre
 WORKDIR /app
+# curl lo usa el HEALTHCHECK
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8083
+# SeguridadConfig exige token en toda ruta (incluida /actuator/health), asi que el
+# healthcheck pide un token client_credentials al auth-server y llama a health con el.
+# De paso comprueba que el JWKS se resuelve entre contenedores.
+# HC_CLIENT (id:secreto) se entrega en docker-compose, no queda dentro de la imagen.
+ENV HC_AUTH_URL=http://auth-server:9000
+HEALTHCHECK --interval=10s --timeout=5s --start-period=60s --retries=12 \
+  CMD TOKEN=$(curl -fs -u "$HC_CLIENT" -d grant_type=client_credentials "$HC_AUTH_URL/oauth2/token" \
+        | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p') \
+      && curl -fs -H "Authorization: Bearer $TOKEN" http://localhost:8083/actuator/health | grep -q '"status":"UP"' \
+      || exit 1
 ENTRYPOINT ["java","-jar","app.jar"]
