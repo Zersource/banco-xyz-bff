@@ -6,18 +6,18 @@ package com.duoc.bancoxyzbff.transferencia.dto;
  */
 public class TransferenciaResponseDTO {
 
-    private Long transaccionId;
+    private String transaccionId;
     private String estado;
     private String mensaje;
 
     public TransferenciaResponseDTO() {
     }
 
-    public Long getTransaccionId() {
+    public String getTransaccionId() {
         return transaccionId;
     }
 
-    public void setTransaccionId(Long transaccionId) {
+    public void setTransaccionId(String transaccionId) {
         this.transaccionId = transaccionId;
     }
 

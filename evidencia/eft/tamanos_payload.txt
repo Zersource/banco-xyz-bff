@@ -1,0 +1,6 @@
+Tamano de la respuesta en bytes (curl -s -o /dev/null -w '%{size_download}'), cuenta 101, codigo final de eft-final:
+web    GET /api/web/cuentas/101         : 280
+movil  GET /api/movil/cuentas/101       : 215
+cajero GET /api/cajero/cuentas/101/saldo: 31
+
+Referencia (HEAD exp3-s8, antes): web 280, movil 340, cajero 31

@@ -3,17 +3,25 @@
 # eureka-server, config-server, auth-server, cuentas, clientes y los 3 BFF.
 # Sale con codigo distinto de 0 si alguna verificacion falla.
 #
-# Ademas de los servicios, la saga necesita Kafka en localhost:9092. Las comprobaciones de
-# logs (recorrido de mensajes y notificaciones) leen $LOGS_DIR/<servicio>.log, asi que hay
-# que levantar los servicios redirigiendo su salida ahi (por defecto ./logs).
+# Modos (variable MODO):
+#   local  (por defecto) los servicios son procesos java -jar en esta maquina y Kafka escucha en
+#          localhost:9092; apagar/encender un servicio es pkill / java -jar.
+#   docker los servicios corren con docker compose (desde la raiz del repo); apagar/encender es
+#          docker compose stop/start/restart <servicio>, y Kafka se consulta con
+#          docker compose exec kafka ...
+# Los logs se leen de $LOGS_DIR/<servicio>.log (local; opcional: si no esta definido se omiten esas
+# comprobaciones y el resumen lo dice) o de `docker compose logs --no-log-prefix <servicio>` (docker).
+# En modo local, para consultar los topics se necesita kafka-topics.sh en el PATH o KAFKA_HOME.
 #
-# Uso: ./prueba-e2e.sh            (todas las pruebas)
+# Uso: [MODO=docker] [LOGS_DIR=ruta] ./prueba-e2e.sh            (todas las pruebas)
 #      ./prueba-e2e.sh seccion    (solo una: registro, seguridad, retiro, payload, salud,
-#                                  saga, resiliencia)
+#                                  saga, reinicio_pagos, resiliencia)
 cd "$(dirname "$0")" || exit 2
 
 AUTH=http://localhost:9000
-LOGS_DIR=${LOGS_DIR:-logs}
+MODO=${MODO:-local}
+LOGS_DIR=${LOGS_DIR:-}
+OMITIDAS=0
 TOTAL=0
 FALLAS=0
 TMP=$(mktemp -d)
@@ -57,10 +65,76 @@ esperar_eureka() { # NOMBRE segundos
     return 1
 }
 
-reiniciar() { # modulo (si hay LOGS_DIR, sigue escribiendo en el mismo log)
-    local log="$TMP/$1.log"
-    [ -d "$LOGS_DIR" ] && log="$LOGS_DIR/$1.log"
-    nohup java -Xmx256m -jar "$1/target/$1-1.0.0.jar" >> "$log" 2>&1 &
+parar_servicio() { # servicio
+    if [ "$MODO" == docker ]; then
+        docker compose stop "$1" > /dev/null 2>&1
+    else
+        pkill -f "$1-1.0.0.jar"
+    fi
+}
+
+iniciar_servicio() { # servicio (en local, si hay LOGS_DIR sigue escribiendo en el mismo log)
+    if [ "$MODO" == docker ]; then
+        docker compose start "$1" > /dev/null 2>&1
+    else
+        local log="$TMP/$1.log"
+        [ -n "$LOGS_DIR" ] && [ -d "$LOGS_DIR" ] && log="$LOGS_DIR/$1.log"
+        nohup java -Xmx256m -jar "$1/target/$1-1.0.0.jar" >> "$log" 2>&1 &
+    fi
+}
+
+reiniciar_servicio() { # servicio: reinicio de ese solo servicio
+    if [ "$MODO" == docker ]; then
+        docker compose restart "$1" > /dev/null 2>&1
+    else
+        parar_servicio "$1"
+        sleep 2
+        iniciar_servicio "$1"
+    fi
+}
+
+# log_disponible servicio -> 0 si se puede leer su log en este modo
+log_disponible() {
+    [ "$MODO" == docker ] || { [ -n "$LOGS_DIR" ] && [ -f "$LOGS_DIR/$1.log" ]; }
+}
+
+leer_log() { # servicio -> imprime todo su log
+    if [ "$MODO" == docker ]; then
+        docker compose logs --no-log-prefix "$1" 2>&1
+    else
+        cat "$LOGS_DIR/$1.log"
+    fi
+}
+
+lineas_log() { # servicio -> cantidad de lineas del log hasta ahora
+    leer_log "$1" | wc -l | tr -d ' '
+}
+
+lineas_nuevas() { # servicio desde -> lineas del log posteriores a esa cantidad
+    leer_log "$1" | tail -n +$(($2 + 1))
+}
+
+kafka_listo() {
+    if [ "$MODO" == docker ]; then
+        docker compose exec -T kafka /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1
+    else
+        nc -z localhost 9092 2> /dev/null
+    fi
+}
+
+# kafka_topics_describe -> salida de kafka-topics --describe (vacia si no hay forma de consultarlo)
+kafka_topics_describe() {
+    if [ "$MODO" == docker ]; then
+        docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --describe 2> /dev/null
+    else
+        local bin
+        bin=$(command -v kafka-topics.sh || command -v kafka-topics || ls "${KAFKA_HOME:-/nonexistente}/bin/kafka-topics.sh" 2> /dev/null)
+        [ -n "$bin" ] && "$bin" --bootstrap-server localhost:9092 --describe 2> /dev/null
+    fi
+}
+
+es_uuid() { # texto -> "true" si tiene formato UUID
+    [[ "$1" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]] && echo true || echo false
 }
 
 saldo() { # cuentaId -> saldo segun cuentas
@@ -160,6 +234,12 @@ seguridad() {
         chequear "${nombres[$i]} sin token" 401 "$(http_code "${urls[$i]}")"
         chequear "${nombres[$i]} con token de otro canal" 403 "$(http_code "${urls[$i]}" "${ajenos[$i]}")"
     done
+    echo "  -- /transferencias de bff-web exige scope web"
+    chequear "POST /transferencias con token movil" 403 "$(http_code http://localhost:8081/transferencias "$TOKEN_MOVIL" POST '{"cuentaOrigenId":101,"cuentaDestinoId":102,"monto":1}')"
+    chequear "POST /transferencias con token cajero" 403 "$(http_code http://localhost:8081/transferencias "$TOKEN_CAJERO" POST '{"cuentaOrigenId":101,"cuentaDestinoId":102,"monto":1}')"
+    chequear "GET /transferencias/{id} con token movil" 403 "$(http_code http://localhost:8081/transferencias/00000000-0000-0000-0000-000000000000 "$TOKEN_MOVIL")"
+    chequear "GET /transferencias/{id} con token cajero" 403 "$(http_code http://localhost:8081/transferencias/00000000-0000-0000-0000-000000000000 "$TOKEN_CAJERO")"
+    chequear "POST /transferencias sin token" 401 "$(http_code http://localhost:8081/transferencias "" POST '{"cuentaOrigenId":101,"cuentaDestinoId":102,"monto":1}')"
     echo "  -- contenido"
     http_code http://localhost:8081/api/web/cuentas/101 "$TOKEN_WEB" > /dev/null
     local nombre saldo_web
@@ -228,9 +308,18 @@ salud() {
 
 saga() {
     echo "== Saga de transferencias sobre Kafka (bff-web -> pagos -> cuentas)"
-    if ! nc -z localhost 9092 2>/dev/null; then
-        chequear "Kafka disponible en localhost:9092" true false
+    if ! kafka_listo; then
+        chequear "Kafka disponible" true false
         return
+    fi
+    local desc
+    desc=$(kafka_topics_describe)
+    if [ -z "$desc" ]; then
+        echo "  OMITIDO topics (no hay forma de ejecutar kafka-topics en este modo/maquina)"
+        OMITIDAS=$((OMITIDAS + 1))
+    else
+        chequear "6 topics de la saga con 3 particiones y replicacion 1" 6 \
+            "$(grep -E '^Topic: transferencia\.[a-z-]+[[:space:]].*PartitionCount: 3[[:space:]]+ReplicationFactor: 1' <<< "$desc" | wc -l | tr -d ' ')"
     fi
     chequear "bff-web alcanza a pagos (calentamiento)" 3 "$(calentar_pagos 60)"
     chequear "pagos sin token" 401 "$(http_code http://localhost:8086/transferencias/1)"
@@ -238,10 +327,13 @@ saga() {
 
     # Los logs acumulan corridas anteriores (los ids se repiten si se reinicia pagos): solo se
     # revisa lo que se escribe a partir de aqui.
-    local ini_pagos ini_cuentas ini_clientes
-    ini_pagos=$(wc -l < "$LOGS_DIR/pagos.log" 2>/dev/null || echo 0)
-    ini_cuentas=$(wc -l < "$LOGS_DIR/cuentas.log" 2>/dev/null || echo 0)
-    ini_clientes=$(wc -l < "$LOGS_DIR/clientes.log" 2>/dev/null || echo 0)
+    local ini_pagos=0 ini_cuentas=0 ini_clientes=0 hay_logs=true
+    for f in pagos cuentas clientes; do log_disponible "$f" || hay_logs=false; done
+    if $hay_logs; then
+        ini_pagos=$(lineas_log pagos)
+        ini_cuentas=$(lineas_log cuentas)
+        ini_clientes=$(lineas_log clientes)
+    fi
 
     echo "  -- exito"
     local o_antes d_antes id
@@ -253,6 +345,7 @@ saga() {
     chequear "saldo origen -500" "$(python3 -c "print($o_antes - 500)")" "$(saldo 101)"
     chequear "saldo destino +500" "$(python3 -c "print($d_antes + 500)")" "$(saldo 102)"
     ID_EXITO=$id
+    chequear "transaccionId tiene formato UUID" true "$(es_uuid "$id")"
 
     echo "  -- compensacion (destino inexistente)"
     o_antes=$(saldo 101)
@@ -273,7 +366,7 @@ saga() {
     echo "  -- validaciones y 404 (reenviados desde pagos)"
     chequear "origen igual a destino (400)" 400 "$(http_code http://localhost:8081/transferencias "$TOKEN_WEB" POST '{"cuentaOrigenId":101,"cuentaDestinoId":101,"monto":5}')"
     chequear "monto negativo (400)" 400 "$(http_code http://localhost:8081/transferencias "$TOKEN_WEB" POST '{"cuentaOrigenId":101,"cuentaDestinoId":102,"monto":-5}')"
-    chequear "transferencia inexistente (404)" 404 "$(http_code http://localhost:8081/transferencias/999999 "$TOKEN_WEB")"
+    chequear "transferencia inexistente (404)" 404 "$(http_code http://localhost:8081/transferencias/00000000-0000-0000-0000-000000000000 "$TOKEN_WEB")"
 
     echo "  -- 5 transferencias simultaneas de 10 (101 -> 102)"
     o_antes=$(saldo 101); d_antes=$(saldo 102)
@@ -296,22 +389,50 @@ saga() {
     IDS_SIMULTANEAS=$ids
 
     echo "  -- logs: recorrido de los mensajes y notificacion de clientes"
-    for f in pagos cuentas clientes; do
-        [ -f "$LOGS_DIR/$f.log" ] || { chequear "existe $LOGS_DIR/$f.log (definir LOGS_DIR)" true false; return; }
-    done
-    chequear "pagos publica transferencia.iniciada" 1 "$(grep -c "\[tx=$ID_EXITO\] -> transferencia.iniciada" <(tail -n +$((ini_pagos + 1)) "$LOGS_DIR/pagos.log"))"
-    chequear "cuentas recibe iniciada y debita" 1 "$(grep -c "\[tx=$ID_EXITO\] <- transferencia.iniciada" <(tail -n +$((ini_cuentas + 1)) "$LOGS_DIR/cuentas.log"))"
-    chequear "cuentas recibe debito-realizado y acredita" 1 "$(grep -c "\[tx=$ID_EXITO\] <- transferencia.debito-realizado" <(tail -n +$((ini_cuentas + 1)) "$LOGS_DIR/cuentas.log"))"
-    chequear "pagos recibe transferencia.completada" 1 "$(grep -c "\[tx=$ID_EXITO\] <- transferencia.completada" <(tail -n +$((ini_pagos + 1)) "$LOGS_DIR/pagos.log"))"
-    chequear "clientes recibe transferencia.completada" 1 "$(grep -c "\[tx=$ID_EXITO\] <- transferencia.completada" <(tail -n +$((ini_clientes + 1)) "$LOGS_DIR/clientes.log"))"
-    chequear "clientes registra 2 notificaciones" 2 "$(grep -c "\[tx=$ID_EXITO\] \[NOTIFICACION\]" <(tail -n +$((ini_clientes + 1)) "$LOGS_DIR/clientes.log"))"
-    chequear "cuentas recibe credito-fallido y compensa" 1 "$(grep -c "\[tx=$ID_COMPENSADA\] <- transferencia.credito-fallido" <(tail -n +$((ini_cuentas + 1)) "$LOGS_DIR/cuentas.log"))"
-    chequear "pagos recibe transferencia.revertida" 1 "$(grep -c "\[tx=$ID_COMPENSADA\] <- transferencia.revertida" <(tail -n +$((ini_pagos + 1)) "$LOGS_DIR/pagos.log"))"
+    if ! $hay_logs; then
+        echo "  OMITIDO comprobaciones de logs (en modo local definir LOGS_DIR con un <servicio>.log por servicio)"
+        OMITIDAS=$((OMITIDAS + 1))
+        return
+    fi
+    local log_pagos log_cuentas log_clientes
+    log_pagos=$(lineas_nuevas pagos "$ini_pagos")
+    log_cuentas=$(lineas_nuevas cuentas "$ini_cuentas")
+    log_clientes=$(lineas_nuevas clientes "$ini_clientes")
+    chequear "pagos publica transferencia.iniciada" 1 "$(grep -c "\[tx=$ID_EXITO\] -> transferencia.iniciada" <<< "$log_pagos")"
+    chequear "cuentas recibe iniciada y debita" 1 "$(grep -c "\[tx=$ID_EXITO\] <- transferencia.iniciada" <<< "$log_cuentas")"
+    chequear "cuentas recibe debito-realizado y acredita" 1 "$(grep -c "\[tx=$ID_EXITO\] <- transferencia.debito-realizado" <<< "$log_cuentas")"
+    chequear "pagos recibe transferencia.completada" 1 "$(grep -c "\[tx=$ID_EXITO\] <- transferencia.completada" <<< "$log_pagos")"
+    chequear "clientes recibe transferencia.completada" 1 "$(grep -c "\[tx=$ID_EXITO\] <- transferencia.completada" <<< "$log_clientes")"
+    chequear "clientes registra 2 notificaciones" 2 "$(grep -c "\[tx=$ID_EXITO\] \[NOTIFICACION\]" <<< "$log_clientes")"
+    chequear "cuentas recibe credito-fallido y compensa" 1 "$(grep -c "\[tx=$ID_COMPENSADA\] <- transferencia.credito-fallido" <<< "$log_cuentas")"
+    chequear "pagos recibe transferencia.revertida" 1 "$(grep -c "\[tx=$ID_COMPENSADA\] <- transferencia.revertida" <<< "$log_pagos")"
+}
+
+reinicio_pagos() {
+    echo "== Reiniciar SOLO pagos: los ids son UUID y no se repiten (ya no hay contador)"
+    if ! kafka_listo; then
+        chequear "Kafka disponible" true false
+        return
+    fi
+    local id_a id_b o_antes d_antes
+    id_a=$(transferir 101 102 20)
+    chequear "transferencia previa al reinicio" COMPLETADA "$(esperar_estado "$id_a" COMPLETADA 30)"
+    reiniciar_servicio pagos
+    esperar_eureka PAGOS 90
+    chequear "bff-web vuelve a alcanzar a pagos tras el reinicio" 3 "$(calentar_pagos 60)"
+    o_antes=$(saldo 101); d_antes=$(saldo 102)
+    id_b=$(transferir 101 102 30)
+    chequear "id posterior al reinicio es UUID" true "$(es_uuid "$id_b")"
+    chequear "id posterior distinto del anterior" true "$([ "$id_a" != "$id_b" ] && echo true || echo false)"
+    chequear "transferencia posterior al reinicio" COMPLETADA "$(esperar_estado "$id_b" COMPLETADA 30)"
+    sleep 1
+    chequear "saldo origen -30 exacto" "$(python3 -c "print($o_antes - 30)")" "$(saldo 101)"
+    chequear "saldo destino +30 exacto" "$(python3 -c "print($d_antes + 30)")" "$(saldo 102)"
 }
 
 resiliencia() {
     echo "== Circuit Breaker + fallback con cuentas apagado"
-    pkill -f 'cuentas-1.0.0.jar'
+    parar_servicio cuentas
     sleep 2
     for _ in 1 2 3 4 5; do http_code http://localhost:8082/api/movil/cuentas/101 "$TOKEN_MOVIL" > /dev/null; done
     chequear "bff-web con cuentas caido" 503 "$(http_code http://localhost:8081/api/web/cuentas/101 "$TOKEN_WEB")"
@@ -320,25 +441,25 @@ resiliencia() {
     chequear "bff-cajero saldo con cuentas caido" 503 "$(http_code http://localhost:8083/api/cajero/cuentas/101/saldo "$TOKEN_CAJERO")"
     chequear "bff-cajero retiro con cuentas caido" 503 "$(http_code http://localhost:8083/api/cajero/cuentas/101/retiro "$TOKEN_CAJERO" POST '{"monto":10}')"
     echo "  -- recuperacion (reinicio de cuentas)"
-    reiniciar cuentas
+    iniciar_servicio cuentas
     chequear "bff-movil se recupera solo" 200 "$(esperar_codigo http://localhost:8082/api/movil/cuentas/101 "$TOKEN_MOVIL" 200 60)"
     cerrar_circuitos 60
 
     echo "== Circuit Breaker + fallback con pagos apagado"
-    pkill -f 'pagos-1.0.0.jar'
+    parar_servicio pagos
     sleep 2
     chequear "POST /transferencias con pagos caido" 503 "$(http_code http://localhost:8081/transferencias "$TOKEN_WEB" POST '{"cuentaOrigenId":101,"cuentaDestinoId":102,"monto":1}')"
     chequear "mensaje del fallback" "El servicio pagos no esta disponible en este momento" "$(json "d['mensaje']")"
-    reiniciar pagos
+    iniciar_servicio pagos
     chequear "bff-web se recupera solo (3 transferencias de 1 con 202)" 3 "$(calentar_pagos 40)"
 
     echo "== Fallback degradado con clientes apagado"
-    pkill -f 'clientes-1.0.0.jar'
+    parar_servicio clientes
     sleep 2
     chequear "bff-web responde 200 sin clientes" 200 "$(http_code http://localhost:8081/api/web/cuentas/101 "$TOKEN_WEB")"
     chequear "bff-web sin nombre (fallback)" None "$(json "d['nombre']")"
     chequear "bff-movil responde 200 sin clientes" 200 "$(http_code http://localhost:8082/api/movil/cuentas/101 "$TOKEN_MOVIL")"
-    reiniciar clientes
+    iniciar_servicio clientes
     chequear "bff-web recupera el nombre" "John Doe" "$(
         for _ in $(seq 1 30); do
             http_code http://localhost:8081/api/web/cuentas/101 "$TOKEN_WEB" > /dev/null
@@ -362,13 +483,13 @@ fi
 SECCION=${1:-todo}
 if [ "$SECCION" == todo ]; then
     cerrar_circuitos 40
-    registro; seguridad; retiro; payload; salud; saga; resiliencia
+    registro; seguridad; retiro; payload; salud; saga; reinicio_pagos; resiliencia
     cerrar_circuitos 40
 else
     "$SECCION"
 fi
 
 echo
-echo "RESUMEN: $((TOTAL - FALLAS))/$TOTAL verificaciones OK"
+echo "RESUMEN: $((TOTAL - FALLAS))/$TOTAL verificaciones OK (modo $MODO, secciones omitidas: $OMITIDAS)"
 rm -rf "$TMP"
 [ "$FALLAS" -eq 0 ]

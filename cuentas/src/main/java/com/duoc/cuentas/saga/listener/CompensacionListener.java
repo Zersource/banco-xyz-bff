@@ -35,9 +35,9 @@ public class CompensacionListener {
     private TransferenciaEventoProductor eventoProductor;
 
     @KafkaListener(topics = KafkaTopicsConfig.CREDITO_FALLIDO, groupId = KafkaTopicsConfig.GRUPO)
-    public void manejarCreditoFallido(ConsumerRecord<Long, EventoTransferencia> registro) {
+    public void manejarCreditoFallido(ConsumerRecord<String, EventoTransferencia> registro) {
         EventoTransferencia evento = registro.value();
-        Long id = evento.getTransaccionId();
+        String id = evento.getTransaccionId();
         log.info("[tx={}] <- {} (particion {}, offset {}): compensar, devolver {} a la cuenta {}",
                 id, registro.topic(), registro.partition(), registro.offset(),
                 evento.getMonto(), evento.getCuentaOrigenId());

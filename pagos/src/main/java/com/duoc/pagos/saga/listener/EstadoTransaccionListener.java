@@ -30,7 +30,7 @@ public class EstadoTransaccionListener {
     private TransaccionRepository transaccionRepository;
 
     @KafkaListener(topics = KafkaTopicsConfig.COMPLETADA, groupId = KafkaTopicsConfig.GRUPO)
-    public void manejarCompletada(ConsumerRecord<Long, EventoTransferencia> registro) {
+    public void manejarCompletada(ConsumerRecord<String, EventoTransferencia> registro) {
         EventoTransferencia evento = registro.value();
         registrarRecepcion(registro);
         if (cerrar(evento, EstadoTransaccion.COMPLETADA, null)) {
@@ -40,7 +40,7 @@ public class EstadoTransaccionListener {
     }
 
     @KafkaListener(topics = KafkaTopicsConfig.DEBITO_FALLIDO, groupId = KafkaTopicsConfig.GRUPO)
-    public void manejarFallida(ConsumerRecord<Long, EventoTransferencia> registro) {
+    public void manejarFallida(ConsumerRecord<String, EventoTransferencia> registro) {
         EventoTransferencia evento = registro.value();
         registrarRecepcion(registro);
         if (cerrar(evento, EstadoTransaccion.FALLIDA, evento.getMotivo())) {
@@ -49,7 +49,7 @@ public class EstadoTransaccionListener {
     }
 
     @KafkaListener(topics = KafkaTopicsConfig.REVERTIDA, groupId = KafkaTopicsConfig.GRUPO)
-    public void manejarRevertida(ConsumerRecord<Long, EventoTransferencia> registro) {
+    public void manejarRevertida(ConsumerRecord<String, EventoTransferencia> registro) {
         EventoTransferencia evento = registro.value();
         registrarRecepcion(registro);
         if (cerrar(evento, EstadoTransaccion.REVERTIDA, evento.getMotivo())) {
@@ -57,7 +57,7 @@ public class EstadoTransaccionListener {
         }
     }
 
-    private void registrarRecepcion(ConsumerRecord<Long, EventoTransferencia> registro) {
+    private void registrarRecepcion(ConsumerRecord<String, EventoTransferencia> registro) {
         log.info("[tx={}] <- {} (particion {}, offset {})",
                 registro.value().getTransaccionId(), registro.topic(), registro.partition(), registro.offset());
     }

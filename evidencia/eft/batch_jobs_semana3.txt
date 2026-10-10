@@ -1,0 +1,20 @@
+batch/ importado desde github.com/Zersource/Banco-xyz-batch---S1 (rama main, commit 674ef5c05596a04254ae21009f9e23eb96b91d19)
+mvn clean verify en batch/: BUILD OK, 4 tests, 0 fallos (BancoXyzBatchApplicationTests)
+Ejecucion: java -jar batch/target/banco-xyz-batch-1.0.0.jar <job> --spring.profiles.active=dev,semana_3 (BD H2 en archivo nueva)
+
+== transacciones: exit=0
+Job: [SimpleJob: [name=dailyTransactionsJob]] launched with the following parameters: [{'timestamp':'{value=1791599656910, type=class java.lang.Long, identifying=true}'}]
+--> Step [cargarTransaccionesWorkerStep:partition0] finalizado en 0 ms | leidos=334 escritos=142 omitidos(lectura/proceso/escritura)=0/189/3 commits=35 throughput=Infinity items/s
+--> Step [cargarTransaccionesWorkerStep:partition2] finalizado en 0 ms | leidos=333 escritos=117 omitidos(lectura/proceso/escritura)=0/212/4 commits=36 throughput=Infinity items/s
+--> Step [cargarTransaccionesWorkerStep:partition1] finalizado en 0 ms | leidos=333 escritos=128 omitidos(lectura/proceso/escritura)=0/198/7 commits=55 throughput=Infinity items/s
+Job: [SimpleJob: [name=dailyTransactionsJob]] completed with the following parameters: [{'timestamp':'{value=1791599656910, type=class java.lang.Long, identifying=true}'}] and the following status: [COMPLETED] in 472ms
+
+== intereses: exit=0
+Job: [SimpleJob: [name=monthlyInterestJob]] launched with the following parameters: [{'timestamp':'{value=1791599659565, type=class java.lang.Long, identifying=true}'}]
+--> Step [calcularInteresesStep] finalizado en 0 ms | leidos=1000 escritos=50 omitidos(lectura/proceso/escritura)=0/601/349 commits=98 throughput=Infinity items/s
+Job: [SimpleJob: [name=monthlyInterestJob]] completed with the following parameters: [{'timestamp':'{value=1791599659565, type=class java.lang.Long, identifying=true}'}] and the following status: [COMPLETED] in 815ms
+
+== estados-cuenta: exit=0
+Job: [SimpleJob: [name=annualStatementJob]] launched with the following parameters: [{'timestamp':'{value=1791599662505, type=class java.lang.Long, identifying=true}'}]
+--> Step [cargarMovimientosStep] finalizado en 0 ms | leidos=1000 escritos=614 omitidos(lectura/proceso/escritura)=0/386/0 commits=51 throughput=Infinity items/s
+Job: [SimpleJob: [name=annualStatementJob]] completed with the following parameters: [{'timestamp':'{value=1791599662505, type=class java.lang.Long, identifying=true}'}] and the following status: [COMPLETED] in 578ms

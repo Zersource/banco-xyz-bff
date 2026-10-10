@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class TransferenciaEventoProductor {
 
     @Autowired
-    private KafkaTemplate<Long, EventoTransferencia> kafkaTemplate;
+    private KafkaTemplate<String, EventoTransferencia> kafkaTemplate;
 
     public void publicarDebitoRealizado(EventoTransferencia evento) {
         enviar(KafkaTopicsConfig.DEBITO_REALIZADO, TipoEventoTransferencia.DEBITO_REALIZADO, evento);

@@ -23,7 +23,7 @@ public class TransferenciaServiceImpl implements TransferenciaService {
     }
 
     @Override
-    public TransferenciaResponseDTO consultarEstado(Long transaccionId) {
+    public TransferenciaResponseDTO consultarEstado(String transaccionId) {
         return pagosClient.consultarEstado(transaccionId);
     }
 }

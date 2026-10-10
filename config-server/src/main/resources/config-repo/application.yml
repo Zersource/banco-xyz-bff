@@ -21,14 +21,35 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: http://localhost:9000/oauth2/jwks
+      # Cada BFF pide su token client_credentials al auth-server (el cliente y su secreto estan
+      # en <bff>.yml). Dentro de Docker application-docker.yml cambia el host a auth-server.
+      client:
+        provider:
+          auth-server:
+            token-uri: http://localhost:9000/oauth2/token
   # Kafka (lo usan cuentas, clientes y pagos). Mismo codigo local y en Docker: aca
-  # el broker es localhost:9092 y application-docker.yml lo cambia a kafka:9092.
-  # Key = transaccionId; el value viaja como JSON sin cabeceras de tipo, porque
+  # el broker es localhost:9092 y application-docker.yml lo cambia a kafka:9092; la variable de
+  # entorno KAFKA_BOOTSTRAP_SERVERS tiene prioridad sobre ambos.
+  # Key = transaccionId (UUID en texto); el value viaja como JSON sin cabeceras de tipo, porque
   # cada servicio deserializa a su propia copia de EventoTransferencia.
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
-      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         "[spring.json.add.type.headers]": false
+
+# Circuit Breaker de las llamadas salientes de los BFF (las instancias estan en <bff>.yml).
+# Un 4xx es una respuesta valida del servicio llamado y no cuenta como fallo.
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException

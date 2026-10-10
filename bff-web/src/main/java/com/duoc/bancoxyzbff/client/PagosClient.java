@@ -51,7 +51,7 @@ public class PagosClient {
     }
 
     @CircuitBreaker(name = "pagos", fallbackMethod = "consultarEstadoFallback")
-    public TransferenciaResponseDTO consultarEstado(Long transaccionId) {
+    public TransferenciaResponseDTO consultarEstado(String transaccionId) {
         return restClient.get()
                 .uri("/transferencias/{id}", transaccionId)
                 .retrieve()
@@ -62,7 +62,7 @@ public class PagosClient {
         throw traducir(error);
     }
 
-    private TransferenciaResponseDTO consultarEstadoFallback(Long transaccionId, Throwable error) {
+    private TransferenciaResponseDTO consultarEstadoFallback(String transaccionId, Throwable error) {
         throw traducir(error);
     }
 

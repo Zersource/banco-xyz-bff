@@ -11,7 +11,7 @@ import java.math.BigDecimal;
  */
 public class EventoTransferencia {
 
-    private Long transaccionId;
+    private String transaccionId;
     private Long cuentaOrigenId;
     private Long cuentaDestinoId;
     private BigDecimal monto;
@@ -21,7 +21,7 @@ public class EventoTransferencia {
     public EventoTransferencia() {
     }
 
-    public EventoTransferencia(Long transaccionId, Long cuentaOrigenId, Long cuentaDestinoId,
+    public EventoTransferencia(String transaccionId, Long cuentaOrigenId, Long cuentaDestinoId,
                                 BigDecimal monto, TipoEventoTransferencia tipoEvento, String motivo) {
         this.transaccionId = transaccionId;
         this.cuentaOrigenId = cuentaOrigenId;
@@ -31,11 +31,11 @@ public class EventoTransferencia {
         this.motivo = motivo;
     }
 
-    public Long getTransaccionId() {
+    public String getTransaccionId() {
         return transaccionId;
     }
 
-    public void setTransaccionId(Long transaccionId) {
+    public void setTransaccionId(String transaccionId) {
         this.transaccionId = transaccionId;
     }
 

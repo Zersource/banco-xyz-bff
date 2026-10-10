@@ -25,9 +25,9 @@ public class NotificacionTransferenciaListener {
     private ClienteRepository clienteRepository;
 
     @KafkaListener(topics = KafkaTopicsConfig.COMPLETADA, groupId = KafkaTopicsConfig.GRUPO)
-    public void notificarTransferenciaCompletada(ConsumerRecord<Long, EventoTransferencia> registro) {
+    public void notificarTransferenciaCompletada(ConsumerRecord<String, EventoTransferencia> registro) {
         EventoTransferencia evento = registro.value();
-        Long id = evento.getTransaccionId();
+        String id = evento.getTransaccionId();
         log.info("[tx={}] <- {} (particion {}, offset {})", id, registro.topic(), registro.partition(), registro.offset());
         log.info("[tx={}] [NOTIFICACION] {}: se debito {} de tu cuenta {}", id,
                 nombre(evento.getCuentaOrigenId()), evento.getMonto(), evento.getCuentaOrigenId());

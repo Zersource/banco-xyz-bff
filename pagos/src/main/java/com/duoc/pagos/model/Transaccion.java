@@ -3,6 +3,7 @@ package com.duoc.pagos.model;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Entidad que representa una transferencia entre dos cuentas.
@@ -19,8 +20,7 @@ import java.time.LocalDateTime;
 public class Transaccion {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     @Column(name = "cuenta_origen_id", nullable = false)
     private Long cuentaOrigenId;
@@ -48,6 +48,8 @@ public class Transaccion {
     }
 
     public Transaccion(Long cuentaOrigenId, Long cuentaDestinoId, BigDecimal monto) {
+        // El id es un UUID generado aca, no un contador: no se repite aunque pagos se reinicie
+        this.id = UUID.randomUUID().toString();
         this.cuentaOrigenId = cuentaOrigenId;
         this.cuentaDestinoId = cuentaDestinoId;
         this.monto = monto;
@@ -55,11 +57,11 @@ public class Transaccion {
         this.fechaCreacion = LocalDateTime.now();
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

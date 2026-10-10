@@ -35,9 +35,9 @@ public class CreditoListener {
     private TransferenciaEventoProductor eventoProductor;
 
     @KafkaListener(topics = KafkaTopicsConfig.DEBITO_REALIZADO, groupId = KafkaTopicsConfig.GRUPO)
-    public void manejarDebitoRealizado(ConsumerRecord<Long, EventoTransferencia> registro) {
+    public void manejarDebitoRealizado(ConsumerRecord<String, EventoTransferencia> registro) {
         EventoTransferencia evento = registro.value();
-        Long id = evento.getTransaccionId();
+        String id = evento.getTransaccionId();
         log.info("[tx={}] <- {} (particion {}, offset {}): acreditar {} a la cuenta {}",
                 id, registro.topic(), registro.partition(), registro.offset(),
                 evento.getMonto(), evento.getCuentaDestinoId());

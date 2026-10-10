@@ -1,17 +1,24 @@
 server:
   port: 8083
 
-bff-web:
-  service-id: bff-web
+# Token del canal (client_credentials) que este BFF manda a los microservicios. El token-uri
+# esta en application.yml / application-docker.yml. Secreto en claro: solo para este proyecto
+# academico (en produccion iria en un gestor de secretos).
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          canal:
+            provider: auth-server
+            client-id: cliente-cajero
+            client-secret: CAJERO-KEY-2024
+            authorization-grant-type: client_credentials
+            scope: cajero
 
+# Circuit Breaker de cada servicio que este BFF llama (valores en application.yml, config "default")
 resilience4j:
   circuitbreaker:
     instances:
-      bffWeb:
-        sliding-window-size: 5
-        minimum-number-of-calls: 3
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
-        ignore-exceptions:
-          - org.springframework.web.client.HttpClientErrorException
+      cuentas:
+        base-config: default

@@ -28,7 +28,7 @@ public class TransferenciaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TransferenciaResponseDTO> consultarEstado(@PathVariable Long id) {
+    public ResponseEntity<TransferenciaResponseDTO> consultarEstado(@PathVariable String id) {
         return ResponseEntity.ok(transferenciaService.consultarEstado(id));
     }
 }

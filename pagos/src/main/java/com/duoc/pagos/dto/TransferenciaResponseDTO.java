@@ -10,24 +10,24 @@ import com.duoc.pagos.model.EstadoTransaccion;
  */
 public class TransferenciaResponseDTO {
 
-    private Long transaccionId;
+    private String transaccionId;
     private EstadoTransaccion estado;
     private String mensaje;
 
     public TransferenciaResponseDTO() {
     }
 
-    public TransferenciaResponseDTO(Long transaccionId, EstadoTransaccion estado, String mensaje) {
+    public TransferenciaResponseDTO(String transaccionId, EstadoTransaccion estado, String mensaje) {
         this.transaccionId = transaccionId;
         this.estado = estado;
         this.mensaje = mensaje;
     }
 
-    public Long getTransaccionId() {
+    public String getTransaccionId() {
         return transaccionId;
     }
 
-    public void setTransaccionId(Long transaccionId) {
+    public void setTransaccionId(String transaccionId) {
         this.transaccionId = transaccionId;
     }
 

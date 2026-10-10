@@ -16,18 +16,18 @@ import java.util.concurrent.ConcurrentMap;
 @Repository
 public class EstadoSagaRepository {
 
-    private final ConcurrentMap<Long, EstadoSaga> estados = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, EstadoSaga> estados = new ConcurrentHashMap<>();
 
     /**
      * Registra la transferencia como PENDIENTE.
      *
      * @return true si es la primera vez que se ve; false si ya estaba registrada.
      */
-    public boolean registrarPendiente(Long transaccionId) {
+    public boolean registrarPendiente(String transaccionId) {
         return estados.putIfAbsent(transaccionId, EstadoSaga.PENDIENTE) == null;
     }
 
-    public Optional<EstadoSaga> buscar(Long transaccionId) {
+    public Optional<EstadoSaga> buscar(String transaccionId) {
         return Optional.ofNullable(estados.get(transaccionId));
     }
 
@@ -36,7 +36,7 @@ public class EstadoSagaRepository {
      *
      * @return true si el cambio se aplico; false si otro mensaje ya lo cambio.
      */
-    public boolean cambiar(Long transaccionId, EstadoSaga esperado, EstadoSaga nuevo) {
+    public boolean cambiar(String transaccionId, EstadoSaga esperado, EstadoSaga nuevo) {
         return estados.replace(transaccionId, esperado, nuevo);
     }
 }

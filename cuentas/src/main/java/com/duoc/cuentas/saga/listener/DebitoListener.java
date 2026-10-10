@@ -38,9 +38,9 @@ public class DebitoListener {
     private TransferenciaEventoProductor eventoProductor;
 
     @KafkaListener(topics = KafkaTopicsConfig.TRANSFERENCIA_INICIADA, groupId = KafkaTopicsConfig.GRUPO)
-    public void manejarTransferenciaIniciada(ConsumerRecord<Long, EventoTransferencia> registro) {
+    public void manejarTransferenciaIniciada(ConsumerRecord<String, EventoTransferencia> registro) {
         EventoTransferencia evento = registro.value();
-        Long id = evento.getTransaccionId();
+        String id = evento.getTransaccionId();
         log.info("[tx={}] <- {} (particion {}, offset {}): debitar {} de la cuenta {}",
                 id, registro.topic(), registro.partition(), registro.offset(),
                 evento.getMonto(), evento.getCuentaOrigenId());
@@ -72,7 +72,7 @@ public class DebitoListener {
     }
 
     private void fallar(EventoTransferencia evento, String motivo) {
-        Long id = evento.getTransaccionId();
+        String id = evento.getTransaccionId();
         estadoSagaRepository.cambiar(id, EstadoSaga.PENDIENTE, EstadoSaga.FALLIDA);
         evento.setMotivo(motivo);
         eventoProductor.publicarDebitoFallido(evento);

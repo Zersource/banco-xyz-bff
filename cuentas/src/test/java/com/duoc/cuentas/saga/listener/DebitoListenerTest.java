@@ -47,7 +47,7 @@ class DebitoListenerTest {
         campo.set(objetivo, valor);
     }
 
-    private ConsumerRecord<Long, EventoTransferencia> registro(Long transaccionId, Long origen, Long destino, String monto) {
+    private ConsumerRecord<String, EventoTransferencia> registro(String transaccionId, Long origen, Long destino, String monto) {
         EventoTransferencia evento = new EventoTransferencia(transaccionId, origen, destino, new BigDecimal(monto), null, null);
         return new ConsumerRecord<>("transferencia.iniciada", 0, 0L, transaccionId, evento);
     }
@@ -56,22 +56,22 @@ class DebitoListenerTest {
     void debitoConSaldoSuficiente_deberiaPublicarDebitoRealizado() {
         when(cuentaSaldoPuerto.debitar(1L, new BigDecimal("100.00"))).thenReturn(true);
 
-        debitoListener.manejarTransferenciaIniciada(registro(1L, 1L, 2L, "100.00"));
+        debitoListener.manejarTransferenciaIniciada(registro("tx-1", 1L, 2L, "100.00"));
 
         verify(cuentaSaldoPuerto).debitar(1L, new BigDecimal("100.00"));
         verify(eventoProductor).publicarDebitoRealizado(any());
-        assertEquals(EstadoSaga.DEBITO_OK, estadoSagaRepository.buscar(1L).orElseThrow());
+        assertEquals(EstadoSaga.DEBITO_OK, estadoSagaRepository.buscar("tx-1").orElseThrow());
     }
 
     @Test
     void debitoConFondosInsuficientes_deberiaPublicarDebitoFallidoYNoTocarSaldo() {
         when(cuentaSaldoPuerto.debitar(1L, new BigDecimal("999.00"))).thenReturn(false);
 
-        debitoListener.manejarTransferenciaIniciada(registro(2L, 1L, 2L, "999.00"));
+        debitoListener.manejarTransferenciaIniciada(registro("tx-2", 1L, 2L, "999.00"));
 
         verify(eventoProductor).publicarDebitoFallido(any());
         verify(eventoProductor, never()).publicarDebitoRealizado(any());
-        assertEquals(EstadoSaga.FALLIDA, estadoSagaRepository.buscar(2L).orElseThrow());
+        assertEquals(EstadoSaga.FALLIDA, estadoSagaRepository.buscar("tx-2").orElseThrow());
     }
 
     @Test
@@ -79,22 +79,22 @@ class DebitoListenerTest {
         when(cuentaSaldoPuerto.debitar(999L, new BigDecimal("50.00")))
                 .thenThrow(new CuentaNoEncontradaException(999L));
 
-        debitoListener.manejarTransferenciaIniciada(registro(3L, 999L, 2L, "50.00"));
+        debitoListener.manejarTransferenciaIniciada(registro("tx-3", 999L, 2L, "50.00"));
 
         verify(eventoProductor).publicarDebitoFallido(any());
-        assertEquals(EstadoSaga.FALLIDA, estadoSagaRepository.buscar(3L).orElseThrow());
+        assertEquals(EstadoSaga.FALLIDA, estadoSagaRepository.buscar("tx-3").orElseThrow());
     }
 
     @Test
     void mensajeReentregado_transferenciaYaEnDebitoOk_seIgnoraSinDebitarDeNuevo() {
-        estadoSagaRepository.registrarPendiente(4L);
-        estadoSagaRepository.cambiar(4L, EstadoSaga.PENDIENTE, EstadoSaga.DEBITO_OK);
+        estadoSagaRepository.registrarPendiente("tx-4");
+        estadoSagaRepository.cambiar("tx-4", EstadoSaga.PENDIENTE, EstadoSaga.DEBITO_OK);
 
-        debitoListener.manejarTransferenciaIniciada(registro(4L, 1L, 2L, "100.00"));
+        debitoListener.manejarTransferenciaIniciada(registro("tx-4", 1L, 2L, "100.00"));
 
         verify(cuentaSaldoPuerto, never()).debitar(any(), any());
         verify(eventoProductor, never()).publicarDebitoRealizado(any());
         verify(eventoProductor, never()).publicarDebitoFallido(any());
-        assertEquals(EstadoSaga.DEBITO_OK, estadoSagaRepository.buscar(4L).orElseThrow());
+        assertEquals(EstadoSaga.DEBITO_OK, estadoSagaRepository.buscar("tx-4").orElseThrow());
     }
 }

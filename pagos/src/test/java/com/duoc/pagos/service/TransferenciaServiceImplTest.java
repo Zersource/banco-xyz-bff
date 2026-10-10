@@ -55,13 +55,13 @@ class TransferenciaServiceImplTest {
 
         when(transaccionRepository.save(any(Transaccion.class))).thenAnswer(invocacion -> {
             Transaccion t = invocacion.getArgument(0);
-            t.setId(10L);
+            t.setId("tx-10");
             return t;
         });
 
         TransferenciaResponseDTO respuesta = transferenciaService.iniciarTransferencia(request);
 
-        assertEquals(10L, respuesta.getTransaccionId());
+        assertEquals("tx-10", respuesta.getTransaccionId());
         assertEquals(EstadoTransaccion.PENDIENTE, respuesta.getEstado());
         verify(eventoProductor).publicarTransferenciaIniciada(any());
     }
@@ -69,12 +69,12 @@ class TransferenciaServiceImplTest {
     @Test
     void consultarEstado_deberiaRetornarEstadoActualDeLaTransaccion() {
         Transaccion transaccion = new Transaccion(1L, 2L, new BigDecimal("50.00"));
-        transaccion.setId(5L);
+        transaccion.setId("tx-5");
         transaccion.setEstado(EstadoTransaccion.COMPLETADA);
 
-        when(transaccionRepository.findById(5L)).thenReturn(Optional.of(transaccion));
+        when(transaccionRepository.findById("tx-5")).thenReturn(Optional.of(transaccion));
 
-        TransferenciaResponseDTO respuesta = transferenciaService.consultarEstado(5L);
+        TransferenciaResponseDTO respuesta = transferenciaService.consultarEstado("tx-5");
 
         assertEquals(EstadoTransaccion.COMPLETADA, respuesta.getEstado());
     }

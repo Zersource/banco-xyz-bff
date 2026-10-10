@@ -1,0 +1,28 @@
+# Maven
+target/
+*.class
+
+# H2 embebido (perfil dev) — generado localmente, no versionado. Con barra
+# inicial: solo la carpeta en la raiz del proyecto, NO src/main/resources/data/
+# (ahi van los CSV de cada semana, que si se versionan).
+/data/
+
+# Variables de entorno / secretos
+.env
+
+# Logs
+*.log
+!evidencia_ejecucion.log
+!evidencia_ejecucion_s2.log
+!evidencia_ejecucion_s3.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# SO
+.DS_Store

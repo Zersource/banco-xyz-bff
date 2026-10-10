@@ -1,0 +1,10 @@
+== Broker recien creado (datos borrados), ningun servicio arrancado: topics de la saga existentes
+0
+
+== Tras arrancar cuentas, pagos y clientes (los crean los beans NewTopic via KafkaAdmin, no el CLI): kafka-topics --describe
+Topic: transferencia.debito-realizado	PartitionCount: 3	ReplicationFactor: 1	
+Topic: transferencia.iniciada	PartitionCount: 3	ReplicationFactor: 1	
+Topic: transferencia.revertida	PartitionCount: 3	ReplicationFactor: 1	
+Topic: transferencia.credito-fallido	PartitionCount: 3	ReplicationFactor: 1	
+Topic: transferencia.completada	PartitionCount: 3	ReplicationFactor: 1	
+Topic: transferencia.debito-fallido	PartitionCount: 3	ReplicationFactor: 1	

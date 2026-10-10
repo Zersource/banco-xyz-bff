@@ -13,5 +13,9 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: http://auth-server:9000/oauth2/jwks
+      client:
+        provider:
+          auth-server:
+            token-uri: http://auth-server:9000/oauth2/token
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}

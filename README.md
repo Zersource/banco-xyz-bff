@@ -1,253 +1,149 @@
-# Banco XYZ - Microservicios seguros y resilientes en la nube (Exp3 S8)
+# Banco XYZ: microservicios con Spring Cloud, Kafka y Spring Batch (EFT)
 
-Este proyecto es la continuación directa del que vengo armando desde Exp2:
-en S6 separé el BFF en microservicios con Spring Cloud (Config Server,
-Eureka y Circuit Breaker con Resilience4j) y en S7 sumé una saga de
-transferencias con mensajería JMS. Esta semana lo dejé listo para correr en
-un entorno cloud:
+> **Borrador.** Describe el estado de la rama `eft-final`.
 
-- **OAuth2.0:** un servidor de autorización propio (`auth-server`) emite los
-  tokens y los tres BFF los validan como resource servers. Reemplaza al JWT
-  propio de S5.
-- **Docker:** cada microservicio tiene su `Dockerfile` (multi-stage).
-- **docker-compose:** un solo `docker-compose.yaml` levanta los 6
-  microservicios en orden.
+Proyecto de Backend III (Duoc UC). Parte del BFF de Exp2, lo separa en microservicios (Exp3) y le suma
+cuentas, clientes y pagos como servicios independientes, con una saga de transferencias sobre Kafka y el
+proceso batch del Exp1.
 
-El detalle del diseño, las decisiones y los problemas que encontré está en
-`PROPUESTA_TECNICA_S8.md`.
+## Arquitectura (10 apps)
 
-
-## Módulos
-
-| Módulo          | Puerto | Rol                                                                    |
-|-----------------|--------|------------------------------------------------------------------------|
-| `eureka-server` | 8761   | Service Discovery. No depende de nadie más.                            |
-| `config-server` | 8888   | Configuración centralizada (backend `native`, carpeta `config-repo/`). |
-| `auth-server`   | 9000   | Servidor de autorización OAuth2: emite los access tokens (JWT).        |
-| `bff-web`       | 8081   | Dueño de los datos (CSV en memoria). Además aloja la saga JMS (S7).    |
-| `bff-movil`     | 8082   | Pide todo a `bff-web` vía Eureka, con Circuit Breaker.                 |
-| `bff-cajero`    | 8083   | Saldo y retiro, también vía `bff-web` con Circuit Breaker.             |
+| App | Puerto | Rol |
+|---|---|---|
+| `eureka-server` | 8761 | Registro de servicios |
+| `config-server` | 8888 | Configuracion centralizada (modo `native`, archivos en `config-repo/`) |
+| `auth-server` | 9000 | Servidor OAuth2: emite tokens `client_credentials` (uno por canal) y publica el JWKS |
+| `cuentas` | 8084 | Dueno de los saldos, movimientos y transacciones. Ejecuta los pasos de debito, credito y compensacion de la saga |
+| `clientes` | 8085 | Datos del titular de cada cuenta (nombre, edad). Notifica (log) las transferencias completadas |
+| `pagos` | 8086 | Dueno de las transferencias: las recibe, las guarda (H2) y lanza la saga por Kafka |
+| `bff-web` | 8081 | BFF canal web (scope `web`): cuentas completas, transacciones y transferencias |
+| `bff-movil` | 8082 | BFF canal movil (scope `movil`): respuesta liviana |
+| `bff-cajero` | 8083 | BFF canal cajero (scope `cajero`): saldo y retiro |
+| `batch` | n/a | Spring Batch (CLI): transacciones diarias, intereses mensuales y estados de cuenta anuales |
 
 ```
-   cliente ──(1) token──► auth-server :9000
-      │
-      └─(2) Bearer token──► bff-web :8081 / bff-movil :8082 / bff-cajero :8083
-                                   │  (validan la firma con el JWKS del auth-server)
-                                   │
-              movil y cajero ──(3) mismo token──► bff-web /interno/**  (vía Eureka + Circuit Breaker)
+cliente --token--> bff-web / bff-movil / bff-cajero --(Eureka + RestClient + token del canal + Circuit Breaker)-->
+                     cuentas   clientes   pagos (solo desde bff-web)
 
-   eureka-server :8761  (registro de servicios)      config-server :8888  (configuración común)
+pagos --Kafka--> cuentas --Kafka--> pagos, clientes        (saga de transferencias, ver KAFKA_TOPICS.md)
 ```
 
-El broker JMS (ActiveMQ Artemis) y la base H2 de la saga corren dentro de
-`bff-web`, por eso no hay contenedores aparte para ellos.
+- Todos los servicios se registran en Eureka y toman su configuracion del Config Server (`config-repo/`).
+- `cuentas`, `clientes`, `pagos` y los 3 BFF son *resource servers* OAuth2: validan la firma del token con
+  el JWKS del auth-server y exigen el scope del canal.
+- Cada BFF llama a los servicios con su propio token `client_credentials`, protegido con Circuit Breaker
+  (Resilience4j) y un fallback: un 503 controlado si el servicio no responde. `clientes` es dato accesorio:
+  si cae, web y movil responden igual pero sin nombre.
+- `GET /actuator/health` de `cuentas`, `clientes` y `pagos` responde sin token (healthcheck de las imagenes).
+- El `transaccionId` es un UUID que genera `pagos` y es la key de cada mensaje de Kafka.
 
+## Saga de transferencias
 
-## Estructura del repositorio
+`POST /transferencias` (bff-web) -> `pagos` guarda la transferencia como PENDIENTE y publica
+`transferencia.iniciada` -> `cuentas` debita (atomico) -> `cuentas` acredita el destino -> `transferencia.completada`
+(`pagos` marca COMPLETADA y `clientes` notifica). Si el debito falla queda FALLIDA; si el credito falla
+(cuenta destino inexistente) `cuentas` devuelve el debito y queda REVERTIDA. Los topics, quien publica y
+quien consume cada uno estan en [`KAFKA_TOPICS.md`](KAFKA_TOPICS.md).
 
-```
-banco-xyz-bff/
- |- docker-compose.yaml
- |- eureka-server/   (Dockerfile, .dockerignore, pom.xml, src/)
- |- config-server/   (… + src/main/resources/config-repo/)
- |- auth-server/     (… + application.yml con los 3 clientes OAuth2)
- |- bff-web/         (… + paquetes bff.web, interno, transferencia, config)
- |- bff-movil/
- |- bff-cajero/
- |- evidencia/
- |    |- s8_docker/    (build, arranque, imágenes, memoria, prueba funcional y de resiliencia)
- |    |- s8_oauth2/    (pruebas del auth-server y de los resource servers)
- |    |- s8_capturas/  (capturas de pantalla)
- |    |- s7_saga_jms/  (evidencia de S7)
- |- README.md
- |- PROPUESTA_TECNICA_S8.md   (S8)
- |- PROPUESTA_TECNICA_S7.md, README_S7_ADDENDUM.md   (S7)
- |- PROPUESTA_TECNICA.md      (S6)
-```
+## Como levantar en local
 
-Cada módulo es un proyecto Maven independiente (no hay pom raíz).
-
-
-## Cómo ejecutar
-
-### Opción A: con Docker Compose (recomendada)
-
-Requisitos: Docker con Compose v2 (probado con Docker 29.6.2 y Compose
-v5.3.1). No hace falta tener Java ni Maven instalados, porque el jar se
-compila dentro de la imagen.
+Requisitos: Java 21, Maven 3.9 y un Kafka local en modo KRaft escuchando en `localhost:9092`
+(binario oficial de Apache Kafka, sin Docker; `bin/kafka-storage.sh format` y `bin/kafka-server-start.sh
+config/kraft/server.properties`). Los topics se crean solos al arrancar los servicios.
 
 ```bash
-git clone https://github.com/Zersource/banco-xyz-bff.git
-cd banco-xyz-bff
-git checkout exp3-s8-oauth2-docker
-docker compose up -d --build
+# 1. compilar cada modulo (genera <modulo>/target/<modulo>-1.0.0.jar)
+for m in eureka-server config-server auth-server cuentas clientes pagos bff-web bff-movil bff-cajero; do
+  (cd $m && mvn clean verify); done
+
+# 2. levantar en este orden (cada uno en su terminal o con nohup ... &)
+java -jar eureka-server/target/eureka-server-1.0.0.jar
+java -jar config-server/target/config-server-1.0.0.jar
+java -jar auth-server/target/auth-server-1.0.0.jar
+# esperar a que los tres respondan, luego:
+java -jar cuentas/target/cuentas-1.0.0.jar
+java -jar clientes/target/clientes-1.0.0.jar
+java -jar pagos/target/pagos-1.0.0.jar
+java -jar bff-web/target/bff-web-1.0.0.jar
+java -jar bff-movil/target/bff-movil-1.0.0.jar
+java -jar bff-cajero/target/bff-cajero-1.0.0.jar
 ```
 
-- La primera vez descarga las dependencias de Maven y construye las 6
-  imágenes (en mi prueba, sin caché, tardó 1 min 12 s).
-- Esperar a que `config-server` aparezca como `healthy` en
-  `docker compose ps` y **unos 40 segundos más**: los BFF se registran en
-  Eureka y descargan su registro cada ~30 s. Si se llama antes, la primera
-  llamada de `bff-movil` o `bff-cajero` puede dar 503.
-- Dashboard de Eureka: `http://localhost:8761` (deben aparecer BFF-WEB,
-  BFF-MOVIL y BFF-CAJERO en UP; `auth-server` y `config-server` no se
-  registran a propósito).
-- Ver logs de un servicio: `docker compose logs -f bff-movil`.
-- Detener todo: `docker compose down`.
+El Config Server debe estar arriba antes que los demas: la configuracion (puertos, JWKS, Kafka, token y
+Circuit Breaker de cada BFF) se la piden a el. Un servicio recien arrancado puede tardar hasta ~1 minuto en
+ser visible para los otros (cache de Eureka y del balanceador).
 
-### Opción B: sin Docker
-
-Requisitos: Java 21 y Maven 3.9. Cada servicio en su propia terminal,
-esperando el "Started ..." antes de lanzar el siguiente. El `config-server`
-tiene que estar arriba antes que los BFF, porque de ahí leen la URL del
-JWKS del auth-server.
+Pedir un token y usarlo:
 
 ```bash
-cd eureka-server && mvn spring-boot:run
-cd config-server && mvn spring-boot:run
-cd auth-server   && mvn spring-boot:run
-cd bff-web       && mvn spring-boot:run
-cd bff-movil     && mvn spring-boot:run
-cd bff-cajero    && mvn spring-boot:run
+TOKEN=$(curl -s -u cliente-web:WEB-KEY-2024 -d grant_type=client_credentials -d scope=web \
+  localhost:9000/oauth2/token | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')
+curl -H "Authorization: Bearer $TOKEN" localhost:8081/api/web/cuentas/101
+curl -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"cuentaOrigenId":101,"cuentaDestinoId":102,"monto":500}' localhost:8081/transferencias
 ```
 
-### Tests
+Clientes OAuth2 (secreto en `auth-server`): `cliente-web` / `WEB-KEY-2024` (scope `web`),
+`cliente-movil` / `MOVIL-KEY-2024` (`movil`), `cliente-cajero` / `CAJERO-KEY-2024` (`cajero`).
 
-Los 7 tests están en `bff-web` (saga, listeners y prueba de concurrencia):
+### Con Docker
 
-```bash
-cd bff-web && mvn test
-```
-
-
-## Autenticación y autorización (OAuth2)
-
-El `auth-server` (Spring Authorization Server) usa el flujo
-`client_credentials`: quienes se autentican son los canales, no personas. Hay
-un cliente por canal y el **scope** del token decide a qué BFF se puede
-entrar. El token es un JWT firmado con RS256 que dura 15 minutos.
-
-| Cliente          | Secreto           | Scope    |
-|------------------|-------------------|----------|
-| `cliente-web`    | `WEB-KEY-2024`    | `web`    |
-| `cliente-movil`  | `MOVIL-KEY-2024`  | `movil`  |
-| `cliente-cajero` | `CAJERO-KEY-2024` | `cajero` |
-
-### 1. Pedir el token (siempre al auth-server)
-
-```bash
-curl -s -u cliente-movil:MOVIL-KEY-2024 \
-  -d grant_type=client_credentials -d scope=movil \
-  http://localhost:9000/oauth2/token
-```
-
-La respuesta trae `access_token`, `token_type: Bearer` y `expires_in`
-(el valor sale en 899 porque la respuesta lo redondea; el token vive 900 s).
-Las claves públicas para validar la firma están en
-`http://localhost:9000/oauth2/jwks`.
-
-### 2. Usar el token
-
-```bash
-curl -s http://localhost:8082/api/movil/cuentas/101 \
-  -H "Authorization: Bearer <access_token>"
-```
-
-### Reglas de acceso
-
-| Ruta                                     | Servicio    | Exige                                           |
-|------------------------------------------|-------------|-------------------------------------------------|
-| `/api/web/**`                            | `bff-web`   | scope `web`                                     |
-| `/api/movil/**`                          | `bff-movil` | scope `movil`                                   |
-| `/api/cajero/**`                         | `bff-cajero`| scope `cajero`                                  |
-| `/interno/**` y `/transferencias/**`     | `bff-web`   | cualquiera de los 3 scopes                      |
-| cualquier otra ruta                      | los 3 BFF   | token válido (excepto `/error`, que es pública) |
-
-`bff-movil` y `bff-cajero` reenvían a `bff-web` el mismo token con el que
-llegó la petición, para que `/interno/**` también quede protegido.
-
-### Códigos de error
-
-- **401 Unauthorized**: falta el token, está mal formado, vencido o mal
-  firmado.
-- **403 Forbidden**: el token es válido, pero no trae el scope que exige la
-  ruta (por ejemplo, un token de `movil` en `/api/web/**`, o un token pedido
-  sin `scope`).
-- **404 Not Found**: la cuenta no existe (respuesta real de `bff-web`, no
-  pasa por el Circuit Breaker).
-- **503 Service Unavailable**: `bff-web` no respondió (caído, timeout o
-  circuito abierto).
-
-Los 401 y 403 salen en el mismo JSON que el resto de los errores:
-`{"timestamp": ..., "estado": 401, "mensaje": "..."}`.
-
+`docker-compose.yaml` (y `docker-compose.escala.yaml`) los mantiene la rama `eft-docker`; levanta la infra,
+`cuentas`, `clientes`, los 3 BFF y un Kafka. Al momento de este borrador `pagos` todavia no tiene Dockerfile
+ni servicio en el compose.
 
 ## Endpoints
 
-### BFF Web (scope `web`)
-- `GET /api/web/cuentas` - lista todas las cuentas con detalle completo
-- `GET /api/web/cuentas/{cuentaId}` - detalle completo de una cuenta
-- `GET /api/web/transacciones` - transacciones generales del banco
+| Servicio | Endpoint | Scope |
+|---|---|---|
+| bff-web | `GET /api/web/cuentas`, `GET /api/web/cuentas/{id}`, `GET /api/web/transacciones` | `web` |
+| bff-web | `POST /transferencias` (202), `GET /transferencias/{id}` | `web` |
+| bff-movil | `GET /api/movil/cuentas/{id}` | `movil` |
+| bff-cajero | `GET /api/cajero/cuentas/{id}/saldo`, `POST /api/cajero/cuentas/{id}/retiro` | `cajero` |
+| cuentas | `GET /cuentas`, `/cuentas/{id}`, `/cuentas/{id}/saldo`, `/cuentas/movimientos`, `/cuentas/{id}/movimientos`, `/transacciones`, `/transacciones/ultimas`; `POST /cuentas/{id}/retiro` | cualquier canal (el retiro, solo `cajero`) |
+| clientes | `GET /clientes`, `GET /clientes/{cuentaId}` | cualquier canal |
+| pagos | `POST /transferencias`, `GET /transferencias/{id}` | `web` |
 
-### BFF Móvil (scope `movil`)
-- `GET /api/movil/cuentas/{cuentaId}` - resumen liviano de la cuenta
+Errores: 401 sin token o invalido, 403 con el scope de otro canal, 404 cuenta/transferencia inexistente,
+400 validacion o saldo insuficiente, 503 servicio caido (fallback del Circuit Breaker).
 
-### BFF Cajero (scope `cajero`)
-- `GET /api/cajero/cuentas/{cuentaId}/saldo` - consulta de saldo
-- `POST /api/cajero/cuentas/{cuentaId}/retiro` - retiro, cuerpo `{"monto": 50}`
+## Batch
 
-### Transferencias, saga con JMS (en `bff-web`, cualquier scope)
-- `POST /transferencias` - cuerpo `{"cuentaOrigenId":101,"cuentaDestinoId":102,"monto":10}`;
-  responde `PENDIENTE` con un `transaccionId` y el resto es asíncrono
-- `GET /transferencias/{id}` - estado: `COMPLETADA`, `FALLIDA` o `REVERTIDA`
-
-### Interno (solo entre microservicios, cualquier scope)
-- `/interno/**` en `bff-web`: lo consumen `bff-movil` y `bff-cajero`.
-
-
-## Prueba automática
-
-`evidencia/s8_docker/prueba_docker.sh` ejecuta todo lo anterior contra el
-stack levantado (requiere `curl`, `python3` y `docker compose`). Desde la
-raíz del repo:
+El proyecto de Spring Batch vive en [`batch/`](batch/) (importado de
+https://github.com/Zersource/Banco-xyz-batch---S1, rama `main`). Es una aplicacion de linea de comandos
+independiente, no se registra en Eureka:
 
 ```bash
-./evidencia/s8_docker/prueba_docker.sh              # las dos secciones
-./evidencia/s8_docker/prueba_docker.sh funcional    # tokens, 200/401/403, saga
-./evidencia/s8_docker/prueba_docker.sh resiliencia  # Circuit Breaker
+cd batch && mvn clean verify
+java -jar target/banco-xyz-batch-1.0.0.jar transacciones --spring.profiles.active=dev,semana_3
+java -jar target/banco-xyz-batch-1.0.0.jar intereses --spring.profiles.active=dev,semana_3
+java -jar target/banco-xyz-batch-1.0.0.jar estados-cuenta --spring.profiles.active=dev,semana_3
 ```
 
-La sección de resiliencia detiene y vuelve a levantar `bff-web` con
-`docker compose`, y puede tardar más de un minuto en recuperarse.
+Ver `batch/README.md`.
 
+## Pruebas
 
-## Evidencia de ejecución
+- `mvn clean verify` en cada modulo (tests en `cuentas`, `pagos` y `batch`).
+- `prueba-e2e.sh`: prueba de punta a punta contra el stack levantado (seguridad por canal, retiro,
+  peso de cada canal, saga, reinicio de `pagos`, Circuit Breaker). Sale con codigo distinto de 0 si algo falla.
+  `MODO=local` (por defecto) o `MODO=docker`; `LOGS_DIR` (opcional) para revisar el recorrido de los
+  mensajes en los logs. Detalle en la cabecera del script.
+- Evidencia de ejecucion en `evidencia/eft/` (saga, topics, Circuit Breaker, peso de payloads, batch).
 
-Todo corrió en un Mac Apple Silicon (arm64) con Docker 29.6.2 y Compose
-v5.3.1, con 7,75 GiB asignados a Docker.
+## Limitaciones conocidas
 
-| Qué muestra                                                        | Dónde                                            |
-|--------------------------------------------------------------------|--------------------------------------------------|
-| Entorno, build de las 6 imágenes, tamaños y arquitectura           | `evidencia/s8_docker/00_entorno.txt`, `01_build.txt`, `05_imagenes.txt` |
-| Los 6 contenedores arriba, tiempos de arranque, memoria            | `evidencia/s8_docker/02_compose_ps.txt`, `03_logs_arranque.txt`, `04_docker_stats.txt` |
-| Configuración efectiva en Docker (Eureka y JWKS por nombre de servicio) | `evidencia/s8_docker/06_eureka_defaultzone.txt` |
-| Prueba completa: tokens, 200/401/403, saga, Circuit Breaker       | `evidencia/s8_docker/salida_prueba_docker.txt`   |
-| auth-server: tokens, scopes, errores, JWKS                         | `evidencia/s8_oauth2/paso2_auth_server.txt`      |
-| BFF como resource servers (corrida local)                          | `evidencia/s8_oauth2/paso3_resource_servers.txt` |
-| OAuth2 dentro de Docker, POST protegido, reinicio del auth-server  | `evidencia/s8_oauth2/paso4_docker_oauth2.txt`    |
-| Capturas de pantalla                                               | `evidencia/s8_capturas/`                         |
+1. **H2 en memoria por replica en `cuentas` y `pagos`.** Los saldos, las transferencias y el estado se
+   pierden al reiniciar y no se comparten entre replicas. Por eso el escalado consistente aplica hoy a los
+   BFF (sin estado propio). El siguiente paso para escalar `cuentas` y `pagos` es un PostgreSQL compartido.
+2. **El registro de pasos de la saga vive en memoria en `cuentas`** (`EstadoSagaRepository`): es el guard de
+   idempotencia ante mensajes reentregados, pero se pierde al reiniciar `cuentas`.
+3. **Secretos de los clientes OAuth2 en claro** en `config-repo/` (y en el `auth-server`). En produccion irian
+   en un gestor de secretos (AWS Secrets Manager, Vault).
+4. El Config Server usa el modo `native` con los archivos empaquetados en su JAR; cambiar la configuracion
+   exige recompilar y reiniciar `config-server`.
 
-![docker compose ps](evidencia/s8_capturas/01-docker-compose-ps.png)
+## Documentacion
 
-![Dashboard de Eureka](evidencia/s8_capturas/02-eureka-dashboard.png)
-
-![Docker Desktop](evidencia/s8_capturas/03-docker-desktop.png)
-
-
-## Documentación por semana
-
-- `PROPUESTA_TECNICA_S8.md`: esta semana (OAuth2, Docker, docker-compose).
-- `PROPUESTA_TECNICA_S7.md` y `README_S7_ADDENDUM.md`: la saga con JMS. El
-  procedimiento de ejecución de ese addendum es el de S7; para correr el
-  proyecto actual valen las instrucciones de este README.
-- `PROPUESTA_TECNICA.md`: S6 (Config Server, Eureka y Circuit Breaker).
+`PROPUESTA_TECNICA*.md` por semana, `KAFKA_TOPICS.md` y `README_S7_ADDENDUM.md` (historico de la saga con JMS,
+reemplazada por Kafka).

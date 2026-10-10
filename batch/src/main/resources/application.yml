@@ -1,0 +1,78 @@
+spring:
+  application:
+    name: banco-xyz-batch
+  profiles:
+    active: dev
+  batch:
+    job:
+      enabled: false          # el arranque de Jobs se controla manualmente (ver JobLauncherRunner)
+    jdbc:
+      initialize-schema: always
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-bancoxyz.sql
+
+logging:
+  level:
+    cl.duoc.bancoxyz: INFO
+    org.springframework.batch: INFO
+
+# Parametros de escalado, todos con override por linea de comandos para el
+# benchmark de semana 3 (ej: --app.batch.transacciones.grid-size=5). Los
+# valores de aca abajo son los defaults finales tras el benchmark real de
+# semana 3 (ver PROPUESTA_TECNICA.md seccion 2.4), sin cambio de
+# comportamiento si no se pasa ningun override:
+#   app.batch.thread-pool-size          (default 3)    hilos para el particionado de transacciones
+#   app.batch.transacciones.chunk-size  (default 20)   chunk del Job particionado, config optima medida
+#   app.batch.transacciones.grid-size   (default 3)    cantidad de particiones
+#   app.batch.transacciones.skip-limit  (default 700)  ver javadoc, semana_3 trae ~57% de filas invalidas
+#   app.batch.intereses.chunk-size      (default 20)   Job secuencial, ver javadoc de InteresesMensualesJobConfig
+#   app.batch.intereses.skip-limit      (default 1000) semana_3 real: 950 filas omitidas
+#   app.batch.estados-cuenta.chunk-size (default 20)   Job secuencial, ver javadoc de EstadosCuentaAnualesJobConfig
+#   app.batch.estados-cuenta.skip-limit (default 500)  semana_3 real: 386 filas omitidas
+
+---
+# Perfil de desarrollo / evidencia local: base H2 embebida en archivo,
+# no requiere ningun servidor de base de datos instalado.
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:file:./data/bancoxyz;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+---
+# Perfil de "produccion": PostgreSQL, ver docker-compose.yml para levantarlo
+# localmente. Variables de entorno con valores por defecto de desarrollo.
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:bancoxyz}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USER:bancoxyz}
+    password: ${DB_PASSWORD:bancoxyz}
+
+---
+# Perfil con los CSV de semana 3 (1000 filas c/u), usado para medir el
+# impacto real de distintas configuraciones de escalado (ver
+# app.batch.* mas abajo) sobre un volumen de datos representativo. Se activa
+# junto a "dev" o "postgres": --spring.profiles.active=dev,semana_3
+spring:
+  config:
+    activate:
+      on-profile: semana_3
+app:
+  csv:
+    transacciones: classpath:data/semana_3/transacciones.csv
+    intereses: classpath:data/semana_3/intereses.csv
+    cuentas-anuales: classpath:data/semana_3/cuentas_anuales.csv

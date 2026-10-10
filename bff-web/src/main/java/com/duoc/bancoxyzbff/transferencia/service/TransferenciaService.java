@@ -7,5 +7,5 @@ public interface TransferenciaService {
 
     TransferenciaResponseDTO iniciarTransferencia(TransferenciaRequestDTO request);
 
-    TransferenciaResponseDTO consultarEstado(Long transaccionId);
+    TransferenciaResponseDTO consultarEstado(String transaccionId);
 }

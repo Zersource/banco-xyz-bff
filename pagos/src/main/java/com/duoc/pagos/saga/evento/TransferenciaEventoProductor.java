@@ -18,7 +18,7 @@ public class TransferenciaEventoProductor {
     private static final Logger log = LoggerFactory.getLogger(TransferenciaEventoProductor.class);
 
     @Autowired
-    private KafkaTemplate<Long, EventoTransferencia> kafkaTemplate;
+    private KafkaTemplate<String, EventoTransferencia> kafkaTemplate;
 
     public void publicarTransferenciaIniciada(EventoTransferencia evento) {
         evento.setTipoEvento(TipoEventoTransferencia.TRANSFERENCIA_INICIADA);

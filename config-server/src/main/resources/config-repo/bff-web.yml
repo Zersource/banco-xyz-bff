@@ -1,2 +1,28 @@
 server:
   port: 8081
+
+# Token del canal (client_credentials) que este BFF manda a los microservicios. El token-uri
+# esta en application.yml / application-docker.yml. Secreto en claro: solo para este proyecto
+# academico (en produccion iria en un gestor de secretos).
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          canal:
+            provider: auth-server
+            client-id: cliente-web
+            client-secret: WEB-KEY-2024
+            authorization-grant-type: client_credentials
+            scope: web
+
+# Circuit Breaker de cada servicio que este BFF llama (valores en application.yml, config "default")
+resilience4j:
+  circuitbreaker:
+    instances:
+      cuentas:
+        base-config: default
+      clientes:
+        base-config: default
+      pagos:
+        base-config: default

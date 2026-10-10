@@ -57,7 +57,7 @@ public class TransferenciaServiceImpl implements TransferenciaService {
     }
 
     @Override
-    public TransferenciaResponseDTO consultarEstado(Long transaccionId) {
+    public TransferenciaResponseDTO consultarEstado(String transaccionId) {
         Transaccion transaccion = transaccionRepository.findById(transaccionId)
                 .orElseThrow(() -> new NoSuchElementException("Transaccion no encontrada: " + transaccionId));
 

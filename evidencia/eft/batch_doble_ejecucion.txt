@@ -1,0 +1,22 @@
+== Tras la 1a ejecucion de los 3 jobs (semana_3, BD H2 en archivo)
+T                             | N
+transaccion_validada          | 387
+resumen_transacciones_diarias | 236
+cuenta_interes_mensual        | 50
+movimiento_cuenta_anual       | 614
+estado_cuenta_anual           | 20
+anomalia_dato                 | 1738
+BATCH_JOB_INSTANCE            | 3
+2a ejecucion de transacciones: exit=0
+2a ejecucion de intereses: exit=0
+2a ejecucion de estados-cuenta: exit=0
+
+== Tras la 2a ejecucion consecutiva sobre la misma BD
+T                             | N
+transaccion_validada          | 387
+resumen_transacciones_diarias | 236
+cuenta_interes_mensual        | 50
+movimiento_cuenta_anual       | 614
+estado_cuenta_anual           | 20
+anomalia_dato                 | 3476
+BATCH_JOB_INSTANCE            | 6

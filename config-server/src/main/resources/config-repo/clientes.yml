@@ -6,7 +6,7 @@ spring:
     consumer:
       group-id: clientes-notificaciones
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         "[spring.json.value.default.type]": com.duoc.clientes.saga.evento.EventoTransferencia

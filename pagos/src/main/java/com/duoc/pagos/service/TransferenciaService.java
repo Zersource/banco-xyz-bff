@@ -16,5 +16,5 @@ public interface TransferenciaService {
      * Consulta el estado actual de una transaccion (para que
      * bff-movil/bff-cajero hagan polling del resultado de la saga).
      */
-    TransferenciaResponseDTO consultarEstado(Long transaccionId);
+    TransferenciaResponseDTO consultarEstado(String transaccionId);
 }
