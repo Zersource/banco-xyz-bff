@@ -26,3 +26,9 @@ resilience4j:
         base-config: default
       pagos:
         base-config: default
+
+# Id unico por replica en Eureka (para escalar con docker compose --scale, ver
+# docker-compose.escala-bff.yaml). HOSTNAME es el id del contenedor; fuera de Docker, aleatorio.
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${HOSTNAME:${random.value}}

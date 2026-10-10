@@ -1,0 +1,32 @@
+# Override SOLO para la prueba de escala horizontal de bff-web (stateless). No extiende
+# docker-compose.escala.yaml (ese mueve cuentas al 8090 y el e2e usa localhost:8084).
+# Requiere Compose v2.24+ (!override; deploy.replicas lo respeta Compose v2 sin Swarm).
+# Un solo comando, desde la raiz del repo (deja bff-web-1, bff-web-2 y nginx):
+#   docker compose -f docker-compose.yaml -f docker-compose.escala-bff.yaml up -d
+#   -> balanceador en http://localhost:8080 ; replicas directas en localhost:8092 y 8093
+# Para volver (quita nginx y la segunda replica, bff-web vuelve al 8081):
+#   docker compose up -d --scale bff-web=1 --remove-orphans
+# En AWS este papel lo cumple el ALB (target group con las instancias de bff-web). Ver
+# docker/nginx/LEEME.md.
+services:
+  bff-web:
+    # Las 2 replicas se declaran aqui y no con --scale: un `up` que omite la escala
+    # reconcilia el servicio a 1 replica (asi se perdio bff-web-2 en la primera prueba).
+    deploy:
+      replicas: 2
+    ports: !override
+      - "8092-8093:8081"
+    environment:
+      # bff-web no registra cada request; con esto el DispatcherServlet escribe una linea por
+      # solicitud y se puede contar cuantas atendio cada replica.
+      - 'SPRING_APPLICATION_JSON={"logging":{"level":{"org.springframework.web.servlet.DispatcherServlet":"DEBUG"}}}'
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/nginx/escala.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      bff-web:
+        condition: service_healthy
