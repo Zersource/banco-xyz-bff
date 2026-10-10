@@ -1,0 +1,22 @@
+# 2.6 Pruebas de falla del batch con los archivos del repo (docker/batch/test/), usando up (no run)
+
+== Permanente: docker compose -f docker-compose.yaml -f docker/batch/test/compose.falla-permanente.yaml --profile batch up batch
+  batch-1  | 2026-10-10T04:33:45.379Z ERROR 1 --- [banco-xyz-batch] [           main] .d.b.c.JobCompletionNotificationListener : ==> Job [dailyTransactionsJob] finalizado con ESTADO FAILED. 
+batch-1 exited with code 1 (restarting)
+  batch-1  | 2026-10-10T04:33:46.289Z ERROR 1 --- [banco-xyz-batch] [           main] .d.b.c.JobCompletionNotificationListener : ==> Job [dailyTransactionsJob] finalizado con ESTADO FAILED. 
+batch-1 exited with code 1 (restarting)
+  batch-1  | 2026-10-10T04:33:47.259Z ERROR 1 --- [banco-xyz-batch] [           main] .d.b.c.JobCompletionNotificationListener : ==> Job [dailyTransactionsJob] finalizado con ESTADO FAILED. 
+batch-1 exited with code 1 (restarting)
+  batch-1  | 2026-10-10T04:33:48.470Z ERROR 1 --- [banco-xyz-batch] [           main] .d.b.c.JobCompletionNotificationListener : ==> Job [dailyTransactionsJob] finalizado con ESTADO FAILED. 
+batch-1 exited with code 1
+  docker inspect -f '{{.State.ExitCode}} {{.RestartCount}}' -> 1 3   (esperado 1 3)
+
+== Transitoria: docker/batch/test/recuperar_csv.sh (ejecutado desde /tmp con /bin/bash 3.2)
+  [script] carpeta de datos: /var/folders/vn/5mcqw3dj6rqb3gc6m_m4g7dm0000gn/T/tmp.Ie5GJcrE7D (vacia)
+  [script] 04:33:34 RestartCount=1 -> CSV de semana_3 copiado (1001 lineas)
+  [script] ExitCode RestartCount: 0 1
+  batch-1  | 2026-10-10T04:33:34.616Z ERROR 1 --- [banco-xyz-batch] [           main] .d.b.c.JobCompletionNotificationListener : ==> Job [dailyTransactionsJob] finalizado con ESTADO FAILED. 
+batch-1 exited with code 1 (restarting)
+  batch-1  | 2026-10-10T04:33:35.748Z  INFO 1 --- [banco-xyz-batch] [           main] .d.b.c.JobCompletionNotificationListener : ==> Job [dailyTransactionsJob] finalizado con EXITO. Anomalias detectadas y auditadas: 1797
+batch-1 exited with code 0
+  (esperado 0 1; la carpeta temporal la crea mktemp -d y la borra el trap al salir)

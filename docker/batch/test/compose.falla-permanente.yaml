@@ -1,0 +1,12 @@
+# Prueba de falla PERMANENTE del batch: el dataset no existe, el Job sale con exit 1 en cada intento
+# y Docker lo reintenta 3 veces (restart: on-failure:3) antes de dejarlo detenido.
+# Desde la raiz del repo:
+#   docker compose --profile batch rm -fsv batch
+#   docker compose -f docker-compose.yaml -f docker/batch/test/compose.falla-permanente.yaml --profile batch up batch
+#   docker inspect -f '{{.State.ExitCode}} {{.RestartCount}}' $(docker compose --profile batch ps -aq batch)   # esperado: 1 3
+# Nota: `docker compose run` NO aplica la politica restart; hay que usar `up`.
+services:
+  batch:
+    environment:
+      - JOB=transacciones
+      - APP_CSV_TRANSACCIONES=file:/datos/inexistente.csv

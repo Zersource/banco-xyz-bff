@@ -1,0 +1,12 @@
+# Prueba de falla TRANSITORIA del batch: el CSV se lee de un bind mount (BATCH_DATOS_DIR -> /datos) que
+# al inicio esta vacio; el primer intento falla y, cuando aparece el archivo, Docker reintenta solo y el
+# Job termina con exit 0. No se usa directo: lo orquesta recuperar_csv.sh (crea la carpeta temporal,
+# lanza `up batch` y copia el CSV al ver RestartCount >= 1):
+#   docker/batch/test/recuperar_csv.sh          # esperado al final: 0 1
+services:
+  batch:
+    environment:
+      - JOB=transacciones
+      - APP_CSV_TRANSACCIONES=file:/datos/transacciones.csv
+    volumes:
+      - ${BATCH_DATOS_DIR:?definir BATCH_DATOS_DIR (lo hace recuperar_csv.sh)}:/datos:ro

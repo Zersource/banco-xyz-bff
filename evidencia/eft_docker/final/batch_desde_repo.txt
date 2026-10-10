@@ -1,0 +1,30 @@
+# 2.6 Batch construido desde batch/ del repo (docker compose --profile batch build batch -> exit 0; transferring context: 201.45kB)
+# docker compose --profile batch run --rm -e JOB=<job> batch  (volumen nombrado batch-data, sin bind mounts)
+
+== JOB=transacciones -> exit code: 0 (1 s)
+  profiles are active: "dev", "semana_3"
+  Job [dailyTransactionsJob] finalizado con EXITO. Anomalias detectadas y auditadas: 599
+  Step [cargarTransaccionesWorkerStep:partition0] leidos=334 escritos=142 omitidos(lectura/proceso/escritura)=0/189/3
+  Step [cargarTransaccionesWorkerStep:partition2] leidos=333 escritos=117 omitidos(lectura/proceso/escritura)=0/212/4
+  Step [cargarTransaccionesWorkerStep:partition1] leidos=333 escritos=128 omitidos(lectura/proceso/escritura)=0/198/7
+
+== JOB=intereses -> exit code: 0 (2 s)
+  profiles are active: "dev", "semana_3"
+  Job [monthlyInterestJob] finalizado con EXITO. Anomalias detectadas y auditadas: 601
+  Step [calcularInteresesStep] leidos=1000 escritos=50 omitidos(lectura/proceso/escritura)=0/601/349
+
+== JOB=estados-cuenta -> exit code: 0 (1 s)
+  profiles are active: "dev", "semana_3"
+  Job [annualStatementJob] finalizado con EXITO. Anomalias detectadas y auditadas: 538
+  Step [cargarMovimientosStep] leidos=1000 escritos=614 omitidos(lectura/proceso/escritura)=0/386/0
+
+== JOB=todos -> exit code: 0 (1 s)
+  profiles are active: "dev", "semana_3"
+  Job [dailyTransactionsJob] finalizado con EXITO. Anomalias detectadas y auditadas: 1198
+  Job [monthlyInterestJob] finalizado con EXITO. Anomalias detectadas y auditadas: 1202
+  Job [annualStatementJob] finalizado con EXITO. Anomalias detectadas y auditadas: 1076
+  Step [cargarTransaccionesWorkerStep:partition0] leidos=334 escritos=142 omitidos(lectura/proceso/escritura)=0/189/3
+  Step [cargarTransaccionesWorkerStep:partition2] leidos=333 escritos=117 omitidos(lectura/proceso/escritura)=0/212/4
+  Step [cargarTransaccionesWorkerStep:partition1] leidos=333 escritos=128 omitidos(lectura/proceso/escritura)=0/198/7
+  Step [calcularInteresesStep] leidos=1000 escritos=50 omitidos(lectura/proceso/escritura)=0/601/349
+  Step [cargarMovimientosStep] leidos=1000 escritos=614 omitidos(lectura/proceso/escritura)=0/386/0
