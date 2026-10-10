@@ -1,149 +1,138 @@
-# Banco XYZ: microservicios con Spring Cloud, Kafka y Spring Batch (EFT)
+# Banco XYZ — Migracion de sistema legacy a microservicios con Spring Cloud
 
-> **Borrador.** Describe el estado de la rama `eft-final`.
+> Evaluacion Final Transversal (EFT) — PBY2203 Desarrollo Backend III, DuocUC
 
-Proyecto de Backend III (Duoc UC). Parte del BFF de Exp2, lo separa en microservicios (Exp3) y le suma
-cuentas, clientes y pagos como servicios independientes, con una saga de transferencias sobre Kafka y el
-proceso batch del Exp1.
+Proyecto que migra los procesos legacy del Banco XYZ a una arquitectura de microservicios con Spring Boot 3.3.4, Java 21, Spring Cloud, Apache Kafka, Spring Batch y Docker.
 
-## Arquitectura (10 apps)
+## Arquitectura (10 aplicaciones + Kafka)
 
-| App | Puerto | Rol |
+```
+cliente ──token──► bff-web / bff-movil / bff-cajero
+                        │ (Eureka + RestClient + Circuit Breaker)
+                        ▼
+                   cuentas   clientes   pagos
+                        │                 │
+                        └──── Kafka ──────┘  (saga de transferencias)
+```
+
+| Aplicacion | Puerto | Rol |
 |---|---|---|
-| `eureka-server` | 8761 | Registro de servicios |
 | `config-server` | 8888 | Configuracion centralizada (modo `native`, archivos en `config-repo/`) |
-| `auth-server` | 9000 | Servidor OAuth2: emite tokens `client_credentials` (uno por canal) y publica el JWKS |
-| `cuentas` | 8084 | Dueno de los saldos, movimientos y transacciones. Ejecuta los pasos de debito, credito y compensacion de la saga |
-| `clientes` | 8085 | Datos del titular de cada cuenta (nombre, edad). Notifica (log) las transferencias completadas |
-| `pagos` | 8086 | Dueno de las transferencias: las recibe, las guarda (H2) y lanza la saga por Kafka |
-| `bff-web` | 8081 | BFF canal web (scope `web`): cuentas completas, transacciones y transferencias |
+| `eureka-server` | 8761 | Service Discovery |
+| `auth-server` | 9000 | OAuth2 con Spring Authorization Server: `client_credentials`, JWT 15 min, JWKS, RSA |
+| `kafka` | 9094 | Broker Kafka en modo KRaft (sin Zookeeper) |
+| `cuentas` | 8084 | Cuentas, saldos, movimientos. Ejecuta debito, credito y compensacion de la saga |
+| `clientes` | 8085 | Datos del titular. Notifica transferencias completadas |
+| `pagos` | 8086 | Transferencias: las recibe, guarda en H2 y lanza la saga por Kafka |
+| `bff-web` | 8081 | BFF canal web (scope `web`): datos completos, transacciones, transferencias |
 | `bff-movil` | 8082 | BFF canal movil (scope `movil`): respuesta liviana |
 | `bff-cajero` | 8083 | BFF canal cajero (scope `cajero`): saldo y retiro |
-| `batch` | n/a | Spring Batch (CLI): transacciones diarias, intereses mensuales y estados de cuenta anuales |
+| `batch` | — | Spring Batch (CLI): 3 jobs de procesamiento legacy. Gateado por profile |
 
-```
-cliente --token--> bff-web / bff-movil / bff-cajero --(Eureka + RestClient + token del canal + Circuit Breaker)-->
-                     cuentas   clientes   pagos (solo desde bff-web)
+## Tecnologias principales
 
-pagos --Kafka--> cuentas --Kafka--> pagos, clientes        (saga de transferencias, ver KAFKA_TOPICS.md)
-```
+- **Spring Boot 3.3.4** / Java 21 / Maven (modulos independientes, sin root POM)
+- **Spring Cloud**: Eureka (Service Discovery), Config Server (native)
+- **Spring Authorization Server 1.3.2**: OAuth2 `client_credentials`, scopes por canal, JWT con RSA
+- **Apache Kafka 3.7**: saga de transferencias con 6 topics × 3 particiones
+- **Spring Batch 5**: 3 jobs con particionamiento, retry, skip y manejo de errores
+- **Resilience4j**: Circuit Breaker en los BFF (CLOSED → OPEN → HALF_OPEN → CLOSED)
+- **Docker**: multi-stage builds, Compose con `depends_on` + `service_healthy`, escalado horizontal
 
-- Todos los servicios se registran en Eureka y toman su configuracion del Config Server (`config-repo/`).
-- `cuentas`, `clientes`, `pagos` y los 3 BFF son *resource servers* OAuth2: validan la firma del token con
-  el JWKS del auth-server y exigen el scope del canal.
-- Cada BFF llama a los servicios con su propio token `client_credentials`, protegido con Circuit Breaker
-  (Resilience4j) y un fallback: un 503 controlado si el servicio no responde. `clientes` es dato accesorio:
-  si cae, web y movil responden igual pero sin nombre.
-- `GET /actuator/health` de `cuentas`, `clientes` y `pagos` responde sin token (healthcheck de las imagenes).
-- El `transaccionId` es un UUID que genera `pagos` y es la key de cada mensaje de Kafka.
+## Saga de transferencias (Kafka)
 
-## Saga de transferencias
+`POST /transferencias` → `pagos` guarda como PENDIENTE → publica `transferencia.iniciada` → `cuentas` debita → acredita → `transferencia.completada` → `pagos` marca COMPLETADA, `clientes` notifica.
 
-`POST /transferencias` (bff-web) -> `pagos` guarda la transferencia como PENDIENTE y publica
-`transferencia.iniciada` -> `cuentas` debita (atomico) -> `cuentas` acredita el destino -> `transferencia.completada`
-(`pagos` marca COMPLETADA y `clientes` notifica). Si el debito falla queda FALLIDA; si el credito falla
-(cuenta destino inexistente) `cuentas` devuelve el debito y queda REVERTIDA. Los topics, quien publica y
-quien consume cada uno estan en [`KAFKA_TOPICS.md`](KAFKA_TOPICS.md).
+Si el debito falla: FALLIDA. Si el credito falla (cuenta destino inexistente): `cuentas` devuelve el debito → REVERTIDA.
 
-## Como levantar en local
+Detalle de topics, productores, consumidores y formato de mensajes en [`KAFKA_TOPICS.md`](KAFKA_TOPICS.md).
 
-Requisitos: Java 21, Maven 3.9 y un Kafka local en modo KRaft escuchando en `localhost:9092`
-(binario oficial de Apache Kafka, sin Docker; `bin/kafka-storage.sh format` y `bin/kafka-server-start.sh
-config/kraft/server.properties`). Los topics se crean solos al arrancar los servicios.
+## Spring Batch (3 jobs)
+
+| Job | Descripcion | Datos de entrada |
+|---|---|---|
+| `dailyTransactionsJob` | Transacciones diarias con filtro de anomalias | `transacciones.csv` |
+| `monthlyInterestJob` | Calculo de intereses mensuales | `cuentas.csv` |
+| `annualStatementJob` | Estados de cuenta anuales | `movimientos.csv` |
+
+Los 3 jobs procesan datos del legacy bancario (`data/semana_3/`), con particionamiento (3 workers), skip de registros invalidos y retry ante fallos transitorios. Ver [`batch/README.md`](batch/README.md).
+
+## BFF por canal
+
+| Canal | BFF | Datos expuestos | Seguridad |
+|---|---|---|---|
+| Web | `bff-web` | Cuentas completas, transacciones, transferencias | scope `web` |
+| Movil | `bff-movil` | Cuenta resumida (liviana) | scope `movil` |
+| Cajero | `bff-cajero` | Solo saldo y retiro | scope `cajero` |
+
+Cada BFF tiene Circuit Breaker contra `cuentas` y `clientes`. Si un servicio cae, responde 503 con fallback. `clientes` es dato accesorio: si cae, web y movil responden sin nombre.
+
+## Como ejecutar
+
+### Con Docker (recomendado)
 
 ```bash
-# 1. compilar cada modulo (genera <modulo>/target/<modulo>-1.0.0.jar)
+git clone --branch eft-final https://github.com/Zersource/banco-xyz-bff.git
+cd banco-xyz-bff
+docker compose up -d --build       # 10 servicios + kafka
+docker compose ps                  # esperar healthy
+MODO=docker /bin/bash ./prueba-e2e.sh   # 95/95 OK
+```
+
+Batch (separado, por profile):
+
+```bash
+docker compose --profile batch run --rm -e JOB=todos batch
+```
+
+### En local
+
+Requisitos: Java 21, Maven 3.9, Kafka local en `localhost:9092` (KRaft).
+
+```bash
 for m in eureka-server config-server auth-server cuentas clientes pagos bff-web bff-movil bff-cajero; do
   (cd $m && mvn clean verify); done
-
-# 2. levantar en este orden (cada uno en su terminal o con nohup ... &)
-java -jar eureka-server/target/eureka-server-1.0.0.jar
-java -jar config-server/target/config-server-1.0.0.jar
-java -jar auth-server/target/auth-server-1.0.0.jar
-# esperar a que los tres respondan, luego:
-java -jar cuentas/target/cuentas-1.0.0.jar
-java -jar clientes/target/clientes-1.0.0.jar
-java -jar pagos/target/pagos-1.0.0.jar
-java -jar bff-web/target/bff-web-1.0.0.jar
-java -jar bff-movil/target/bff-movil-1.0.0.jar
-java -jar bff-cajero/target/bff-cajero-1.0.0.jar
+# Levantar en orden: eureka → config → auth → cuentas/clientes/pagos → bff-*
 ```
 
-El Config Server debe estar arriba antes que los demas: la configuracion (puertos, JWKS, Kafka, token y
-Circuit Breaker de cada BFF) se la piden a el. Un servicio recien arrancado puede tardar hasta ~1 minuto en
-ser visible para los otros (cache de Eureka y del balanceador).
-
-Pedir un token y usarlo:
+### Escalabilidad horizontal
 
 ```bash
-TOKEN=$(curl -s -u cliente-web:WEB-KEY-2024 -d grant_type=client_credentials -d scope=web \
-  localhost:9000/oauth2/token | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')
-curl -H "Authorization: Bearer $TOKEN" localhost:8081/api/web/cuentas/101
-curl -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"cuentaOrigenId":101,"cuentaDestinoId":102,"monto":500}' localhost:8081/transferencias
+docker compose -f docker-compose.yaml -f docker-compose.escala-bff.yaml up -d
+# → 2 replicas de bff-web + nginx en localhost:8080
 ```
-
-Clientes OAuth2 (secreto en `auth-server`): `cliente-web` / `WEB-KEY-2024` (scope `web`),
-`cliente-movil` / `MOVIL-KEY-2024` (`movil`), `cliente-cajero` / `CAJERO-KEY-2024` (`cajero`).
-
-### Con Docker
-
-`docker-compose.yaml` (y `docker-compose.escala.yaml`) los mantiene la rama `eft-docker`; levanta la infra,
-`cuentas`, `clientes`, los 3 BFF y un Kafka. Al momento de este borrador `pagos` todavia no tiene Dockerfile
-ni servicio en el compose.
 
 ## Endpoints
 
-| Servicio | Endpoint | Scope |
-|---|---|---|
-| bff-web | `GET /api/web/cuentas`, `GET /api/web/cuentas/{id}`, `GET /api/web/transacciones` | `web` |
-| bff-web | `POST /transferencias` (202), `GET /transferencias/{id}` | `web` |
-| bff-movil | `GET /api/movil/cuentas/{id}` | `movil` |
-| bff-cajero | `GET /api/cajero/cuentas/{id}/saldo`, `POST /api/cajero/cuentas/{id}/retiro` | `cajero` |
-| cuentas | `GET /cuentas`, `/cuentas/{id}`, `/cuentas/{id}/saldo`, `/cuentas/movimientos`, `/cuentas/{id}/movimientos`, `/transacciones`, `/transacciones/ultimas`; `POST /cuentas/{id}/retiro` | cualquier canal (el retiro, solo `cajero`) |
-| clientes | `GET /clientes`, `GET /clientes/{cuentaId}` | cualquier canal |
-| pagos | `POST /transferencias`, `GET /transferencias/{id}` | `web` |
+| Servicio | Endpoint | Metodo | Scope |
+|---|---|---|---|
+| bff-web | `/api/web/cuentas`, `/api/web/cuentas/{id}` | GET | `web` |
+| bff-web | `/api/web/transacciones` | GET | `web` |
+| bff-web | `/transferencias` | POST/GET | `web` |
+| bff-movil | `/api/movil/cuentas/{id}` | GET | `movil` |
+| bff-cajero | `/api/cajero/cuentas/{id}/saldo` | GET | `cajero` |
+| bff-cajero | `/api/cajero/cuentas/{id}/retiro` | POST | `cajero` |
 
-Errores: 401 sin token o invalido, 403 con el scope de otro canal, 404 cuenta/transferencia inexistente,
-400 validacion o saldo insuficiente, 503 servicio caido (fallback del Circuit Breaker).
-
-## Batch
-
-El proyecto de Spring Batch vive en [`batch/`](batch/) (importado de
-https://github.com/Zersource/Banco-xyz-batch---S1, rama `main`). Es una aplicacion de linea de comandos
-independiente, no se registra en Eureka:
-
-```bash
-cd batch && mvn clean verify
-java -jar target/banco-xyz-batch-1.0.0.jar transacciones --spring.profiles.active=dev,semana_3
-java -jar target/banco-xyz-batch-1.0.0.jar intereses --spring.profiles.active=dev,semana_3
-java -jar target/banco-xyz-batch-1.0.0.jar estados-cuenta --spring.profiles.active=dev,semana_3
-```
-
-Ver `batch/README.md`.
+Obtener token: `POST http://localhost:9000/oauth2/token` con Basic Auth (`cliente-web:WEB-KEY-2024`), `grant_type=client_credentials`, `scope=web`.
 
 ## Pruebas
 
-- `mvn clean verify` en cada modulo (tests en `cuentas`, `pagos` y `batch`).
-- `prueba-e2e.sh`: prueba de punta a punta contra el stack levantado (seguridad por canal, retiro,
-  peso de cada canal, saga, reinicio de `pagos`, Circuit Breaker). Sale con codigo distinto de 0 si algo falla.
-  `MODO=local` (por defecto) o `MODO=docker`; `LOGS_DIR` (opcional) para revisar el recorrido de los
-  mensajes en los logs. Detalle en la cabecera del script.
-- Evidencia de ejecucion en `evidencia/eft/` (saga, topics, Circuit Breaker, peso de payloads, batch).
-
-## Limitaciones conocidas
-
-1. **H2 en memoria por replica en `cuentas` y `pagos`.** Los saldos, las transferencias y el estado se
-   pierden al reiniciar y no se comparten entre replicas. Por eso el escalado consistente aplica hoy a los
-   BFF (sin estado propio). El siguiente paso para escalar `cuentas` y `pagos` es un PostgreSQL compartido.
-2. **El registro de pasos de la saga vive en memoria en `cuentas`** (`EstadoSagaRepository`): es el guard de
-   idempotencia ante mensajes reentregados, pero se pierde al reiniciar `cuentas`.
-3. **Secretos de los clientes OAuth2 en claro** en `config-repo/` (y en el `auth-server`). En produccion irian
-   en un gestor de secretos (AWS Secrets Manager, Vault).
-4. El Config Server usa el modo `native` con los archivos empaquetados en su JAR; cambiar la configuracion
-   exige recompilar y reiniciar `config-server`.
+- `mvn clean verify` en cada modulo (tests unitarios en `cuentas`, `pagos`, `batch`)
+- `prueba-e2e.sh`: 95 verificaciones (seguridad, saga, Circuit Breaker, peso de payloads, reinicio)
+- Evidencia de ejecucion en `evidencia/eft_docker/final/`
 
 ## Documentacion
 
-`PROPUESTA_TECNICA*.md` por semana, `KAFKA_TOPICS.md` y `README_S7_ADDENDUM.md` (historico de la saga con JMS,
-reemplazada por Kafka).
+- [`instrucciones.md`](instrucciones.md) — Pasos para ejecutar y probar cada componente
+- [`despliegue.md`](despliegue.md) — Guia de despliegue en EC2/AWS con Docker Compose
+- [`KAFKA_TOPICS.md`](KAFKA_TOPICS.md) — Topics, productores, consumidores y formato de mensajes
+- [`batch/README.md`](batch/README.md) — Detalle de los 3 jobs de Spring Batch
+- `PROPUESTA_TECNICA*.md` — Propuestas tecnicas por semana
+
+## Limitaciones conocidas
+
+1. **H2 en memoria** en `cuentas` y `pagos`: saldos y transferencias se pierden al reiniciar. El escalado consistente aplica a los BFF (stateless). Siguiente paso: PostgreSQL compartido.
+2. **Estado de saga en memoria** (`EstadoSagaRepository` en `cuentas`): guard de idempotencia que se pierde al reiniciar.
+3. **Secretos en claro** en `config-repo/`. En produccion: AWS Secrets Manager o Vault.
+4. **Clave RSA en memoria** en `auth-server`: al reiniciarlo, tokens en cache quedan invalidos hasta su vencimiento (15 min).
+5. **Config Server modo native**: cambiar configuracion exige recompilar y reiniciar.
