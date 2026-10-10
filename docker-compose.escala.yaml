@@ -1,0 +1,19 @@
+# Override SOLO para la prueba de escalabilidad horizontal de cuentas.
+# El compose principal deja cuentas en "8084:8084" (lo usa prueba-e2e.sh); aqui se
+# reemplaza por un rango libre para que cada replica tenga su puerto en el host.
+# Requiere Compose v2.24+ (!override).
+#
+#   docker compose -f docker-compose.yaml -f docker-compose.escala.yaml up -d --scale cuentas=2
+#   (replicas directas en localhost:8090 y 8091; los BFF llegan por Eureka/red interna)
+# Para volver:
+#   docker compose up -d --scale cuentas=1
+services:
+  cuentas:
+    ports: !override
+      - "8090-8091:8084"
+    # cuentas no registra cada request; con esto el DispatcherServlet escribe una linea
+    # por solicitud (GET "/cuentas/...") y se puede contar cuantas atendio cada replica.
+    # (Se usa SPRING_APPLICATION_JSON porque LOGGING_LEVEL_..._DISPATCHERSERVLET se pasa a
+    # minusculas y no coincide con el logger "DispatcherServlet".)
+    environment:
+      - 'SPRING_APPLICATION_JSON={"logging":{"level":{"org.springframework.web.servlet.DispatcherServlet":"DEBUG"}}}'

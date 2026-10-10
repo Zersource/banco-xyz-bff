@@ -1,0 +1,56 @@
+# PLANTILLA (no activa). docker compose solo lee docker-compose.yaml, asi que
+# este archivo no se levanta hasta que se pida de forma explicita.
+#
+# cuentas y clientes ya estan activos en docker-compose.yaml (con healthcheck con token,
+# ver cuentas/Dockerfile). Aqui queda solo pagos.
+#
+# Para activarla, cuando exista la carpeta del servicio (usar su nombre real, igual a
+# spring.application.name, al <nombre>.yml de config-repo y al http://<nombre> de los BFF):
+#   1. Copiar plantillas/Dockerfile.servicio a <carpeta>/Dockerfile.
+#   2. Crear <nombre>.yml en config-server/src/main/resources/config-repo con server.port.
+#   3. Pegar estos servicios en docker-compose.yaml (o levantar con
+#      docker compose -f docker-compose.yaml -f plantillas/docker-compose.nuevos-servicios.yaml up --build).
+# Las rutas son relativas a la raiz del repo (donde esta docker-compose.yaml).
+
+x-servicio-nuevo: &servicio-nuevo
+  environment: &env-comun
+    SPRING_PROFILES_ACTIVE: docker
+    SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+    JAVA_TOOL_OPTIONS: -Xmx256m
+  healthcheck:
+    interval: 10s
+    timeout: 5s
+    retries: 12
+    start_period: 60s
+  depends_on:
+    config-server:
+      condition: service_healthy
+    eureka-server:
+      condition: service_healthy
+    auth-server:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  ms-pagos:
+    <<: *servicio-nuevo
+    build:
+      context: ./ms-pagos
+      args:
+        SERVICE_PORT: "8086"
+    ports:
+      - "8086:8086"
+    environment:
+      <<: *env-comun
+      SPRING_APPLICATION_NAME: ms-pagos
+      # Si pagos publica eventos en Kafka (red interna de compose):
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      auth-server:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy

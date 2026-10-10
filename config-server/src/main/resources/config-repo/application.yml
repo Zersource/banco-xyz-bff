@@ -12,7 +12,9 @@ eureka:
     prefer-ip-address: true
 
 # Los 3 BFF validan los access tokens del auth-server con su clave publica (JWKS).
-# No se valida el emisor (iss), solo la firma, para que funcione igual en local y en Docker.
+# No se valida el emisor (iss), solo la firma. Aca va localhost (modo local); dentro de Docker el
+# perfil "docker" (application-docker.yml) lo cambia al nombre del servicio, auth-server (dentro de
+# un contenedor "localhost" es el propio servicio).
 spring:
   security:
     oauth2:

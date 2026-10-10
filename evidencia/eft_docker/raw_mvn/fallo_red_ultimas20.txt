@@ -1,0 +1,20 @@
+78.89 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
+------
+Dockerfile:9
+
+--------------------
+
+   7 |     # Se copia primero el pom para aprovechar la cache de dependencias
+
+   8 |     COPY pom.xml .
+
+   9 | >>> RUN mvn -B dependency:go-offline
+
+  10 |     COPY src ./src
+
+  11 |     RUN mvn -B -DskipTests package
+
+--------------------
+
+target cuentas: failed to solve: process "/bin/sh -c mvn -B dependency:go-offline" did not complete successfully: exit code: 1
+

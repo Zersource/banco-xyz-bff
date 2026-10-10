@@ -1,0 +1,4 @@
+#!/bin/bash
+# Shim para prueba-e2e.sh en Docker: pkill -f '<svc>-1.0.0.jar' -> docker compose stop <svc>
+svc=$(echo "$*" | grep -oE '(cuentas|clientes)-1\.0\.0\.jar' | sed 's/-1.0.0.jar//')
+if [ -n "$svc" ]; then echo "  [shim] docker compose stop $svc" >&2; docker compose -f /Users/zer/banco-xyz-bff/docker-compose.yaml stop "$svc" >/dev/null 2>&1; else exec /usr/bin/pkill "$@"; fi

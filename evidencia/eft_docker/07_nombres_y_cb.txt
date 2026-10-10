@@ -1,0 +1,13 @@
+== Coincidencia de nombres (carpeta / spring.application.name / compose / config-repo / baseUrl en BFF)
+carpeta   app.name   compose_env            config-repo            server.port    BFF que lo llaman (http://<nombre>)
+cuentas   cuentas    cuentas                cuentas.yml            8084           bff-cajero bff-movil bff-web 
+clientes  clientes   clientes               clientes.yml           8085           bff-movil bff-web 
+
+== Instancias de Circuit Breaker (@CircuitBreaker name) vs propiedades por BFF
+bff-web  usadas: clientes cuentas  | configuradas: clientes cuentas 
+bff-movil  usadas: clientes cuentas  | configuradas: clientes cuentas 
+bff-cajero  usadas: cuentas  | configuradas: cuentas 
+
+== mvn clean verify tras agregar actuator (Maven 3.9.16, JDK 21)
+cuentas rc=0
+clientes rc=0

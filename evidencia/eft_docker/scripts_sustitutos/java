@@ -1,0 +1,4 @@
+#!/bin/bash
+# Shim para prueba-e2e.sh en Docker: java -jar <svc>/target/<svc>-1.0.0.jar -> docker compose start <svc>
+svc=$(echo "$*" | grep -oE '(cuentas|clientes)/target' | cut -d/ -f1)
+if [ -n "$svc" ]; then echo "  [shim] docker compose start $svc" >&2; exec docker compose -f /Users/zer/banco-xyz-bff/docker-compose.yaml start "$svc"; else exec /usr/bin/java "$@"; fi

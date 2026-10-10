@@ -1,0 +1,12 @@
+# 10 llamadas seguidas: GET http://localhost:8082/api/movil/cuentas/101 (token cliente-movil, scope movil)  marca 2026-10-10T01:42:20Z
+# Cada llamada de bff-movil hace 2 requests a cuentas: /cuentas/101 y /transacciones/ultimas
+llamada 1 -> HTTP 200
+llamada 2 -> HTTP 200
+llamada 3 -> HTTP 200
+llamada 4 -> HTTP 200
+llamada 5 -> HTTP 200
+llamada 6 -> HTTP 200
+llamada 7 -> HTTP 200
+llamada 8 -> HTTP 200
+llamada 9 -> HTTP 200
+llamada 10 -> HTTP 200

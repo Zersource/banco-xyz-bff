@@ -1,6 +1,7 @@
-NAME                            IMAGE                         COMMAND               SERVICE         CREATED              STATUS                        PORTS
-banco-xyz-bff-bff-cajero-1      banco-xyz-bff-bff-cajero      "java -jar app.jar"   bff-cajero      About a minute ago   Up About a minute             0.0.0.0:8083->8083/tcp, [::]:8083->8083/tcp
-banco-xyz-bff-bff-movil-1       banco-xyz-bff-bff-movil       "java -jar app.jar"   bff-movil       About a minute ago   Up About a minute             0.0.0.0:8082->8082/tcp, [::]:8082->8082/tcp
-banco-xyz-bff-bff-web-1         banco-xyz-bff-bff-web         "java -jar app.jar"   bff-web         About a minute ago   Up About a minute             0.0.0.0:8081->8081/tcp, [::]:8081->8081/tcp
-banco-xyz-bff-config-server-1   banco-xyz-bff-config-server   "java -jar app.jar"   config-server   About a minute ago   Up About a minute (healthy)   0.0.0.0:8888->8888/tcp, [::]:8888->8888/tcp
-banco-xyz-bff-eureka-server-1   banco-xyz-bff-eureka-server   "java -jar app.jar"   eureka-server   About a minute ago   Up About a minute             0.0.0.0:8761->8761/tcp, [::]:8761->8761/tcp
+NAME                            IMAGE                         COMMAND               SERVICE         CREATED          STATUS                    PORTS
+banco-xyz-bff-auth-server-1     banco-xyz-bff-auth-server     "java -jar app.jar"   auth-server     46 seconds ago   Up 46 seconds             0.0.0.0:9000->9000/tcp, [::]:9000->9000/tcp
+banco-xyz-bff-bff-cajero-1      banco-xyz-bff-bff-cajero      "java -jar app.jar"   bff-cajero      46 seconds ago   Up 40 seconds             0.0.0.0:8083->8083/tcp, [::]:8083->8083/tcp
+banco-xyz-bff-bff-movil-1       banco-xyz-bff-bff-movil       "java -jar app.jar"   bff-movil       46 seconds ago   Up 40 seconds             0.0.0.0:8082->8082/tcp, [::]:8082->8082/tcp
+banco-xyz-bff-bff-web-1         banco-xyz-bff-bff-web         "java -jar app.jar"   bff-web         46 seconds ago   Up 40 seconds             0.0.0.0:8081->8081/tcp, [::]:8081->8081/tcp
+banco-xyz-bff-config-server-1   banco-xyz-bff-config-server   "java -jar app.jar"   config-server   46 seconds ago   Up 46 seconds (healthy)   0.0.0.0:8888->8888/tcp, [::]:8888->8888/tcp
+banco-xyz-bff-eureka-server-1   banco-xyz-bff-eureka-server   "java -jar app.jar"   eureka-server   46 seconds ago   Up 46 seconds             0.0.0.0:8761->8761/tcp, [::]:8761->8761/tcp

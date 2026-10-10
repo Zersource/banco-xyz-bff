@@ -1,0 +1,27 @@
+# docker compose logs --since 2026-10-10T01:42:20Z cuentas  (DispatcherServlet DEBUG via docker-compose.escala.yaml;
+# se excluye /actuator/health del healthcheck)
+cuentas-2  | 2026-10-10T01:42:21.553Z GET "/cuentas/101", parameters={}
+cuentas-1  | 2026-10-10T01:42:21.562Z GET "/transacciones/ultimas?cantidad=3", parameters={masked}
+cuentas-2  | 2026-10-10T01:42:21.597Z GET "/cuentas/101", parameters={}
+cuentas-1  | 2026-10-10T01:42:21.603Z GET "/transacciones/ultimas?cantidad=3", parameters={masked}
+cuentas-2  | 2026-10-10T01:42:21.624Z GET "/cuentas/101", parameters={}
+cuentas-1  | 2026-10-10T01:42:21.628Z GET "/transacciones/ultimas?cantidad=3", parameters={masked}
+cuentas-2  | 2026-10-10T01:42:21.647Z GET "/cuentas/101", parameters={}
+cuentas-1  | 2026-10-10T01:42:21.650Z GET "/transacciones/ultimas?cantidad=3", parameters={masked}
+cuentas-2  | 2026-10-10T01:42:21.668Z GET "/cuentas/101", parameters={}
+cuentas-1  | 2026-10-10T01:42:21.671Z GET "/transacciones/ultimas?cantidad=3", parameters={masked}
+cuentas-2  | 2026-10-10T01:42:21.689Z GET "/cuentas/101", parameters={}
+cuentas-1  | 2026-10-10T01:42:21.692Z GET "/transacciones/ultimas?cantidad=3", parameters={masked}
+cuentas-2  | 2026-10-10T01:42:21.711Z GET "/cuentas/101", parameters={}
+cuentas-1  | 2026-10-10T01:42:21.714Z GET "/transacciones/ultimas?cantidad=3", parameters={masked}
+cuentas-2  | 2026-10-10T01:42:21.732Z GET "/cuentas/101", parameters={}
+cuentas-1  | 2026-10-10T01:42:21.736Z GET "/transacciones/ultimas?cantidad=3", parameters={masked}
+cuentas-2  | 2026-10-10T01:42:21.754Z GET "/cuentas/101", parameters={}
+cuentas-1  | 2026-10-10T01:42:21.757Z GET "/transacciones/ultimas?cantidad=3", parameters={masked}
+cuentas-2  | 2026-10-10T01:42:21.772Z GET "/cuentas/101", parameters={}
+cuentas-1  | 2026-10-10T01:42:21.774Z GET "/transacciones/ultimas?cantidad=3", parameters={masked}
+
+# Conteo por replica (contenedor -> instanceId en Eureka)
+cuentas-1 (cuentas:7ee70267c280): /cuentas/101=0  /transacciones/ultimas=10  total=10
+cuentas-2 (cuentas:2877f74f68d5): /cuentas/101=10  /transacciones/ultimas=0  total=10
+total requests a cuentas: 20  (esperado 20 = 10 llamadas x 2)

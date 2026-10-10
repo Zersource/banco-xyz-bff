@@ -1,0 +1,12 @@
+Evidencia EFT - Docker (rama eft-docker), 2026-10-09, Docker 29.6.2 arm64
+Comando: docker compose up --build -d
+
+01_build.txt                    build de las 6 imagenes (exit 0)
+02_compose_up.txt               salida de compose up (orden de dependencias healthy)
+03_compose_ps.txt               7 contenedores (healthy): 6 servicios + kafka
+04_healthchecks.txt             test de cada healthcheck, estado y orden de arranque
+05_jwks_entre_contenedores.txt  URL JWKS desde Config Server, auth-server resuelto
+                                desde cada BFF (HTTP 200), control negativo del
+                                healthcheck y topic de prueba en Kafka
+06_prueba_oauth2_bff.txt        evidencia/s8_docker/prueba_docker.sh funcional:
+                                tokens, 200 / 401 sin token / 403 otro canal, saga

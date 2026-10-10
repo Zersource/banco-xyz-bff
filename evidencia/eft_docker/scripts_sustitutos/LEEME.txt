@@ -1,0 +1,5 @@
+pkill: reemplaza prueba-e2e.sh lineas 169 y 182 (pkill -f '<svc>-1.0.0.jar') -> docker compose stop <svc>; otro uso pasa a /usr/bin/pkill.
+java: reemplaza prueba-e2e.sh linea 55 (nohup java -Xmx256m -jar <svc>/target/<svc>-1.0.0.jar, en reiniciar()) -> docker compose start <svc>.
+Uso, desde la raiz del repo con el stack arriba: PATH="$PWD/evidencia/eft_docker/scripts_sustitutos:$PATH" bash ./prueba-e2e.sh
+Requiere bash (no zsh con funcion pkill propia); usan la ruta absoluta del compose de esta Mac (/Users/zer/banco-xyz-bff).
+Temporales: la iMac parametriza prueba-e2e.sh (MODO=local|docker) en su Fase C; prueba-e2e.sh no se edito.

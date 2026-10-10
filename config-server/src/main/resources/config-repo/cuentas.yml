@@ -15,3 +15,9 @@ spring:
     listener:
       # una hebra por particion de cada topic (3 particiones)
       concurrency: 3
+
+# Id unico por replica en Eureka (para escalar con docker compose --scale).
+# HOSTNAME es el id del contenedor; fuera de Docker se usa un valor aleatorio.
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${HOSTNAME:${random.value}}

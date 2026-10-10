@@ -7,8 +7,8 @@ Docker Compose version v5.3.1
 ## docker info | grep -i 'total memory'
  Total Memory: 7.75GiB
 ## git log -1
-commit c2044c7e827ccf64e3a4f24acea3ef177b3919ce
+commit 5abf973653775fcc17e3f92a898b576e149ed4d1
 Author: Zersource <206506428+Zersource@users.noreply.github.com>
-Date:   Sun Oct 4 00:51:37 2026 -0300
+Date:   Sun Oct 4 01:35:22 2026 -0300
 
-    Exp3 S8: ajustes de evidencia del Circuit Breaker (logs DEBUG y grep de transiciones)
+    Exp3 S8: OAuth2 resource servers en los 3 BFF (scope por canal, reenvio de token) y retiro del JWT de S5

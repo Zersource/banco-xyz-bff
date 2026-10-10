@@ -1,0 +1,14 @@
+Escalabilidad horizontal de cuentas (2 replicas), 2026-10-09
+Comando: docker compose -f docker-compose.yaml -f docker-compose.escala.yaml up -d --scale cuentas=2
+Vuelta:  docker compose up -d --scale cuentas=1   (solo compose principal: cuentas en 8084)
+
+docker-compose.escala.yaml (raiz): puertos de cuentas "8090-8091:8084" (!override, el principal
+  queda en 8084:8084 para prueba-e2e.sh) y DispatcherServlet en DEBUG para contar requests.
+instance-id: config-repo/cuentas.yml -> ${spring.application.name}:${HOSTNAME:${random.value}}
+
+eureka_cuentas.txt      2 instancias UP con ids distintos
+llamadas.txt            10 llamadas a bff-movil /api/movil/cuentas/101, todas 200
+logs_replicas.txt       20 requests a cuentas (2 por llamada): 10 en cada replica
+mecanismo_balanceo.txt  Spring Cloud LoadBalancer (RestClient @LoadBalanced) via Eureka, round-robin
+e2e_post_escala.txt     prueba-e2e.sh tras volver a 1 replica: 43/43
+scale_up.txt / scale_down.txt  salida de docker compose (3 up: el 2.o y 3.o recrean con el DEBUG)
