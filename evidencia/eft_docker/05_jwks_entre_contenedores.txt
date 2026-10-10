@@ -1,0 +1,14 @@
+== 1. Config Server entrega la URL del JWKS (bff-web, perfil docker)
+   application-docker.yml -> http://auth-server:9000/oauth2/jwks
+   application.yml -> http://auth-server:9000/oauth2/jwks
+== 2. Desde dentro de cada BFF se resuelve auth-server y su JWKS
+  bff-web -> auth-server IP/HTTP: 172.19.0.5 200
+  bff-movil -> auth-server IP/HTTP: 172.19.0.5 200
+  bff-cajero -> auth-server IP/HTTP: 172.19.0.5 200
+== 3. Claves del JWKS (kid)
+  kid ed9e179e-f5a9-45e4-a4bb-66c79c98730d RSA 
+== 4. Control negativo: healthcheck del BFF con credenciales malas debe fallar
+  exit code: 1 (esperado 1)
+== 5. Kafka: crear y listar un topic de prueba dentro del contenedor
+Created topic eft-prueba.
+  listado: eft-prueba

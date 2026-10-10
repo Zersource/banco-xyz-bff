@@ -1,0 +1,49 @@
+
+################ SECCION FUNCIONAL ################
+Fri Oct  9 21:09:29 -03 2026
+== 0. Servicios registrados en Eureka
+    <name>BFF-WEB</name>
+      <status>UP</status>
+        <name>MyOwn</name>
+    <name>BFF-CAJERO</name>
+      <status>UP</status>
+        <name>MyOwn</name>
+    <name>BFF-MOVIL</name>
+      <status>UP</status>
+        <name>MyOwn</name>
+== 1. Access token de cada canal (auth-server, client_credentials)
+token web:    eyJraWQiOiJlZDllMTc5ZS1mNWE5LT...
+token movil:  eyJraWQiOiJlZDllMTc5ZS1mNWE5LT...
+token cajero: eyJraWQiOiJlZDllMTc5ZS1mNWE5LT...
+== 2. Endpoint de cada canal con su token (esperado 200)
+web    /api/web/cuentas              -> 200
+movil  /api/movil/cuentas/101        -> 200
+cajero /api/cajero/cuentas/101/saldo -> 200
+== 3. Sin token (esperado 401)
+web    /api/web/cuentas                -> 401
+movil  /api/movil/cuentas/101          -> 401
+cajero /api/cajero/cuentas/101/saldo   -> 401
+web    /interno/cuentas/101/saldo      -> 401
+web    POST /transferencias            -> 401
+== 4. Token de otro canal (esperado 403)
+token movil en bff-web    -> 403
+token cajero en bff-movil -> 403
+token web en bff-cajero   -> 403
+== 4b. Token SIN scope (cliente-movil sin parametro scope) en bff-movil (esperado 403)
+movil /api/movil/cuentas/101 -> 403
+== 4c. Token basura (Bearer abc) (esperado 401)
+movil /api/movil/cuentas/101 -> 401
+== 5. Saga camino feliz: 101 -> 102, monto 10 (esperado COMPLETADA)
+saldo 101 antes:   5000.0
+saldo 102 antes:   8000.0
+respuesta inicial: {"transaccionId":1,"estado":"PENDIENTE","mensaje":"Transferencia recibida, procesando de forma asincrona"}
+estado final:      COMPLETADA
+saldo 101 despues: 4990.0
+saldo 102 despues: 8010.0
+== 6. Saga compensacion: 101 -> 999 (destino inexistente), monto 10 (esperado REVERTIDA)
+saldo 101 antes:   4990.0
+respuesta inicial: {"transaccionId":2,"estado":"PENDIENTE","mensaje":"Transferencia recibida, procesando de forma asincrona"}
+estado final:      REVERTIDA
+saldo 101 despues: 4990.0  (debe ser igual al de antes)
+
+===== fin de la prueba =====
