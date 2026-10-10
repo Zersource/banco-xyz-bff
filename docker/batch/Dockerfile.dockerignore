@@ -1,6 +1,5 @@
 # BuildKit lo toma por estar junto a docker/batch/Dockerfile (<Dockerfile>.dockerignore)
 target/
 .git/
-.claude/
 data/
 *.log
