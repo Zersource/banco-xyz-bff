@@ -1,0 +1,7 @@
+# 2.7 UN MISMO token de auth-server aceptado por AMBAS replicas, llamandolas directo (validacion JWKS en cada una)
+token (cliente-web, scope web): eyJraWQiOiI0OGNjZTAxNi1h...  sha256=cebe8ad91d6f61ec  kid=48cce016-ae3a-4f88-a2e9-99cf18246b40
+kid del JWKS actual de auth-server: 48cce016-ae3a-4f88-a2e9-99cf18246b40
+localhost:8092 (banco-xyz-bff-bff-web-2, hostname e59b70e482d8) GET /api/web/cuentas/101 -> HTTP 200
+localhost:8093 (banco-xyz-bff-bff-web-1, hostname 60bdc6a7532f) GET /api/web/cuentas/101 -> HTTP 200
+control sin token localhost:8092 -> HTTP 401
+control sin token localhost:8093 -> HTTP 401

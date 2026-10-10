@@ -1,0 +1,35 @@
+# 2.7 10 llamadas por nginx (http://localhost:8080 = sustituto local del ALB) a GET /api/web/cuentas/101
+# con UN token de auth-server (cliente-web, scope web). Conteo con docker logs de cada contenedor por separado
+# (DispatcherServlet DEBUG activado solo en docker-compose.escala-bff.yaml).
+
+== Medicion valida (upstream con 'zone', estado de round-robin compartido) marca 2026-10-10T05:26:58Z
+  llamada 1 -> HTTP 200
+  llamada 2 -> HTTP 200
+  llamada 3 -> HTTP 200
+  llamada 4 -> HTTP 200
+  llamada 5 -> HTTP 200
+  llamada 6 -> HTTP 200
+  llamada 7 -> HTTP 200
+  llamada 8 -> HTTP 200
+  llamada 9 -> HTTP 200
+  llamada 10 -> HTTP 200
+  banco-xyz-bff-bff-web-1 (hostname 60bdc6a7532f, 172.19.0.12): 5 requests
+  banco-xyz-bff-bff-web-2 (hostname e59b70e482d8, 172.19.0.9): 5 requests
+  upstream elegido por nginx en cada request (access log con $upstream_addr):
+    upstream=172.19.0.9:8081
+    upstream=172.19.0.12:8081
+    upstream=172.19.0.9:8081
+    upstream=172.19.0.12:8081
+    upstream=172.19.0.9:8081
+    upstream=172.19.0.12:8081
+    upstream=172.19.0.9:8081
+    upstream=172.19.0.12:8081
+    upstream=172.19.0.9:8081
+    upstream=172.19.0.12:8081
+
+== Primera medicion (descartada como prueba de balanceo, se deja como diagnostico)
+  Sin 'zone' en el upstream: 10 requests en bff-web-1 y 0 requests en bff-web-2.
+  Causa: worker_processes auto -> 12 workers en el M5; cada worker tiene su propio turno de round-robin
+  y cada curl (conexion nueva) cae en otro worker, cuyo primer request va al primer servidor de la lista.
+  No era el DNS: getent ahosts bff-web en nginx (musl) devolvia las 2 IPs. Arreglo: 'zone bff_web 64k;'
+  en docker/nginx/escala.conf (memoria compartida entre workers).

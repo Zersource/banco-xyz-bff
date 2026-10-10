@@ -1,0 +1,18 @@
+2.7 Escala horizontal de bff-web (2 replicas detras de nginx), 2026-10-10
+Comando unico: docker compose -f docker-compose.yaml -f docker-compose.escala-bff.yaml up -d
+Vuelta:        docker compose up -d --scale bff-web=1 --remove-orphans
+Config: docker-compose.escala-bff.yaml (deploy.replicas: 2, puertos 8092-8093, DispatcherServlet DEBUG),
+        docker/nginx/escala.conf (upstream bff-web:8081 con zone), docker/nginx/LEEME.md,
+        config-repo/bff-web.yml (instance-id ${spring.application.name}:${HOSTNAME:${random.value}}).
+
+up_escala_1.txt / up_escala_2.txt  el mismo up -d dos veces: el 2.o deja las 2 replicas y nginx en Running
+eureka_bff_web.txt       60 s despues: EXACTAMENTE 2 instancias UP; cada IP = un contenedor vivo (docker inspect)
+llamadas_nginx.txt       10 llamadas por localhost:8080 con un token: 5 y 5 (con zone); la 1.a medicion
+                         sin zone dio 10/0 y se deja como diagnostico (12 workers de nginx)
+token_ambas_replicas.txt el mismo token -> 200 en 8092 y en 8093; sin token -> 401 en ambas
+scale_down.txt           vuelta a 1 replica: bff-web en 8081, bff-web-2 y nginx eliminados
+e2e_post_escala.txt      e2e docker completo con 1 replica
+
+Invalidada: la primera prueba (antes de la suspension del Mac de las 1:35) uso --scale y un `up -d nginx`
+posterior que redujo bff-web a 1 replica; su eureka_bff_web.txt listaba una IP de un contenedor ya
+destruido (lease de 90 s). Se borro y se regenero todo con el comando unico.
