@@ -1,0 +1,33 @@
+# 1.4b Idempotencia: JOB=transacciones dos veces seguidas, mismo volumen (limpio solo antes de la 1.a)
+
+== corrida 1 -> exit code: 0
+  Job: [SimpleJob: [name=dailyTransactionsJob]] completed status: [COMPLETED] in 196ms
+  Anomalias detectadas y auditadas: 599
+  errores de esquema (already exists / ScriptStatementFailed): 0
+
+== corrida 2 -> exit code: 0
+  Job: [SimpleJob: [name=dailyTransactionsJob]] completed status: [COMPLETED] in 214ms
+  Anomalias detectadas y auditadas: 1198
+  errores de esquema (already exists / ScriptStatementFailed): 0
+
+== BD tras la 2.a corrida (H2 Shell)
+  TRANSACCION_VALIDADA | RESUMEN_DIARIO | DUP_ID | DUP_CLAVE_NEGOCIO | ANOMALIA_DATO | JOB_INSTANCES
+  387                  | 236            | 0      | 0                 | 1198          | 2
+  (tras la 1.a: transaccion_validada=387 resumen_diario=236 anomalia_dato=599 job_instances=1)
+
+== anomalia_dato: columnas (no tiene id de ejecucion; solo fecha_deteccion)
+  COLUMN_NAME     | DATA_TYPE
+  ID              | BIGINT
+  JOB_NAME        | CHARACTER VARYING
+  ORIGEN          | CHARACTER VARYING
+  DETALLE         | CHARACTER VARYING
+  DATO_CRUDO      | CHARACTER VARYING
+  FECHA_DETECCION | TIMESTAMP
+  filas por segundo de fecha_deteccion (una tanda por corrida):
+    SEGUNDO             | FILAS
+    2026-10-10 02:13:08 | 599
+    2026-10-10 02:13:09 | 599
+
+HALLAZGO (sin arreglar): anomalia_dato es auditoria append-only; ningun step de limpieza la borra,
+asi que crece +599 por corrida de transacciones. El log 'Anomalias detectadas y auditadas: N' es
+acumulado (599 -> 1198), no por corrida. Las tablas de salida no cambian y no tienen duplicados.
