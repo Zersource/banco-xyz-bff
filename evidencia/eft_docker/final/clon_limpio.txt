@@ -1,0 +1,16 @@
+# 2.8 Clon limpio: git clone --branch eft-docker-3 https://github.com/Zersource/banco-xyz-bff.git /tmp/clean-clone (defdf27)
+# git fetch && git merge origin/eft-final -> 'Already up to date' (eft-final seguia en a84bbc0; la iMac no habia subido su commit de evidencia)
+# Sin .env ni overrides locales. caffeinate activo al empezar y al terminar la medicion (Mac sin suspension).
+
+docker compose up -d --build -> exit 0; build+up 25 s; 10 healthy a los 32 s (build CON cache de BuildKit: las capas
+  de Maven ya estaban en esta maquina; no es un arranque en frio de EC2)
+MODO=docker /bin/bash ./prueba-e2e.sh -> RESUMEN: 95/95 verificaciones OK (modo docker, secciones omitidas: 0), exit 0, 189 s
+docker compose --profile batch run --rm -e JOB=todos batch -> exit 0, 3 s:
+  Job [dailyTransactionsJob] finalizado con EXITO
+  Job [monthlyInterestJob] finalizado con EXITO
+  Job [annualStatementJob] finalizado con EXITO
+falla permanente (compose.falla-permanente.yaml, up) -> ExitCode RestartCount: 1 3
+falla transitoria (docker/batch/test/recuperar_csv.sh) -> ExitCode RestartCount: 0 1
+docker compose down -v --remove-orphans -> ok
+
+Hallazgos del clon limpio: ninguno; nada dependia de archivos que solo existieran en la copia de trabajo.
