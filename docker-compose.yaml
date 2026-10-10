@@ -198,6 +198,24 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # Batch (Spring Batch): proceso que corre un Job y termina. Solo con el perfil
+  # "batch", asi que un `docker compose up` normal no lo levanta:
+  #   docker compose --profile batch run --rm -e JOB=intereses batch
+  #   docker compose --profile batch up batch          (aplica restart on-failure:3)
+  # JOB: transacciones | intereses | estados-cuenta | todos
+  batch:
+    build:
+      context: ./batch
+      dockerfile: ../docker/batch/Dockerfile
+    profiles: ["batch"]
+    environment:
+      - JOB=${JOB:-transacciones}
+      - SPRING_PROFILES_ACTIVE=dev,semana_3
+      - JAVA_TOOL_OPTIONS=-Xmx256m
+    volumes:
+      - batch-data:/app/data
+    restart: "on-failure:3"
+
   # Kafka en modo KRaft (sin ZooKeeper), un solo nodo que es broker y controller.
   # Dentro de la red de compose: kafka:9092. Desde el host: localhost:9094.
   kafka:
@@ -226,3 +244,6 @@ services:
       retries: 12
       start_period: 20s
     restart: unless-stopped
+
+volumes:
+  batch-data:
