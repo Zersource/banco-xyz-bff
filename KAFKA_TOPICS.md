@@ -1,13 +1,14 @@
 # Topics de Kafka (saga de transferencias)
 
-Broker por defecto `localhost:9092` (`kafka:9092` con el perfil `docker`), configurado en
+Broker por defecto `localhost:9092` (`kafka:9092` con el perfil `docker`; la variable de entorno
+`KAFKA_BOOTSTRAP_SERVERS` tiene prioridad), configurado en
 `config-server/.../config-repo/application.yml` y `application-docker.yml`. Todos los topics se crean
-de forma explicita (beans `NewTopic`) con **3 particiones y replicacion 1**, para que al escalar un
+de forma explicita (beans `NewTopic`) con **3 particiones y replicacion 1** (si ya existen no se vuelven a crear), para que al escalar un
 servicio a varias instancias el consumo se reparta entre ellas.
 
-La **key** de cada mensaje es el `transaccionId` (todos los eventos de una transferencia caen en la misma
+La **key** de cada mensaje es el `transaccionId`, un UUID que genera `pagos` y viaja como texto (todos los eventos de una transferencia caen en la misma
 particion y se procesan en orden). El **value** es un `EventoTransferencia` en JSON
-(`transaccionId`, `cuentaOrigenId`, `cuentaDestinoId`, `monto`, `tipoEvento`, `motivo`); cada servicio
+(`transaccionId` (String), `cuentaOrigenId`, `cuentaDestinoId`, `monto`, `tipoEvento`, `motivo`); cada servicio
 tiene su propia copia de la clase.
 
 | Topic | Publica | Consume (group-id) | Que significa |
