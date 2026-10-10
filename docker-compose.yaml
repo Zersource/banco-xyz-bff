@@ -55,8 +55,8 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # Microservicios de dominio. Usan el "test" del HEALTHCHECK de su Dockerfile
-  # (token del auth-server + /actuator/health), igual que los BFF.
+  # Microservicios de dominio. Usan el "test" del HEALTHCHECK de su Dockerfile:
+  # curl a /actuator/health (permitAll, sin token).
   cuentas:
     build:
       context: ./cuentas
@@ -69,8 +69,6 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - JAVA_TOOL_OPTIONS=-Xmx256m
-      # Cualquier token valido sirve para /actuator/health (anyRequest().authenticated())
-      - HC_CLIENT=cliente-web:WEB-KEY-2024
     healthcheck:
       interval: 10s
       timeout: 5s
@@ -97,8 +95,6 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - JAVA_TOOL_OPTIONS=-Xmx256m
-      # Cualquier token valido sirve para /actuator/health (anyRequest().authenticated())
-      - HC_CLIENT=cliente-web:WEB-KEY-2024
     healthcheck:
       interval: 10s
       timeout: 5s
