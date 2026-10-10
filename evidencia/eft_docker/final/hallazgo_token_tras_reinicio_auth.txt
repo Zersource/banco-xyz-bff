@@ -1,0 +1,12 @@
+# Hallazgo: tras reiniciar auth-server, un BFF responde 401 hasta que vence su token en cache (15 min)
+# Reproduccion determinista (cada llamada usa un token NUEVO del canal movil hacia bff-movil)
+0) estado inicial: kid=463a85aa-a937-4163-80c1-05439e78a839  bff-movil /api/movil/cuentas/101 -> 200
+1) docker compose restart auth-server: kid=b968f8d4-730e-4169-9b9c-d39672086a8b  (clave RSA nueva al arrancar)
+   bff-movil -> 200   (cuentas aun tiene la clave vieja en cache y acepta el token cacheado de bff-movil)
+2) docker compose restart cuentas (+35 s Eureka): bff-movil -> 401   (cuentas baja el JWKS nuevo y rechaza el token cacheado por bff-movil, firmado con la clave vieja)
+3) docker compose restart bff-movil: bff-movil -> 200   (pide un token nuevo, firmado con la clave actual)
+
+Causa: el auth-server genera su par de claves en memoria al arrancar, y cada BFF reutiliza su token
+client_credentials hasta que vence (access-token-time-to-live: 15m). No es un problema de Docker ni de red.
+Arreglarlo requiere cambiar Java (clave persistente en auth-server o reintento del BFF ante 401): NO se toco.
+En el e2e solo aparece si auth-server se reinicio <15 min antes de reiniciar cuentas (lo provoco la prueba 2.1).

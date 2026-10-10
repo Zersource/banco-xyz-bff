@@ -1,0 +1,38 @@
+# 2.5 Circuit Breaker 'cuentas' de bff-movil en Docker (MODO=docker /bin/bash ./prueba-e2e.sh resiliencia -> 13/13, exit 0)
+# LOGGING_LEVEL_IO_GITHUB_RESILIENCE4J_CIRCUITBREAKER=DEBUG: ya venia en el compose principal para bff-movil y
+# bff-cajero (desde S8), asi que el override local no cambio nada. docker compose logs --no-log-prefix --since 2026-10-10T04:30:55Z bff-movil
+
+== Transiciones de estado
+2026-10-10T04:31:19.182Z DEBUG 1 --- [bff-movil] [nio-8082-exec-4] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-10T04:31:19.182600554Z[Etc/UTC]: CircuitBreaker 'cuentas' changed state from CLOSED to OPEN
+2026-10-10T04:31:30.837Z DEBUG 1 --- [bff-movil] [nio-8082-exec-2] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-10T04:31:30.837505504Z[Etc/UTC]: CircuitBreaker 'cuentas' changed state from OPEN to HALF_OPEN
+2026-10-10T04:31:32.984Z DEBUG 1 --- [bff-movil] [nio-8082-exec-3] i.g.r.c.i.CircuitBreakerStateMachine     : Event STATE_TRANSITION published: 2026-10-10T04:31:32.984554421Z[Etc/UTC]: CircuitBreaker 'cuentas' changed state from HALF_OPEN to CLOSED
+
+== Eventos del breaker 'cuentas' alrededor de cada transicion (conteo por tipo)
+   3   ERROR
+   1   FAILURE_RATE_EXCEEDED
+   4   NOT_PERMITTED
+   3   STATE_TRANSITION
+  10   SUCCESS
+
+== Fallback mientras OPEN (motivo del 503, primeras 2)
+  2026-10-10T04:31:16.053Z  WARN 1 --- [bff-movil] [io-8082-exec-10] com.duoc.bffmovil.client.CuentasClient   : cuentas no disponible, se responde 503: org.springframework.web.client.ResourceAccessExcep
+  2026-10-10T04:31:19.182Z  WARN 1 --- [bff-movil] [nio-8082-exec-4] com.duoc.bffmovil.client.CuentasClient   : cuentas no disponible, se responde 503: org.springframework.web.client.ResourceAccessExcep
+
+== Secciones del e2e
+  == Circuit Breaker + fallback con cuentas apagado
+    OK    bff-web con cuentas caido (esperado=503)
+    OK    bff-movil con cuentas caido (esperado=503)
+    OK    bff-movil mensaje del fallback (esperado=El servicio cuentas no esta disponible en este momento)
+    OK    bff-cajero saldo con cuentas caido (esperado=503)
+    OK    bff-cajero retiro con cuentas caido (esperado=503)
+    OK    bff-movil se recupera solo (esperado=200)
+  == Circuit Breaker + fallback con pagos apagado
+    OK    POST /transferencias con pagos caido (esperado=503)
+    OK    mensaje del fallback (esperado=El servicio pagos no esta disponible en este momento)
+    OK    bff-web se recupera solo (3 transferencias de 1 con 202) (esperado=3)
+  == Fallback degradado con clientes apagado
+    OK    bff-web responde 200 sin clientes (esperado=200)
+    OK    bff-web sin nombre (fallback) (esperado=None)
+    OK    bff-movil responde 200 sin clientes (esperado=200)
+    OK    bff-web recupera el nombre (esperado=John Doe)
+  RESUMEN: 13/13 verificaciones OK (modo docker, secciones omitidas: 0)

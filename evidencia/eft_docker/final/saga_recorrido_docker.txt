@@ -1,0 +1,29 @@
+# 2.5 Recorrido de la saga en Docker (docker compose logs --no-log-prefix <servicio> | grep <UUID>), ordenado por hora
+# Topics/grupos: ver KAFKA_TOPICS.md. Cada linea '<-' es un consumo con (particion, offset).
+
+== Transferencia exitosa 101 -> 102 por 25: 088a0ab4-b0d8-4fb6-a268-1683c1c9db30  (estado final COMPLETADA)
+2026-10-10T03:51:28.574Z  INFO 1 --- [pagos] [nio-8086-exec-1] TransferenciaServiceImpl    : [tx=088a0ab4-b0d8-4fb6-a268-1683c1c9db30] Transferencia recibida (PENDIENTE)
+2026-10-10T03:51:28.575Z  INFO 1 --- [pagos] [nio-8086-exec-1] TransferenciaEventoProductor   : [tx=088a0ab4-b0d8-4fb6-a268-1683c1c9db30] -> transferencia.iniciada: transferir 25 de la cuenta 101 a la cuenta 102
+2026-10-10T03:51:28.578Z  INFO 1 --- [cuentas] [ntainer#2-0-C-1] DebitoListener       : [tx=088a0ab4-b0d8-4fb6-a268-1683c1c9db30] <- transferencia.iniciada (particion 0, offset 15): debitar 25 de la cuenta 101
+2026-10-10T03:51:28.579Z  INFO 1 --- [cuentas] [ntainer#2-0-C-1] DebitoListener       : [tx=088a0ab4-b0d8-4fb6-a268-1683c1c9db30] Debito realizado -> transferencia.debito-realizado
+2026-10-10T03:51:28.580Z  INFO 1 --- [cuentas] [ntainer#1-0-C-1] CreditoListener      : [tx=088a0ab4-b0d8-4fb6-a268-1683c1c9db30] <- transferencia.debito-realizado (particion 0, offset 14): acreditar 25 a la cuenta 102
+2026-10-10T03:51:28.580Z  INFO 1 --- [cuentas] [ntainer#1-0-C-1] CreditoListener      : [tx=088a0ab4-b0d8-4fb6-a268-1683c1c9db30] Credito realizado, transferencia completada -> transferencia.completada
+2026-10-10T03:51:28.582Z  INFO 1 --- [pagos] [ntainer#0-0-C-1] EstadoTransaccionListener      : [tx=088a0ab4-b0d8-4fb6-a268-1683c1c9db30] <- transferencia.completada (particion 0, offset 14)
+2026-10-10T03:51:28.584Z  INFO 1 --- [pagos] [ntainer#0-0-C-1] EstadoTransaccionListener      : [tx=088a0ab4-b0d8-4fb6-a268-1683c1c9db30] Transferencia completada: 101 -> 102 por 25
+2026-10-10T03:51:28.596Z  INFO 1 --- [clientes] [ntainer#0-0-C-1] .c.s.l.NotificacionTransferenciaListener : [tx=088a0ab4-b0d8-4fb6-a268-1683c1c9db30] <- transferencia.completada (particion 0, offset 14)
+2026-10-10T03:51:28.596Z  INFO 1 --- [clientes] [ntainer#0-0-C-1] .c.s.l.NotificacionTransferenciaListener : [tx=088a0ab4-b0d8-4fb6-a268-1683c1c9db30] [NOTIFICACION] Jane Smith: se acredito 25 en tu cuenta 102
+2026-10-10T03:51:28.596Z  INFO 1 --- [clientes] [ntainer#0-0-C-1] .c.s.l.NotificacionTransferenciaListener : [tx=088a0ab4-b0d8-4fb6-a268-1683c1c9db30] [NOTIFICACION] John Doe: se debito 25 de tu cuenta 101
+
+== Compensacion 101 -> 9999 (destino inexistente) por 40: 10479680-30c4-4728-b482-90dee2054b21  (estado final REVERTIDA)
+2026-10-10T03:51:28.606Z  INFO 1 --- [pagos] [nio-8086-exec-2] TransferenciaEventoProductor   : [tx=10479680-30c4-4728-b482-90dee2054b21] -> transferencia.iniciada: transferir 40 de la cuenta 101 a la cuenta 9999
+2026-10-10T03:51:28.606Z  INFO 1 --- [pagos] [nio-8086-exec-2] TransferenciaServiceImpl    : [tx=10479680-30c4-4728-b482-90dee2054b21] Transferencia recibida (PENDIENTE)
+2026-10-10T03:51:28.608Z  INFO 1 --- [cuentas] [ntainer#2-0-C-1] DebitoListener       : [tx=10479680-30c4-4728-b482-90dee2054b21] <- transferencia.iniciada (particion 0, offset 16): debitar 40 de la cuenta 101
+2026-10-10T03:51:28.608Z  INFO 1 --- [cuentas] [ntainer#2-0-C-1] DebitoListener       : [tx=10479680-30c4-4728-b482-90dee2054b21] Debito realizado -> transferencia.debito-realizado
+2026-10-10T03:51:28.609Z  INFO 1 --- [cuentas] [ntainer#1-0-C-1] CreditoListener      : [tx=10479680-30c4-4728-b482-90dee2054b21] <- transferencia.debito-realizado (particion 0, offset 15): acreditar 40 a la cuenta 9999
+2026-10-10T03:51:28.613Z ERROR 1 --- [cuentas] [ntainer#1-0-C-1] CreditoListener      : [tx=10479680-30c4-4728-b482-90dee2054b21] Credito fallido -> transferencia.credito-fallido: No se encontro la cuenta con id: 9999
+2026-10-10T03:51:28.616Z  INFO 1 --- [cuentas] [ntainer#0-0-C-1] CompensacionListener    : [tx=10479680-30c4-4728-b482-90dee2054b21] <- transferencia.credito-fallido (particion 0, offset 0): compensar, devolver 40 a la cuenta 101
+2026-10-10T03:51:28.617Z  INFO 1 --- [cuentas] [ntainer#0-0-C-1] CompensacionListener    : [tx=10479680-30c4-4728-b482-90dee2054b21] Debito revertido (compensacion aplicada) -> transferencia.revertida
+2026-10-10T03:51:28.619Z  INFO 1 --- [pagos] [ntainer#2-0-C-1] EstadoTransaccionListener      : [tx=10479680-30c4-4728-b482-90dee2054b21] <- transferencia.revertida (particion 0, offset 0)
+2026-10-10T03:51:28.621Z  WARN 1 --- [pagos] [ntainer#2-0-C-1] EstadoTransaccionListener      : [tx=10479680-30c4-4728-b482-90dee2054b21] Transferencia revertida (compensada): Error al acreditar cuenta destino: No se encontro la c
+
+Nota: clientes no aparece en la compensacion porque solo consume transferencia.completada (KAFKA_TOPICS.md); bff-web no loguea el UUID (delega en pagos por HTTP).
