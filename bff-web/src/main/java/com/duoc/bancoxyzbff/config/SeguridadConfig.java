@@ -27,8 +27,8 @@ public class SeguridadConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/web/**").hasAuthority("SCOPE_web")
-                        // Limitacion conocida: /interno y /transferencias aceptan cualquiera de los 3 canales
-                        .requestMatchers("/interno/**", "/transferencias/**")
+                        // Limitacion conocida: /transferencias acepta cualquiera de los 3 canales
+                        .requestMatchers("/transferencias/**")
                             .hasAnyAuthority("SCOPE_web", "SCOPE_movil", "SCOPE_cajero")
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())

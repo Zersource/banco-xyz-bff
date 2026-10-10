@@ -6,7 +6,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
  * Clase principal de bff-cajero (Exp3 S6). Igual que bff-movil: ya no
- * tiene acceso directo a los datos, los pide a bff-web por HTTP via
+ * tiene acceso directo a los datos, los pide al microservicio cuentas por HTTP via
  * Eureka, con Circuit Breaker en la llamada.
  */
 @SpringBootApplication

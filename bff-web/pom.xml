@@ -15,11 +15,12 @@
     <artifactId>bff-web</artifactId>
     <version>1.0.0</version>
     <name>bff-web</name>
-    <description>Exp3 S6 - BFF Web: dueno de los datos Banco XYZ, registrado en Eureka y configurado via Config Server</description>
+    <description>EFT - BFF Web: consume cuentas y clientes via Eureka; mantiene por ahora la saga de transferencias (JMS)</description>
 
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2023.0.3</spring-cloud.version>
+        <resilience4j.version>2.2.0</resilience4j.version>
     </properties>
 
     <dependencies>
@@ -74,6 +75,47 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
+        </dependency>
+
+        <!-- Aspecto AOP que procesa la anotacion @CircuitBreaker sobre BffWebClient.
+             spring-cloud-starter-circuitbreaker-resilience4j por si sola NO trae esto:
+             solo expone CircuitBreakerFactory (uso programatico). Sin este starter,
+             la anotacion queda inerte y las excepciones de RestTemplate se propagan
+             crudas en vez de pasar por el fallback. -->
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-spring-boot3</artifactId>
+        </dependency>
+
+        <!-- Requerido para que Spring cree el proxy AOP sobre CircuitBreakerAspect (@Aspect de
+             resilience4j-spring6): sin aspectjweaver en el classpath, AopAutoConfiguration nunca
+             activa el AnnotationAwareAspectJAutoProxyCreator y la anotacion @CircuitBreaker queda
+             sin interceptar aunque el jar de resilience4j este presente. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+
+        <!-- Cliente OAuth2: pide el token client_credentials del canal al auth-server -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+        <!-- Cliente OAuth2: pide el token client_credentials del canal al auth-server -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -87,6 +129,13 @@
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
                 <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-bom</artifactId>
+                <version>${resilience4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

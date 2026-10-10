@@ -1,66 +1,65 @@
 package com.duoc.bancoxyzbff.transferencia.repository;
 
+import com.duoc.bancoxyzbff.client.CuentasClient;
 import com.duoc.bancoxyzbff.exception.CuentaNoEncontradaException;
-import com.duoc.bancoxyzbff.model.Cuenta;
-import com.duoc.bancoxyzbff.repository.CuentaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.math.BigDecimal;
 
 /**
- * Conecta la saga con el CuentaRepository real del proyecto (en memoria,
- * cargado desde intereses.csv). Se convierte Double <-> BigDecimal porque
- * Cuenta.saldo se maneja como Double en el resto del proyecto, mientras
- * que la saga usa BigDecimal para las operaciones de monto.
- *
- * debitar/acreditar sincronizan sobre la propia instancia de Cuenta que
- * devuelve CuentaRepository (es el mismo objeto guardado en su mapa
- * interno, no una copia), asi leer el saldo y escribirlo quedan atomicos
- * por cuenta sin tener que modificar CuentaRepository (fuera del alcance
- * de este modulo). Esto solo protege las llamadas que pasan por este
- * puerto: CuentaServiceImpl.realizarRetiro() (usado por bff-cajero) sigue
- * escribiendo el saldo por su cuenta sin este lock — reportado aparte,
- * no se toco por estar fuera del modulo transferencia.
+ * Implementacion del puerto sobre el microservicio cuentas (via
+ * CuentasClient, con token del canal web y Circuit Breaker). La atomicidad
+ * la garantiza cuentas; aca solo se traducen las respuestas HTTP a lo que
+ * espera la saga: 400 en el debito = saldo insuficiente (false), 404 =
+ * cuenta no encontrada.
  */
 @Repository
 public class CuentaSaldoPuertoImpl implements CuentaSaldoPuerto {
 
     @Autowired
-    private CuentaRepository cuentaRepository;
+    private CuentasClient cuentasClient;
 
     @Override
     public BigDecimal obtenerSaldo(Long cuentaId) {
-        return BigDecimal.valueOf(buscarCuenta(cuentaId).getSaldo());
+        try {
+            return BigDecimal.valueOf(cuentasClient.consultarSaldo(cuentaId));
+        } catch (HttpClientErrorException ex) {
+            throw traducir(ex, cuentaId);
+        }
     }
 
     @Override
     public boolean debitar(Long cuentaId, BigDecimal monto) {
         validarMonto(monto);
-        Cuenta cuenta = buscarCuenta(cuentaId);
-        synchronized (cuenta) {
-            BigDecimal saldoActual = BigDecimal.valueOf(cuenta.getSaldo());
-            if (saldoActual.compareTo(monto) < 0) {
+        try {
+            cuentasClient.debitar(cuentaId, monto.doubleValue());
+            return true;
+        } catch (HttpClientErrorException ex) {
+            if (ex.getStatusCode() == HttpStatus.BAD_REQUEST) {
                 return false;
             }
-            cuentaRepository.actualizarSaldo(cuentaId, saldoActual.subtract(monto).doubleValue());
-            return true;
+            throw traducir(ex, cuentaId);
         }
     }
 
     @Override
     public void acreditar(Long cuentaId, BigDecimal monto) {
         validarMonto(monto);
-        Cuenta cuenta = buscarCuenta(cuentaId);
-        synchronized (cuenta) {
-            BigDecimal saldoActual = BigDecimal.valueOf(cuenta.getSaldo());
-            cuentaRepository.actualizarSaldo(cuentaId, saldoActual.add(monto).doubleValue());
+        try {
+            cuentasClient.acreditar(cuentaId, monto.doubleValue());
+        } catch (HttpClientErrorException ex) {
+            throw traducir(ex, cuentaId);
         }
     }
 
-    private Cuenta buscarCuenta(Long cuentaId) {
-        return cuentaRepository.buscarPorId(cuentaId)
-                .orElseThrow(() -> new CuentaNoEncontradaException(cuentaId));
+    private RuntimeException traducir(HttpClientErrorException ex, Long cuentaId) {
+        if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
+            return new CuentaNoEncontradaException(cuentaId);
+        }
+        return ex;
     }
 
     private void validarMonto(BigDecimal monto) {

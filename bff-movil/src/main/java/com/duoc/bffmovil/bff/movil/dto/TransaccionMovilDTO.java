@@ -2,27 +2,23 @@ package com.duoc.bffmovil.bff.movil.dto;
 
 import com.duoc.bffmovil.dto.TransaccionDTO;
 
-import java.time.LocalDate;
-
 /**
- * DTO liviano de transaccion para el canal Movil: solo fecha, monto y tipo.
- * Igual al de Exp2 S4/S5, solo que ahora se construye desde el DTO que
- * llega por HTTP en vez del modelo interno de datos.
+ * DTO liviano de transaccion para el canal Movil: solo id, monto y tipo.
  */
 public class TransaccionMovilDTO {
 
-    private LocalDate fecha;
+    private Long id;
     private Double monto;
     private String tipo;
 
     public TransaccionMovilDTO(TransaccionDTO transaccion) {
-        this.fecha = transaccion.getFecha();
+        this.id = transaccion.getId();
         this.monto = transaccion.getMonto();
         this.tipo = transaccion.getTipo();
     }
 
-    public LocalDate getFecha() {
-        return fecha;
+    public Long getId() {
+        return id;
     }
 
     public Double getMonto() {

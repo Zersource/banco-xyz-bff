@@ -1,0 +1,7 @@
+DESPUES (rama eft-final, cuenta 101), bytes de respuesta:
+web    GET /api/web/cuentas/101         : 280
+movil  GET /api/movil/cuentas/101       : 122
+cajero GET /api/cajero/cuentas/101/saldo: 122
+
+movil ahora responde (3 transacciones con id, monto, tipo; sin fecha ni edad):
+{"timestamp":"2026-10-09T21:19:34.09435","estado":503,"mensaje":"El servicio cuentas no esta disponible en este momento"}

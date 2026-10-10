@@ -1,6 +1,6 @@
 package com.duoc.bancoxyzbff.bff.web.dto;
 
-import com.duoc.bancoxyzbff.model.MovimientoAnual;
+import com.duoc.bancoxyzbff.dto.MovimientoDTO;
 
 import java.time.LocalDate;
 
@@ -15,7 +15,7 @@ public class MovimientoWebDTO {
     private Double monto;
     private String descripcion;
 
-    public MovimientoWebDTO(MovimientoAnual movimiento) {
+    public MovimientoWebDTO(MovimientoDTO movimiento) {
         this.fecha = movimiento.getFecha();
         this.transaccion = movimiento.getTransaccion();
         this.monto = movimiento.getMonto();

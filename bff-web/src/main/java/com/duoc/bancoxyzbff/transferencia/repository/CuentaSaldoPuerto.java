@@ -5,11 +5,11 @@ import com.duoc.bancoxyzbff.exception.CuentaNoEncontradaException;
 import java.math.BigDecimal;
 
 /**
- * Puerto que usa la saga para hablar con las cuentas reales del proyecto
- * (CuentaSaldoPuertoImpl delega en CuentaRepository). debitar/acreditar
- * son atomicos: validan y modifican el saldo en un solo paso, para evitar
- * la race condition de leer-y-escribir por separado bajo concurrencia
- * (ver evidencia/s7_saga_jms/logs_concurrencia_antes.txt).
+ * Puerto que usa la saga para hablar con las cuentas. Desde EFT los saldos
+ * son del microservicio cuentas: CuentaSaldoPuertoImpl llama a su API
+ * (debito/credito), que aplica la operacion de forma atomica. Este puerto
+ * es transitorio: en la Fase B los pasos de debito y credito de la saga
+ * pasan a vivir dentro de cuentas.
  */
 public interface CuentaSaldoPuerto {
 

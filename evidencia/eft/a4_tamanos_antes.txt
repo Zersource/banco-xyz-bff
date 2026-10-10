@@ -1,0 +1,4 @@
+ANTES (HEAD exp3-s8-oauth2-docker, cuenta 101), bytes de respuesta:
+web    GET /api/web/cuentas/101         : 280
+movil  GET /api/movil/cuentas/101       : 340
+cajero GET /api/cajero/cuentas/101/saldo: 31

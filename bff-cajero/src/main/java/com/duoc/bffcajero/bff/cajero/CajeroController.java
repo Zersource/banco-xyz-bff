@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * BFF para el canal Cajero Automatico (Exp3 S6): solo expone las dos
  * operaciones criticas (consultar saldo y retirar). Ya no accede a los
- * datos directamente, se los pide a bff-web via CuentaCajeroService ->
- * BffWebClient (Circuit Breaker incluido).
+ * datos directamente, se los pide a cuentas via CuentaCajeroService ->
+ * CuentasClient (Circuit Breaker incluido).
  */
 @RestController
 @RequestMapping("/api/cajero")

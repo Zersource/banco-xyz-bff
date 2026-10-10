@@ -1,7 +1,8 @@
 package com.duoc.bancoxyzbff.bff.web.dto;
 
-import com.duoc.bancoxyzbff.model.Cuenta;
-import com.duoc.bancoxyzbff.model.MovimientoAnual;
+import com.duoc.bancoxyzbff.dto.ClienteDTO;
+import com.duoc.bancoxyzbff.dto.CuentaDTO;
+import com.duoc.bancoxyzbff.dto.MovimientoDTO;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,11 +22,11 @@ public class CuentaWebDTO {
     private String tipo;
     private List<MovimientoWebDTO> movimientos;
 
-    public CuentaWebDTO(Cuenta cuenta, List<MovimientoAnual> movimientos) {
+    public CuentaWebDTO(CuentaDTO cuenta, ClienteDTO cliente, List<MovimientoDTO> movimientos) {
         this.cuentaId = cuenta.getCuentaId();
-        this.nombre = cuenta.getNombre();
+        this.nombre = cliente == null ? null : cliente.getNombre();
         this.saldo = cuenta.getSaldo();
-        this.edad = cuenta.getEdad();
+        this.edad = cliente == null ? null : cliente.getEdad();
         this.tipo = cuenta.getTipo();
         this.movimientos = movimientos.stream()
                 .map(MovimientoWebDTO::new)

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * BFF para el canal Movil (Exp3 S6): entrega la informacion esencial de
  * la cuenta, con payload reducido. Ya no lee los datos directamente,
- * los pide a bff-web via CuentaMovilService -> BffWebClient.
+ * los pide al microservicio cuentas via CuentaMovilService -> CuentasClient.
  */
 @RestController
 @RequestMapping("/api/movil")

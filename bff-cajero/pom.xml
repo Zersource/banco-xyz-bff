@@ -15,7 +15,7 @@
     <artifactId>bff-cajero</artifactId>
     <version>1.0.0</version>
     <name>bff-cajero</name>
-    <description>Exp3 S6 - BFF Cajero: consume bff-web via Eureka, protegido con Circuit Breaker</description>
+    <description>EFT - BFF Cajero: consume cuentas via Eureka, con token client_credentials y Circuit Breaker</description>
 
     <properties>
         <java.version>21</java.version>
@@ -79,6 +79,11 @@
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
 
+        <!-- Cliente OAuth2: pide el token client_credentials del canal al auth-server -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

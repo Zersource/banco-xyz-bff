@@ -1,15 +1,13 @@
 package com.duoc.bffmovil.dto;
 
-import java.time.LocalDate;
-
 /**
- * Espejo del modelo Transaccion de bff-web, usado para deserializar
- * GET /interno/transacciones/ultimas.
+ * Espejo del modelo Transaccion del microservicio cuentas, usado para
+ * deserializar GET /transacciones/ultimas. Solo los campos que usa el canal
+ * movil (la fecha se ignora al deserializar).
  */
 public class TransaccionDTO {
 
     private Long id;
-    private LocalDate fecha;
     private Double monto;
     private String tipo;
 
@@ -22,14 +20,6 @@ public class TransaccionDTO {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public LocalDate getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(LocalDate fecha) {
-        this.fecha = fecha;
     }
 
     public Double getMonto() {

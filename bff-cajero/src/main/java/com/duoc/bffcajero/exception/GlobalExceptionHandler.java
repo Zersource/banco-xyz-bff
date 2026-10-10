@@ -29,15 +29,15 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * bff-web respondio un 4xx real (ej. 404 cuenta no encontrada). Con
+     * cuentas respondio un 4xx real (ej. 404 cuenta no encontrada). Con
      * ignore-exceptions configurado en resilience4j, el Circuit Breaker
      * ya no cuenta esto como fallo y deja pasar la excepcion tal cual
      * en vez de mandarla al fallback (que hubiera dado 503). Se reenvia
-     * el mismo status y cuerpo que devolvio bff-web, en vez de dejar
+     * el mismo status y cuerpo que devolvio cuentas, en vez de dejar
      * que caiga al manejador generico de Spring (500).
      */
     @ExceptionHandler(HttpClientErrorException.class)
-    public ResponseEntity<String> manejarErrorClienteDeBffWeb(HttpClientErrorException ex) {
+    public ResponseEntity<String> manejarErrorClienteDeCuentas(HttpClientErrorException ex) {
         return ResponseEntity.status(ex.getStatusCode()).body(ex.getResponseBodyAsString());
     }
 

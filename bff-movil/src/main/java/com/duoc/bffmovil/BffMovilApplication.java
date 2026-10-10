@@ -7,8 +7,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 /**
  * Clase principal de bff-movil (Exp3 S6).
  *
- * Ya no tiene acceso directo a los datos: obtiene todo desde bff-web
- * por HTTP (ver BffWebClient), resuelto por nombre de servicio via
+ * Ya no tiene acceso directo a los datos: obtiene todo desde cuentas
+ * por HTTP (ver CuentasClient), resuelto por nombre de servicio via
  * Eureka (@EnableDiscoveryClient), con Circuit Breaker en la llamada.
  */
 @SpringBootApplication

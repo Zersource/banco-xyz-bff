@@ -1,7 +1,9 @@
 package com.duoc.bffmovil.service.impl;
 
 import com.duoc.bffmovil.bff.movil.dto.CuentaMovilDTO;
-import com.duoc.bffmovil.client.BffWebClient;
+import com.duoc.bffmovil.client.ClientesClient;
+import com.duoc.bffmovil.client.CuentasClient;
+import com.duoc.bffmovil.dto.ClienteDTO;
 import com.duoc.bffmovil.dto.CuentaDTO;
 import com.duoc.bffmovil.dto.TransaccionDTO;
 import com.duoc.bffmovil.service.CuentaMovilService;
@@ -13,15 +15,19 @@ import java.util.List;
 @Service
 public class CuentaMovilServiceImpl implements CuentaMovilService {
 
-    private static final int CANTIDAD_ULTIMOS_MOVIMIENTOS = 5;
+    private static final int CANTIDAD_ULTIMAS_TRANSACCIONES = 3;
 
     @Autowired
-    private BffWebClient bffWebClient;
+    private CuentasClient cuentasClient;
+
+    @Autowired
+    private ClientesClient clientesClient;
 
     @Override
     public CuentaMovilDTO obtenerCuenta(Long cuentaId) {
-        CuentaDTO cuenta = bffWebClient.obtenerCuenta(cuentaId);
-        List<TransaccionDTO> ultimasTransacciones = bffWebClient.obtenerUltimasTransacciones(CANTIDAD_ULTIMOS_MOVIMIENTOS);
-        return new CuentaMovilDTO(cuenta, ultimasTransacciones);
+        CuentaDTO cuenta = cuentasClient.obtenerCuenta(cuentaId);
+        List<TransaccionDTO> ultimasTransacciones = cuentasClient.obtenerUltimasTransacciones(CANTIDAD_ULTIMAS_TRANSACCIONES);
+        ClienteDTO cliente = clientesClient.obtenerCliente(cuentaId);
+        return new CuentaMovilDTO(cuenta, cliente, ultimasTransacciones);
     }
 }
