@@ -1,8 +1,8 @@
 # Orden de arranque (cada uno espera a que el anterior este healthy):
-#   config-server -> eureka-server -> auth-server -> cuentas / clientes
+#   config-server -> eureka-server -> auth-server -> (kafka) -> cuentas / clientes / pagos
 #     -> bff-web / bff-movil / bff-cajero
-# kafka arranca en paralelo; todavia ningun servicio lo usa.
-# cuentas y clientes salen de plantillas/ (pagos sigue pendiente ahi).
+# kafka arranca en paralelo con config-server; cuentas, clientes y pagos lo esperan
+# (saga de transferencias, ver KAFKA_TOPICS.md). batch solo con --profile batch.
 
 services:
   config-server:
@@ -68,6 +68,7 @@ services:
       - SPRING_APPLICATION_NAME=cuentas
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - JAVA_TOOL_OPTIONS=-Xmx256m
     healthcheck:
       interval: 10s
@@ -79,7 +80,10 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_healthy
+      # valida los tokens de los BFF con el JWKS del auth-server
       auth-server:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     restart: unless-stopped
 
@@ -94,6 +98,7 @@ services:
       - SPRING_APPLICATION_NAME=clientes
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - JAVA_TOOL_OPTIONS=-Xmx256m
     healthcheck:
       interval: 10s
@@ -105,7 +110,41 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_healthy
+      # valida los tokens de los BFF con el JWKS del auth-server
       auth-server:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # pagos: un solo contenedor (guarda el estado de cada transferencia en H2 en memoria).
+  pagos:
+    build:
+      context: ./pagos
+      args:
+        SERVICE_PORT: "8086"
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_APPLICATION_NAME=pagos
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - JAVA_TOOL_OPTIONS=-Xmx256m
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      # valida los tokens de los BFF con el JWKS del auth-server
+      auth-server:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     restart: unless-stopped
 
@@ -135,6 +174,8 @@ services:
       cuentas:
         condition: service_healthy
       clientes:
+        condition: service_healthy
+      pagos:
         condition: service_healthy
     restart: unless-stopped
 

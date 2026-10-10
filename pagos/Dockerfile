@@ -1,11 +1,5 @@
-# PLANTILLA para los microservicios nuevos (pagos 8086 pendiente; cuentas y clientes
-# ya se generaron desde aqui). Copiar como <servicio>/Dockerfile.
-# El puerto llega como build arg SERVICE_PORT desde docker-compose.
-#
-# Requisitos del servicio:
-#   - spring-boot-starter-actuator en el pom (para /actuator/health).
-#   - Si es resource server OAuth2, /actuator/health debe quedar con permitAll
-#     en su SeguridadConfig. Si no, copiar el HEALTHCHECK con token (cuentas/Dockerfile).
+# Microservicio pagos (8086). El puerto llega como build arg SERVICE_PORT desde docker-compose.
+# /actuator/health es permitAll en su SeguridadConfig: el healthcheck no necesita token.
 
 # Etapa 1: compilar el jar con Maven
 FROM maven:3.9-eclipse-temurin-21 AS build
