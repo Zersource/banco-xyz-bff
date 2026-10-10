@@ -1,0 +1,74 @@
+# 2.3 Stack completo desde cero: docker compose down -v && docker compose up -d --build  -> exit 0 (Sat Oct 10 00:43:28 -03 2026)
+
+== a) docker compose ps
+SERVICE         STATUS                        PORTS
+auth-server     Up About a minute (healthy)   0.0.0.0:9000->9000/tcp, [::]:9000-
+bff-cajero      Up 51 seconds (healthy)       0.0.0.0:8083->8083/tcp, [::]:8083-
+bff-movil       Up 51 seconds (healthy)       0.0.0.0:8082->8082/tcp, [::]:8082-
+bff-web         Up 51 seconds (healthy)       0.0.0.0:8081->8081/tcp, [::]:8081-
+clientes        Up 56 seconds (healthy)       0.0.0.0:8085->8085/tcp, [::]:8085-
+config-server   Up About a minute (healthy)   0.0.0.0:8888->8888/tcp, [::]:8888-
+cuentas         Up 56 seconds (healthy)       0.0.0.0:8084->8084/tcp, [::]:8084-
+eureka-server   Up About a minute (healthy)   0.0.0.0:8761->8761/tcp, [::]:8761-
+kafka           Up About a minute (healthy)   0.0.0.0:9094->9094/tcp, [::]:9094-
+pagos           Up 56 seconds (healthy)       0.0.0.0:8086->8086/tcp, [::]:8086-
+
+== Perfil activo de los servicios que leen el config-repo (log de arranque)
+  cuentas: profile is active: "docker"
+  clientes: profile is active: "docker"
+  pagos: profile is active: "docker"
+  bff-web: profile is active: "docker"
+  bff-movil: profile is active: "docker"
+  bff-cajero: profile is active: "docker"
+
+== b) docker compose logs | grep -nE 'localhost:(9000|9092)' -> 0 coincidencias
+  Otras menciones de localhost en los logs (revisadas, ninguna afecta):
+      2 localhost:8761
+     90 localhost:8888
+      1 localhost:9094
+   8761: eureka-server se anuncia como su propia replica (standalone, hostname localhost)
+   8888: application.properties de cada modulo importa localhost:8888 (optional) ademas de
+         SPRING_CONFIG_IMPORT=config-server:8888; falla el primero y se carga del segundo
+   9094: listener EXTERNAL anunciado por Kafka para el host
+  token-uri / jwk / eureka que entrega config-server con el perfil docker:
+   bff-web token-uri=http://auth-server:9000/oauth2/token jwk=http://auth-server:9000/oauth2/jwks
+   bff-movil token-uri=http://auth-server:9000/oauth2/token jwk=http://auth-server:9000/oauth2/jwks
+   bff-cajero token-uri=http://auth-server:9000/oauth2/token jwk=http://auth-server:9000/oauth2/jwks
+   bff-web (dentro del contenedor) -> POST http://auth-server:9000/oauth2/token: HTTP 200
+   bff-movil (dentro del contenedor) -> POST http://auth-server:9000/oauth2/token: HTTP 200
+   bff-cajero (dentro del contenedor) -> POST http://auth-server:9000/oauth2/token: HTTP 200
+
+== c) kafka-topics.sh --describe (lineas de topic)
+   Topic: __consumer_offsets              PartitionCount: 50  ReplicationFactor: 1
+   Topic: transferencia.completada        PartitionCount: 3  ReplicationFactor: 1
+   Topic: transferencia.credito-fallido   PartitionCount: 3  ReplicationFactor: 1
+   Topic: transferencia.debito-fallido    PartitionCount: 3  ReplicationFactor: 1
+   Topic: transferencia.debito-realizado  PartitionCount: 3  ReplicationFactor: 1
+   Topic: transferencia.iniciada          PartitionCount: 3  ReplicationFactor: 1
+   Topic: transferencia.revertida         PartitionCount: 3  ReplicationFactor: 1
+
+== d) kafka-consumer-groups.sh --describe --all-groups (despues de 2 corridas del e2e)
+   GROUP                    TOPIC                            PART CURRENT  LOG-END  LAG
+   clientes-notificaciones  transferencia.completada         0    14       14       0   
+   clientes-notificaciones  transferencia.completada         1    12       12       0   
+   clientes-notificaciones  transferencia.completada         2    8        8        0   
+   cuentas-saga             transferencia.credito-fallido    0    -        0        -   
+   cuentas-saga             transferencia.credito-fallido    1    2        2        0   
+   cuentas-saga             transferencia.credito-fallido    2    -        0        -   
+   cuentas-saga             transferencia.debito-realizado   0    14       14       0   
+   cuentas-saga             transferencia.debito-realizado   1    14       14       0   
+   cuentas-saga             transferencia.debito-realizado   2    8        8        0   
+   cuentas-saga             transferencia.iniciada           0    15       15       0   
+   cuentas-saga             transferencia.iniciada           1    14       14       0   
+   cuentas-saga             transferencia.iniciada           2    9        9        0   
+   pagos-estado             transferencia.completada         0    14       14       0   
+   pagos-estado             transferencia.completada         1    12       12       0   
+   pagos-estado             transferencia.completada         2    8        8        0   
+   pagos-estado             transferencia.debito-fallido     0    1        1        0   
+   pagos-estado             transferencia.debito-fallido     1    -        0        -   
+   pagos-estado             transferencia.debito-fallido     2    1        1        0   
+   pagos-estado             transferencia.revertida          0    -        0        -   
+   pagos-estado             transferencia.revertida          1    2        2        0   
+   pagos-estado             transferencia.revertida          2    -        0        -   
+   Group-ids = KAFKA_TOPICS.md (pagos-estado, cuentas-saga, clientes-notificaciones) con los mismos topics.
+   Lag 0 en toda particion con mensajes; '-' = particion vacia (log-end 0, sin offset commiteado).
