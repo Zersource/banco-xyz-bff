@@ -1,26 +1,16 @@
 package com.duoc.bancoxyzbff.transferencia.dto;
 
-import com.duoc.bancoxyzbff.transferencia.model.EstadoTransaccion;
-
 /**
- * Respuesta inmediata del POST /transferencias. Como el flujo es
- * asincrono a partir del debito, el endpoint responde de inmediato con
- * estado PENDIENTE y el id de la transaccion; el estado final se
- * consulta con GET /transferencias/{id}.
+ * Respuesta de pagos (espejo de su DTO). El estado viaja como texto
+ * (PENDIENTE, COMPLETADA, FALLIDA o REVERTIDA).
  */
 public class TransferenciaResponseDTO {
 
     private Long transaccionId;
-    private EstadoTransaccion estado;
+    private String estado;
     private String mensaje;
 
     public TransferenciaResponseDTO() {
-    }
-
-    public TransferenciaResponseDTO(Long transaccionId, EstadoTransaccion estado, String mensaje) {
-        this.transaccionId = transaccionId;
-        this.estado = estado;
-        this.mensaje = mensaje;
     }
 
     public Long getTransaccionId() {
@@ -31,11 +21,11 @@ public class TransferenciaResponseDTO {
         this.transaccionId = transaccionId;
     }
 
-    public EstadoTransaccion getEstado() {
+    public String getEstado() {
         return estado;
     }
 
-    public void setEstado(EstadoTransaccion estado) {
+    public void setEstado(String estado) {
         this.estado = estado;
     }
 

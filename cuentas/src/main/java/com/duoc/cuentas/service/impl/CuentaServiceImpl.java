@@ -70,18 +70,10 @@ public class CuentaServiceImpl implements CuentaService {
     }
 
     @Override
-    public Double debitar(Long cuentaId, Double monto) {
+    public Double retirar(Long cuentaId, Double monto) {
         if (!cuentaSaldoPuerto.debitar(cuentaId, BigDecimal.valueOf(monto))) {
             throw new SaldoInsuficienteException(cuentaId);
         }
-        // El saldo se lee despues de la operacion atomica: es informativo y puede
-        // incluir otra operacion concurrente; el descuento en si ya quedo exacto.
-        return consultarSaldo(cuentaId);
-    }
-
-    @Override
-    public Double acreditar(Long cuentaId, Double monto) {
-        cuentaSaldoPuerto.acreditar(cuentaId, BigDecimal.valueOf(monto));
         // El saldo se lee despues de la operacion atomica: es informativo y puede
         // incluir otra operacion concurrente; el descuento en si ya quedo exacto.
         return consultarSaldo(cuentaId);

@@ -15,8 +15,8 @@ import java.util.List;
 
 /**
  * API de cuentas, consumida por los 3 BFF a traves de Eureka. Las
- * lecturas aceptan el scope de cualquier canal; el debito (retiro del
- * cajero) y el credito tienen su propia regla en SeguridadConfig.
+ * lecturas aceptan el scope de cualquier canal; el retiro del
+ * cajero tiene su propia regla en SeguridadConfig.
  */
 @RestController
 @RequestMapping("/cuentas")
@@ -50,14 +50,9 @@ public class CuentaController {
         return cuentaService.obtenerMovimientosDeCuenta(cuentaId);
     }
 
-    /** Retiro: debita de forma atomica y devuelve el saldo resultante. */
-    @PostMapping("/{cuentaId}/debito")
-    public Double debitar(@PathVariable Long cuentaId, @RequestParam Double monto) {
-        return cuentaService.debitar(cuentaId, monto);
-    }
-
-    @PostMapping("/{cuentaId}/credito")
-    public Double acreditar(@PathVariable Long cuentaId, @RequestParam Double monto) {
-        return cuentaService.acreditar(cuentaId, monto);
+    /** Retiro del cajero: debita de forma atomica y devuelve el saldo resultante. */
+    @PostMapping("/{cuentaId}/retiro")
+    public Double retirar(@PathVariable Long cuentaId, @RequestParam Double monto) {
+        return cuentaService.retirar(cuentaId, monto);
     }
 }

@@ -15,7 +15,7 @@
     <artifactId>bff-web</artifactId>
     <version>1.0.0</version>
     <name>bff-web</name>
-    <description>EFT - BFF Web: consume cuentas y clientes via Eureka; mantiene por ahora la saga de transferencias (JMS)</description>
+    <description>EFT - BFF Web: consume cuentas y clientes via Eureka; delega las transferencias en pagos</description>
 
     <properties>
         <java.version>21</java.version>
@@ -34,27 +34,7 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- Persistencia de la Transaccion de la saga (Exp3 S7): el proyecto no tenia
-             JPA hasta ahora (CuentaRepository es en memoria), se agrega solo para esto -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
 
-        <!-- Saga de transferencia (Exp3 S7): broker JMS embebido, no requiere Docker -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-artemis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>artemis-jakarta-server</artifactId>
-        </dependency>
 
         <!-- Cliente de Eureka: registra este microservicio en el Service Discovery -->
         <dependency>
@@ -105,11 +85,6 @@
         </dependency>
 
 
-        <!-- Cliente OAuth2: pide el token client_credentials del canal al auth-server -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-client</artifactId>
-        </dependency>
         <!-- Cliente OAuth2: pide el token client_credentials del canal al auth-server -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

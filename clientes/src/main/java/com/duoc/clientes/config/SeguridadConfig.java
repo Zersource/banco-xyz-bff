@@ -28,6 +28,8 @@ public class SeguridadConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/clientes/**")
                             .hasAnyAuthority("SCOPE_web", "SCOPE_movil", "SCOPE_cajero")
+                        // Sin token: lo usa el healthcheck de la imagen
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth

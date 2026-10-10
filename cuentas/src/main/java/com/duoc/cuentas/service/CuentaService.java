@@ -9,7 +9,8 @@ import java.util.List;
 /**
  * Servicio de negocio de cuentas: consultas de cuentas, movimientos y
  * transacciones, y las operaciones que modifican el saldo. Toda
- * modificacion de saldo pasa por CuentaSaldoPuerto (atomico).
+ * modificacion de saldo (retiro y saga de transferencias) pasa por
+ * CuentaSaldoPuerto (atomico).
  */
 public interface CuentaService {
 
@@ -28,17 +29,10 @@ public interface CuentaService {
     Double consultarSaldo(Long cuentaId);
 
     /**
-     * Debita el monto de forma atomica (retiro del cajero).
+     * Retiro del cajero: debita el monto de forma atomica.
      *
      * @return el saldo resultante.
      * @throws com.duoc.cuentas.exception.SaldoInsuficienteException si no alcanza el saldo.
      */
-    Double debitar(Long cuentaId, Double monto);
-
-    /**
-     * Acredita el monto de forma atomica.
-     *
-     * @return el saldo resultante.
-     */
-    Double acreditar(Long cuentaId, Double monto);
+    Double retirar(Long cuentaId, Double monto);
 }

@@ -1,0 +1,3 @@
+200 {"status":"UP"} <- cuentas sin token
+200 {"status":"UP"} <- clientes sin token
+200 {"status":"UP"} <- pagos sin token

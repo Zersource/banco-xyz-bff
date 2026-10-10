@@ -14,7 +14,7 @@ import org.springframework.web.client.RestClient;
 /**
  * Cliente HTTP hacia el microservicio cuentas, resuelto por nombre de
  * servicio via Eureka. Consulta saldo y procesa retiros (el retiro es un
- * debito atomico en cuentas). Cada llamada va con el token del canal y
+* debito atomico en cuentas). Cada llamada va con el token del canal y
  * protegida con Circuit Breaker (config "cuentas").
  */
 @Component
@@ -49,7 +49,7 @@ public class CuentasClient {
     @CircuitBreaker(name = "cuentas", fallbackMethod = "retirarFallback")
     public Double retirar(Long cuentaId, Double monto) {
         return restClient.post()
-                .uri("/cuentas/{id}/debito?monto={monto}", cuentaId, monto)
+                .uri("/cuentas/{id}/retiro?monto={monto}", cuentaId, monto)
                 .retrieve()
                 .body(Double.class);
     }

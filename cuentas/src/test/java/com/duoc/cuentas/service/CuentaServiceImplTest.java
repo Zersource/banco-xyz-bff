@@ -39,7 +39,7 @@ class CuentaServiceImplTest {
     @Test
     void debitarConSaldoInsuficiente_lanzaExcepcionYNoCambiaElSaldo() {
         Double antes = servicio.consultarSaldo(101L);
-        assertThrows(SaldoInsuficienteException.class, () -> servicio.debitar(101L, antes + 1));
+        assertThrows(SaldoInsuficienteException.class, () -> servicio.retirar(101L, antes + 1));
         assertEquals(antes, servicio.consultarSaldo(101L));
     }
 
@@ -54,7 +54,7 @@ class CuentaServiceImplTest {
             executor.submit(() -> {
                 try {
                     salida.await();
-                    servicio.debitar(101L, 1.0);
+                    servicio.retirar(101L, 1.0);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } finally {

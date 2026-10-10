@@ -1,0 +1,34 @@
+Circuit Breaker 'cuentas' de bff-movil, con LOGGING_LEVEL_IO_GITHUB_RESILIENCE4J_CIRCUITBREAKER=DEBUG.
+Corrida: prueba-e2e.sh (seccion resiliencia): se apaga cuentas, se llama a bff-movil, se reinicia cuentas y se llama hasta recuperar.
+Ventana 5 llamadas, minimo 3, umbral 50%, espera en OPEN 10 s, 3 llamadas en HALF_OPEN (ver application.properties).
+
+== Transiciones (3 ciclos; uno por cada corrida del e2e) ==
+2026-10-09T22:46:39.024-03:00  CLOSED -> OPEN
+2026-10-09T22:46:49.331-03:00  OPEN -> HALF_OPEN
+2026-10-09T22:46:49.685-03:00  HALF_OPEN -> CLOSED
+2026-10-09T22:47:55.677-03:00  CLOSED -> OPEN
+2026-10-09T22:48:05.955-03:00  OPEN -> HALF_OPEN
+2026-10-09T22:48:06.309-03:00  HALF_OPEN -> CLOSED
+2026-10-09T22:49:29.191-03:00  CLOSED -> OPEN
+2026-10-09T22:49:39.465-03:00  OPEN -> HALF_OPEN
+2026-10-09T22:50:06.240-03:00  HALF_OPEN -> CLOSED
+
+== Ultimo ciclo con sus eventos de contexto ==
+2026-10-09T22:49:29.159-03:00 WARN cuentas no disponible, se responde 503: org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://cuentas/cuentas/101": Connection refused
+2026-10-09T22:49:29.175-03:00 WARN cuentas no disponible, se responde 503: org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://cuentas/cuentas/101": Connection refused
+2026-10-09T22:49:29.191-03:00 DEBUG Event STATE_TRANSITION published: 2026-10-09T22:49:29.191142-03:00[America/Santiago]: CircuitBreaker 'cuentas' changed state from CLOSED to OPEN
+2026-10-09T22:49:29.191-03:00 WARN cuentas no disponible, se responde 503: org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://cuentas/cuentas/101": Connection refused
+2026-10-09T22:49:29.207-03:00 WARN cuentas no disponible, se responde 503: io.github.resilience4j.circuitbreaker.CallNotPermittedException: CircuitBreaker 'cuentas' is OPEN and does not permit further calls
+2026-10-09T22:49:29.221-03:00 WARN cuentas no disponible, se responde 503: io.github.resilience4j.circuitbreaker.CallNotPermittedException: CircuitBreaker 'cuentas' is OPEN and does not permit further calls
+2026-10-09T22:49:29.251-03:00 WARN cuentas no disponible, se responde 503: io.github.resilience4j.circuitbreaker.CallNotPermittedException: CircuitBreaker 'cuentas' is OPEN and does not permit further calls
+2026-10-09T22:49:29.343-03:00 WARN cuentas no disponible, se responde 503: io.github.resilience4j.circuitbreaker.CallNotPermittedException: CircuitBreaker 'cuentas' is OPEN and does not permit further calls
+2026-10-09T22:49:31.366-03:00 WARN cuentas no disponible, se responde 503: io.github.resilience4j.circuitbreaker.CallNotPermittedException: CircuitBreaker 'cuentas' is OPEN and does not permit further calls
+2026-10-09T22:49:33.394-03:00 WARN cuentas no disponible, se responde 503: io.github.resilience4j.circuitbreaker.CallNotPermittedException: CircuitBreaker 'cuentas' is OPEN and does not permit further calls
+2026-10-09T22:49:35.416-03:00 WARN cuentas no disponible, se responde 503: io.github.resilience4j.circuitbreaker.CallNotPermittedException: CircuitBreaker 'cuentas' is OPEN and does not permit further calls
+2026-10-09T22:49:37.441-03:00 WARN cuentas no disponible, se responde 503: io.github.resilience4j.circuitbreaker.CallNotPermittedException: CircuitBreaker 'cuentas' is OPEN and does not permit further calls
+2026-10-09T22:49:39.465-03:00 DEBUG Event STATE_TRANSITION published: 2026-10-09T22:49:39.465623-03:00[America/Santiago]: CircuitBreaker 'cuentas' changed state from OPEN to HALF_OPEN
+2026-10-09T22:50:06.240-03:00 DEBUG Event STATE_TRANSITION published: 2026-10-09T22:50:06.240595-03:00[America/Santiago]: CircuitBreaker 'cuentas' changed state from HALF_OPEN to CLOSED
+
+== cuentas: apagado y arranque en esa ventana ==
+2026-10-09T22:49:27.139-03:00 INFO Unregistering application CUENTAS with eureka with status DOWN
+2026-10-09T22:49:34.592-03:00 INFO Started CuentasApplication in 4.749 seconds (process running for 5.25)

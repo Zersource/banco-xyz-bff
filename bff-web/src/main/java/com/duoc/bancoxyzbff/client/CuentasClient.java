@@ -21,7 +21,7 @@ import java.util.List;
  * Cliente HTTP hacia el microservicio cuentas, resuelto por nombre de
  * servicio via Eureka. bff-web ya no es dueno de los datos: todo lo pide
  * a cuentas con el token del canal web, protegido con Circuit Breaker
- * (config "cuentas"). Los metodos debitar/acreditar los usa la saga.
+ * (config "cuentas").
  */
 @Component
 public class CuentasClient {
@@ -73,23 +73,6 @@ public class CuentasClient {
                 .body(new ParameterizedTypeReference<List<TransaccionDTO>>() { });
     }
 
-    @CircuitBreaker(name = "cuentas", fallbackMethod = "consultarSaldoFallback")
-    public Double consultarSaldo(Long cuentaId) {
-        return restClient.get().uri("/cuentas/{id}/saldo", cuentaId).retrieve().body(Double.class);
-    }
-
-    @CircuitBreaker(name = "cuentas", fallbackMethod = "operarSaldoFallback")
-    public Double debitar(Long cuentaId, Double monto) {
-        return restClient.post().uri("/cuentas/{id}/debito?monto={monto}", cuentaId, monto)
-                .retrieve().body(Double.class);
-    }
-
-    @CircuitBreaker(name = "cuentas", fallbackMethod = "operarSaldoFallback")
-    public Double acreditar(Long cuentaId, Double monto) {
-        return restClient.post().uri("/cuentas/{id}/credito?monto={monto}", cuentaId, monto)
-                .retrieve().body(Double.class);
-    }
-
     // Los fallback deben tener la misma firma + un Throwable al final.
     // ignore-exceptions (application.properties) solo evita que un 4xx cuente
     // como fallo para abrir el circuito; el aspecto igual invoca el fallback
@@ -113,14 +96,6 @@ public class CuentasClient {
     }
 
     private List<TransaccionDTO> listarTransaccionesFallback(Throwable error) {
-        throw traducir(error);
-    }
-
-    private Double consultarSaldoFallback(Long cuentaId, Throwable error) {
-        throw traducir(error);
-    }
-
-    private Double operarSaldoFallback(Long cuentaId, Double monto, Throwable error) {
         throw traducir(error);
     }
 

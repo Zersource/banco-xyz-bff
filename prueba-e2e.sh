@@ -3,11 +3,17 @@
 # eureka-server, config-server, auth-server, cuentas, clientes y los 3 BFF.
 # Sale con codigo distinto de 0 si alguna verificacion falla.
 #
+# Ademas de los servicios, la saga necesita Kafka en localhost:9092. Las comprobaciones de
+# logs (recorrido de mensajes y notificaciones) leen $LOGS_DIR/<servicio>.log, asi que hay
+# que levantar los servicios redirigiendo su salida ahi (por defecto ./logs).
+#
 # Uso: ./prueba-e2e.sh            (todas las pruebas)
-#      ./prueba-e2e.sh seccion    (solo una: registro, seguridad, retiro, payload, resiliencia)
+#      ./prueba-e2e.sh seccion    (solo una: registro, seguridad, retiro, payload, salud,
+#                                  saga, resiliencia)
 cd "$(dirname "$0")" || exit 2
 
 AUTH=http://localhost:9000
+LOGS_DIR=${LOGS_DIR:-logs}
 TOTAL=0
 FALLAS=0
 TMP=$(mktemp -d)
@@ -51,8 +57,37 @@ esperar_eureka() { # NOMBRE segundos
     return 1
 }
 
-reiniciar() { # modulo
-    nohup java -Xmx256m -jar "$1/target/$1-1.0.0.jar" > "$TMP/$1.log" 2>&1 &
+reiniciar() { # modulo (si hay LOGS_DIR, sigue escribiendo en el mismo log)
+    local log="$TMP/$1.log"
+    [ -d "$LOGS_DIR" ] && log="$LOGS_DIR/$1.log"
+    nohup java -Xmx256m -jar "$1/target/$1-1.0.0.jar" >> "$log" 2>&1 &
+}
+
+saldo() { # cuentaId -> saldo segun cuentas
+    curl -s -H "Authorization: Bearer $TOKEN_WEB" "http://localhost:8084/cuentas/$1/saldo"
+}
+
+# transferir origen destino monto -> imprime el transaccionId (cuerpo de la respuesta en $CUERPO)
+transferir() {
+    http_code http://localhost:8081/transferencias "$TOKEN_WEB" POST \
+        "{\"cuentaOrigenId\":$1,\"cuentaDestinoId\":$2,\"monto\":$3}" > /dev/null
+    json "d.get('transaccionId')"
+}
+
+# estado_de id -> estado actual segun pagos (via bff-web)
+estado_de() {
+    http_code "http://localhost:8081/transferencias/$1" "$TOKEN_WEB" > /dev/null
+    json "d.get('estado')"
+}
+
+esperar_estado() { # id estado segundos -> imprime el ultimo estado visto
+    local e=""
+    for _ in $(seq 1 "$3"); do
+        e=$(estado_de "$1")
+        [ "$e" == "$2" ] && break
+        sleep 1
+    done
+    echo "$e"
 }
 
 esperar_codigo() { # url token esperado segundos
@@ -82,11 +117,30 @@ cerrar_circuitos() { # segundos
     done
 }
 
+# Hace 3 transferencias reales de 1 (101 -> 102) seguidas con 202: asegura que bff-web ve a pagos
+# (Eureka y el balanceador pueden tardar ~1 min en mostrar una instancia recien reiniciada) y cierra
+# su Circuit Breaker. Un 404 no sirve: el breaker lo ignora y no cuenta como llamada exitosa.
+# Imprime cuantas exitosas seguidas logro (3 si todo bien).
+calentar_pagos() { # intentos
+    local exitosas=0 intentos=0
+    while [ "$exitosas" -lt 3 ] && [ "$intentos" -lt "$1" ]; do
+        if [ "$(http_code http://localhost:8081/transferencias "$TOKEN_WEB" POST '{"cuentaOrigenId":101,"cuentaDestinoId":102,"monto":1}')" == 202 ]; then
+            exitosas=$((exitosas + 1))
+        else
+            exitosas=0
+            sleep 2
+        fi
+        intentos=$((intentos + 1))
+    done
+    [ "$exitosas" -gt 0 ] && sleep 3  # deja terminar la saga de esas transferencias antes de medir saldos
+    echo "$exitosas"
+}
+
 # ---------- secciones ----------
 
 registro() {
     echo "== Registro en Eureka"
-    for app in CUENTAS CLIENTES BFF-WEB BFF-MOVIL BFF-CAJERO; do
+    for app in CUENTAS CLIENTES PAGOS BFF-WEB BFF-MOVIL BFF-CAJERO; do
         # Eureka cachea su respuesta hasta ~30 s: se espera a que un reinicio reciente aparezca
         esperar_eureka "$app" 45
         estado=$(curl -s -H 'Accept: application/json' http://localhost:8761/eureka/apps/$app \
@@ -164,6 +218,97 @@ payload() {
     chequear "movil trae 3 transacciones (id, monto, tipo)" 3 "$(json "len(d['ultimasTransacciones'])")"
 }
 
+salud() {
+    echo "== /actuator/health sin token (healthcheck de las imagenes)"
+    for par in cuentas:8084 clientes:8085 pagos:8086; do
+        chequear "${par%%:*} /actuator/health sin token" 200 "$(http_code "http://localhost:${par##*:}/actuator/health")"
+        chequear "${par%%:*} health status" UP "$(json "d['status']")"
+    done
+}
+
+saga() {
+    echo "== Saga de transferencias sobre Kafka (bff-web -> pagos -> cuentas)"
+    if ! nc -z localhost 9092 2>/dev/null; then
+        chequear "Kafka disponible en localhost:9092" true false
+        return
+    fi
+    chequear "bff-web alcanza a pagos (calentamiento)" 3 "$(calentar_pagos 60)"
+    chequear "pagos sin token" 401 "$(http_code http://localhost:8086/transferencias/1)"
+    chequear "pagos con token de otro canal" 403 "$(http_code http://localhost:8086/transferencias/1 "$TOKEN_MOVIL")"
+
+    # Los logs acumulan corridas anteriores (los ids se repiten si se reinicia pagos): solo se
+    # revisa lo que se escribe a partir de aqui.
+    local ini_pagos ini_cuentas ini_clientes
+    ini_pagos=$(wc -l < "$LOGS_DIR/pagos.log" 2>/dev/null || echo 0)
+    ini_cuentas=$(wc -l < "$LOGS_DIR/cuentas.log" 2>/dev/null || echo 0)
+    ini_clientes=$(wc -l < "$LOGS_DIR/clientes.log" 2>/dev/null || echo 0)
+
+    echo "  -- exito"
+    local o_antes d_antes id
+    o_antes=$(saldo 101); d_antes=$(saldo 102)
+    chequear "POST /transferencias responde 202" 202 "$(http_code http://localhost:8081/transferencias "$TOKEN_WEB" POST '{"cuentaOrigenId":101,"cuentaDestinoId":102,"monto":500}')"
+    id=$(json "d.get('transaccionId')")
+    chequear "estado final" COMPLETADA "$(esperar_estado "$id" COMPLETADA 30)"
+    sleep 1
+    chequear "saldo origen -500" "$(python3 -c "print($o_antes - 500)")" "$(saldo 101)"
+    chequear "saldo destino +500" "$(python3 -c "print($d_antes + 500)")" "$(saldo 102)"
+    ID_EXITO=$id
+
+    echo "  -- compensacion (destino inexistente)"
+    o_antes=$(saldo 101)
+    id=$(transferir 101 9999 300)
+    chequear "estado final" REVERTIDA "$(esperar_estado "$id" REVERTIDA 30)"
+    chequear "mensaje de la compensacion" "Error al acreditar cuenta destino: No se encontro la cuenta con id: 9999" "$(json "d.get('mensaje')")"
+    chequear "saldo origen restituido" "$o_antes" "$(saldo 101)"
+    ID_COMPENSADA=$id
+
+    echo "  -- debito fallido por fondos"
+    o_antes=$(saldo 101); d_antes=$(saldo 102)
+    id=$(transferir 101 102 99999999)
+    chequear "estado final" FALLIDA "$(esperar_estado "$id" FALLIDA 30)"
+    chequear "mensaje" "Fondos insuficientes en cuenta origen" "$(json "d.get('mensaje')")"
+    chequear "saldo origen sin cambios" "$o_antes" "$(saldo 101)"
+    chequear "saldo destino sin cambios" "$d_antes" "$(saldo 102)"
+
+    echo "  -- validaciones y 404 (reenviados desde pagos)"
+    chequear "origen igual a destino (400)" 400 "$(http_code http://localhost:8081/transferencias "$TOKEN_WEB" POST '{"cuentaOrigenId":101,"cuentaDestinoId":101,"monto":5}')"
+    chequear "monto negativo (400)" 400 "$(http_code http://localhost:8081/transferencias "$TOKEN_WEB" POST '{"cuentaOrigenId":101,"cuentaDestinoId":102,"monto":-5}')"
+    chequear "transferencia inexistente (404)" 404 "$(http_code http://localhost:8081/transferencias/999999 "$TOKEN_WEB")"
+
+    echo "  -- 5 transferencias simultaneas de 10 (101 -> 102)"
+    o_antes=$(saldo 101); d_antes=$(saldo 102)
+    for i in 1 2 3 4 5; do
+        curl -s -o "$TMP/sim$i.json" -X POST -H "Authorization: Bearer $TOKEN_WEB" -H 'Content-Type: application/json' \
+            -d '{"cuentaOrigenId":101,"cuentaDestinoId":102,"monto":10}' http://localhost:8081/transferencias &
+    done
+    wait
+    local completadas=0 ids=""
+    for i in 1 2 3 4 5; do
+        id=$(python3 -c "import json; print(json.load(open('$TMP/sim$i.json')).get('transaccionId'))")
+        ids="$ids $id"
+        [ "$(esperar_estado "$id" COMPLETADA 30)" == COMPLETADA ] && completadas=$((completadas + 1))
+    done
+    echo "  ids:$ids"
+    chequear "las 5 quedan COMPLETADA" 5 "$completadas"
+    sleep 1
+    chequear "saldo origen -50 exacto" "$(python3 -c "print($o_antes - 50)")" "$(saldo 101)"
+    chequear "saldo destino +50 exacto" "$(python3 -c "print($d_antes + 50)")" "$(saldo 102)"
+    IDS_SIMULTANEAS=$ids
+
+    echo "  -- logs: recorrido de los mensajes y notificacion de clientes"
+    for f in pagos cuentas clientes; do
+        [ -f "$LOGS_DIR/$f.log" ] || { chequear "existe $LOGS_DIR/$f.log (definir LOGS_DIR)" true false; return; }
+    done
+    chequear "pagos publica transferencia.iniciada" 1 "$(grep -c "\[tx=$ID_EXITO\] -> transferencia.iniciada" <(tail -n +$((ini_pagos + 1)) "$LOGS_DIR/pagos.log"))"
+    chequear "cuentas recibe iniciada y debita" 1 "$(grep -c "\[tx=$ID_EXITO\] <- transferencia.iniciada" <(tail -n +$((ini_cuentas + 1)) "$LOGS_DIR/cuentas.log"))"
+    chequear "cuentas recibe debito-realizado y acredita" 1 "$(grep -c "\[tx=$ID_EXITO\] <- transferencia.debito-realizado" <(tail -n +$((ini_cuentas + 1)) "$LOGS_DIR/cuentas.log"))"
+    chequear "pagos recibe transferencia.completada" 1 "$(grep -c "\[tx=$ID_EXITO\] <- transferencia.completada" <(tail -n +$((ini_pagos + 1)) "$LOGS_DIR/pagos.log"))"
+    chequear "clientes recibe transferencia.completada" 1 "$(grep -c "\[tx=$ID_EXITO\] <- transferencia.completada" <(tail -n +$((ini_clientes + 1)) "$LOGS_DIR/clientes.log"))"
+    chequear "clientes registra 2 notificaciones" 2 "$(grep -c "\[tx=$ID_EXITO\] \[NOTIFICACION\]" <(tail -n +$((ini_clientes + 1)) "$LOGS_DIR/clientes.log"))"
+    chequear "cuentas recibe credito-fallido y compensa" 1 "$(grep -c "\[tx=$ID_COMPENSADA\] <- transferencia.credito-fallido" <(tail -n +$((ini_cuentas + 1)) "$LOGS_DIR/cuentas.log"))"
+    chequear "pagos recibe transferencia.revertida" 1 "$(grep -c "\[tx=$ID_COMPENSADA\] <- transferencia.revertida" <(tail -n +$((ini_pagos + 1)) "$LOGS_DIR/pagos.log"))"
+}
+
 resiliencia() {
     echo "== Circuit Breaker + fallback con cuentas apagado"
     pkill -f 'cuentas-1.0.0.jar'
@@ -177,6 +322,15 @@ resiliencia() {
     echo "  -- recuperacion (reinicio de cuentas)"
     reiniciar cuentas
     chequear "bff-movil se recupera solo" 200 "$(esperar_codigo http://localhost:8082/api/movil/cuentas/101 "$TOKEN_MOVIL" 200 60)"
+    cerrar_circuitos 60
+
+    echo "== Circuit Breaker + fallback con pagos apagado"
+    pkill -f 'pagos-1.0.0.jar'
+    sleep 2
+    chequear "POST /transferencias con pagos caido" 503 "$(http_code http://localhost:8081/transferencias "$TOKEN_WEB" POST '{"cuentaOrigenId":101,"cuentaDestinoId":102,"monto":1}')"
+    chequear "mensaje del fallback" "El servicio pagos no esta disponible en este momento" "$(json "d['mensaje']")"
+    reiniciar pagos
+    chequear "bff-web se recupera solo (3 transferencias de 1 con 202)" 3 "$(calentar_pagos 40)"
 
     echo "== Fallback degradado con clientes apagado"
     pkill -f 'clientes-1.0.0.jar'
@@ -208,7 +362,7 @@ fi
 SECCION=${1:-todo}
 if [ "$SECCION" == todo ]; then
     cerrar_circuitos 40
-    registro; seguridad; retiro; payload; resiliencia
+    registro; seguridad; retiro; payload; salud; saga; resiliencia
     cerrar_circuitos 40
 else
     "$SECCION"

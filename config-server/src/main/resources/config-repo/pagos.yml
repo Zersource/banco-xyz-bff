@@ -1,0 +1,17 @@
+server:
+  port: 8086
+
+spring:
+  kafka:
+    consumer:
+      group-id: pagos-estado
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        "[spring.json.value.default.type]": com.duoc.pagos.saga.evento.EventoTransferencia
+        "[spring.json.use.type.headers]": false
+        "[spring.json.trusted.packages]": com.duoc.pagos.saga.evento
+    listener:
+      # una hebra por particion de cada topic (3 particiones)
+      concurrency: 3

@@ -1,0 +1,40 @@
+Saldos antes: 101=4997.0 102=8003.0
+Exito        tx=4 -> {"transaccionId":4,"estado":"COMPLETADA","mensaje":null}
+Compensacion tx=5 -> {"transaccionId":5,"estado":"REVERTIDA","mensaje":"Error al acreditar cuenta destino: No se encontro la cuenta con id: 9999"}
+Fondos       tx=6 -> {"transaccionId":6,"estado":"FALLIDA","mensaje":"Fondos insuficientes en cuenta origen"}
+Saldos despues: 101=4747.0 102=8253.0  (esperado: 101 baja 250, 102 sube 250; la compensada y la fallida no cambian nada)
+
+===== Recorrido de mensajes (pagos, cuentas, clientes ordenados por hora; el servicio va entre corchetes) =====
+
+----- tx=4
+2026-10-09T22:50:57.804-03:00 [pagos] [tx=4] Transferencia recibida (PENDIENTE)
+2026-10-09T22:50:57.805-03:00 [pagos] [tx=4] -> transferencia.iniciada: transferir 250 de la cuenta 101 a la cuenta 102
+2026-10-09T22:50:57.807-03:00 [cuentas] [tx=4] <- transferencia.iniciada (particion 0, offset 50): debitar 250 de la cuenta 101
+2026-10-09T22:50:57.807-03:00 [cuentas] [tx=4] Debito realizado -> transferencia.debito-realizado
+2026-10-09T22:50:57.810-03:00 [cuentas] [tx=4] <- transferencia.debito-realizado (particion 0, offset 49): acreditar 250 a la cuenta 102
+2026-10-09T22:50:57.810-03:00 [cuentas] [tx=4] Credito realizado, transferencia completada -> transferencia.completada
+2026-10-09T22:50:57.814-03:00 [pagos] [tx=4] <- transferencia.completada (particion 0, offset 40)
+2026-10-09T22:50:57.818-03:00 [pagos] [tx=4] Transferencia completada: 101 -> 102 por 250
+2026-10-09T22:50:57.832-03:00 [clientes] [tx=4] <- transferencia.completada (particion 0, offset 40)
+2026-10-09T22:50:57.833-03:00 [clientes] [tx=4] [NOTIFICACION] Jane Smith: se acredito 250 en tu cuenta 102
+2026-10-09T22:50:57.833-03:00 [clientes] [tx=4] [NOTIFICACION] John Doe: se debito 250 de tu cuenta 101
+
+----- tx=5
+2026-10-09T22:51:01.863-03:00 [pagos] [tx=5] Transferencia recibida (PENDIENTE)
+2026-10-09T22:51:01.866-03:00 [pagos] [tx=5] -> transferencia.iniciada: transferir 125 de la cuenta 101 a la cuenta 9999
+2026-10-09T22:51:01.871-03:00 [cuentas] [tx=5] <- transferencia.iniciada (particion 1, offset 70): debitar 125 de la cuenta 101
+2026-10-09T22:51:01.872-03:00 [cuentas] [tx=5] Debito realizado -> transferencia.debito-realizado
+2026-10-09T22:51:01.874-03:00 [cuentas] [tx=5] <- transferencia.debito-realizado (particion 1, offset 59): acreditar 125 a la cuenta 9999
+2026-10-09T22:51:01.878-03:00 [cuentas] [tx=5] Credito fallido -> transferencia.credito-fallido: No se encontro la cuenta con id: 9999
+2026-10-09T22:51:01.883-03:00 [cuentas] [tx=5] <- transferencia.credito-fallido (particion 1, offset 3): compensar, devolver 125 a la cuenta 101
+2026-10-09T22:51:01.884-03:00 [cuentas] [tx=5] Debito revertido (compensacion aplicada) -> transferencia.revertida
+2026-10-09T22:51:01.886-03:00 [pagos] [tx=5] <- transferencia.revertida (particion 1, offset 3)
+2026-10-09T22:51:01.889-03:00 [pagos] [tx=5] Transferencia revertida (compensada): Error al acreditar cuenta destino: No se encontro la cuenta con id: 9999
+
+----- tx=6
+2026-10-09T22:51:05.925-03:00 [pagos] [tx=6] -> transferencia.iniciada: transferir 99999999 de la cuenta 101 a la cuenta 102
+2026-10-09T22:51:05.925-03:00 [pagos] [tx=6] Transferencia recibida (PENDIENTE)
+2026-10-09T22:51:05.927-03:00 [cuentas] [tx=6] <- transferencia.iniciada (particion 1, offset 71): debitar 99999999 de la cuenta 101
+2026-10-09T22:51:05.929-03:00 [cuentas] [tx=6] Debito fallido -> transferencia.debito-fallido: Fondos insuficientes en cuenta origen
+2026-10-09T22:51:05.932-03:00 [pagos] [tx=6] <- transferencia.debito-fallido (particion 1, offset 11)
+2026-10-09T22:51:05.935-03:00 [pagos] [tx=6] Transferencia fallida: Fondos insuficientes en cuenta origen

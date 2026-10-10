@@ -2,14 +2,15 @@ package com.duoc.bancoxyzbff.transferencia.dto;
 
 import java.math.BigDecimal;
 
+/**
+ * Solicitud de transferencia que llega al canal web y se reenvia a pagos
+ * (las validaciones las hace pagos).
+ */
 public class TransferenciaRequestDTO {
 
     private Long cuentaOrigenId;
     private Long cuentaDestinoId;
     private BigDecimal monto;
-
-    public TransferenciaRequestDTO() {
-    }
 
     public Long getCuentaOrigenId() {
         return cuentaOrigenId;

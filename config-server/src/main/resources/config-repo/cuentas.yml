@@ -1,2 +1,17 @@
 server:
   port: 8084
+
+spring:
+  kafka:
+    consumer:
+      group-id: cuentas-saga
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        "[spring.json.value.default.type]": com.duoc.cuentas.saga.evento.EventoTransferencia
+        "[spring.json.use.type.headers]": false
+        "[spring.json.trusted.packages]": com.duoc.cuentas.saga.evento
+    listener:
+      # una hebra por particion de cada topic (3 particiones)
+      concurrency: 3

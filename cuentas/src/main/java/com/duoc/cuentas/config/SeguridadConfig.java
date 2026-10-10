@@ -27,11 +27,12 @@ public class SeguridadConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // El retiro lo pide el cajero; el credito y el debito de la saga, bff-web (por ahora)
-                        .requestMatchers(HttpMethod.POST, "/cuentas/**")
-                            .hasAnyAuthority("SCOPE_cajero", "SCOPE_web")
+                        // El retiro lo pide solo el canal cajero
+                        .requestMatchers(HttpMethod.POST, "/cuentas/**").hasAuthority("SCOPE_cajero")
                         .requestMatchers("/cuentas/**", "/transacciones/**")
                             .hasAnyAuthority("SCOPE_web", "SCOPE_movil", "SCOPE_cajero")
+                        // Sin token: lo usa el healthcheck de la imagen
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth
