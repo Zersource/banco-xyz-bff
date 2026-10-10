@@ -1,0 +1,20 @@
+Evidencia EFT - Docker 2 (rama eft-docker-2 = origin/eft-final + merge de eft-docker)
+2026-10-09, Docker 29.6.2 arm64, Maven 3.9.16 + JDK 21 local
+
+07_nombres_y_cb.txt             carpeta / spring.application.name / compose / config-repo /
+                                http://<nombre> en BFF coinciden (cuentas, clientes);
+                                instancias de CB usadas vs configuradas; mvn verify con actuator
+08_compose_up.txt               docker compose up --build -d (exit 0)
+09_compose_ps.txt               9 contenedores healthy y orden de arranque
+10_prueba_e2e_docker.txt        prueba-e2e.sh contra Docker: 43/43 OK
+11_token_uri_y_cb_docker.txt    perfil docker, token-uri auth-server:9000 desde cada BFF,
+                                transiciones del Circuit Breaker
+raw_mvn/                        mvn clean verify por modulo tras el merge (8/8 OK) y tras
+                                agregar actuator; primer intento de build (fallo de red
+                                al bajar una dependencia de Maven Central, no de codigo)
+
+Nota sobre resiliencia en Docker: prueba-e2e.sh apaga con `pkill -f <svc>-1.0.0.jar` y
+reinicia con `java -jar <svc>/target/...`, ambos en el host. En Docker esos procesos no
+son visibles desde el host, asi que la prueba se corrio con dos shims en el PATH (fuera
+del repo) que traducen a `docker compose stop <svc>` / `docker compose start <svc>`.
+El script no se modifico.

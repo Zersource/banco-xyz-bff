@@ -1,7 +1,8 @@
 # Orden de arranque (cada uno espera a que el anterior este healthy):
-#   config-server -> eureka-server -> auth-server -> bff-web / bff-movil / bff-cajero
+#   config-server -> eureka-server -> auth-server -> cuentas / clientes
+#     -> bff-web / bff-movil / bff-cajero
 # kafka arranca en paralelo; todavia ningun servicio lo usa.
-# Plantilla (inactiva) para los servicios nuevos cuentas/clientes/pagos: plantillas/
+# cuentas y clientes salen de plantillas/ (pagos sigue pendiente ahi).
 
 services:
   config-server:
@@ -54,6 +55,64 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # Microservicios de dominio. Usan el "test" del HEALTHCHECK de su Dockerfile
+  # (token del auth-server + /actuator/health), igual que los BFF.
+  cuentas:
+    build:
+      context: ./cuentas
+      args:
+        SERVICE_PORT: "8084"
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_APPLICATION_NAME=cuentas
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - JAVA_TOOL_OPTIONS=-Xmx256m
+      # Cualquier token valido sirve para /actuator/health (anyRequest().authenticated())
+      - HC_CLIENT=cliente-web:WEB-KEY-2024
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      auth-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  clientes:
+    build:
+      context: ./clientes
+      args:
+        SERVICE_PORT: "8085"
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_APPLICATION_NAME=clientes
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - JAVA_TOOL_OPTIONS=-Xmx256m
+      # Cualquier token valido sirve para /actuator/health (anyRequest().authenticated())
+      - HC_CLIENT=cliente-web:WEB-KEY-2024
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      auth-server:
+        condition: service_healthy
+    restart: unless-stopped
+
   # Los BFF usan el "test" del HEALTHCHECK de su Dockerfile (token del auth-server +
   # /actuator/health). Aqui solo se fijan los tiempos y el cliente OAuth2 que usa.
   bff-web:
@@ -76,6 +135,10 @@ services:
       eureka-server:
         condition: service_healthy
       auth-server:
+        condition: service_healthy
+      cuentas:
+        condition: service_healthy
+      clientes:
         condition: service_healthy
     restart: unless-stopped
 
@@ -101,6 +164,10 @@ services:
         condition: service_healthy
       auth-server:
         condition: service_healthy
+      cuentas:
+        condition: service_healthy
+      clientes:
+        condition: service_healthy
     restart: unless-stopped
 
   bff-cajero:
@@ -124,6 +191,10 @@ services:
       eureka-server:
         condition: service_healthy
       auth-server:
+        condition: service_healthy
+      cuentas:
+        condition: service_healthy
+      clientes:
         condition: service_healthy
     restart: unless-stopped
 

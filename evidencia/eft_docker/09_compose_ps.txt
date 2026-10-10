@@ -1,0 +1,22 @@
+Fri Oct  9 22:20:57 -03 2026
+SERVICE         STATUS                    PORTS
+auth-server     Up 18 seconds (healthy)   0.0.0.0:9000->9000/tcp, [::]:9000->9000/tcp
+bff-cajero      Up 7 seconds (healthy)    0.0.0.0:8083->8083/tcp, [::]:8083->8083/tcp
+bff-movil       Up 7 seconds (healthy)    0.0.0.0:8082->8082/tcp, [::]:8082->8082/tcp
+bff-web         Up 7 seconds (healthy)    0.0.0.0:8081->8081/tcp, [::]:8081->8081/tcp
+clientes        Up 13 seconds (healthy)   0.0.0.0:8085->8085/tcp, [::]:8085->8085/tcp
+config-server   Up 29 seconds (healthy)   0.0.0.0:8888->8888/tcp, [::]:8888->8888/tcp
+cuentas         Up 13 seconds (healthy)   0.0.0.0:8084->8084/tcp, [::]:8084->8084/tcp
+eureka-server   Up 24 seconds (healthy)   0.0.0.0:8761->8761/tcp, [::]:8761->8761/tcp
+kafka           Up 29 seconds (healthy)   0.0.0.0:9094->9094/tcp, [::]:9094->9094/tcp
+
+== orden de arranque (StartedAt)
+2026-10-10T01:20:27.8853Z kafka
+2026-10-10T01:20:27.885587875Z config-server
+2026-10-10T01:20:33.470517169Z eureka-server
+2026-10-10T01:20:39.037019713Z auth-server
+2026-10-10T01:20:44.644036299Z cuentas
+2026-10-10T01:20:44.644714799Z clientes
+2026-10-10T01:20:50.247477302Z bff-cajero
+2026-10-10T01:20:50.247941969Z bff-web
+2026-10-10T01:20:50.248279302Z bff-movil

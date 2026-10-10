@@ -1,7 +1,11 @@
 # PLANTILLA (no activa). docker compose solo lee docker-compose.yaml, asi que
 # este archivo no se levanta hasta que se pida de forma explicita.
 #
-# Para activarla, cuando existan las carpetas ms-cuentas, ms-clientes y ms-pagos:
+# cuentas y clientes ya estan activos en docker-compose.yaml (con healthcheck con token,
+# ver cuentas/Dockerfile). Aqui queda solo pagos.
+#
+# Para activarla, cuando exista la carpeta del servicio (usar su nombre real, igual a
+# spring.application.name, al <nombre>.yml de config-repo y al http://<nombre> de los BFF):
 #   1. Copiar plantillas/Dockerfile.servicio a <carpeta>/Dockerfile.
 #   2. Crear <nombre>.yml en config-server/src/main/resources/config-repo con server.port.
 #   3. Pegar estos servicios en docker-compose.yaml (o levantar con
@@ -28,30 +32,6 @@ x-servicio-nuevo: &servicio-nuevo
   restart: unless-stopped
 
 services:
-  ms-cuentas:
-    <<: *servicio-nuevo
-    build:
-      context: ./ms-cuentas
-      args:
-        SERVICE_PORT: "8084"
-    ports:
-      - "8084:8084"
-    environment:
-      <<: *env-comun
-      SPRING_APPLICATION_NAME: ms-cuentas
-
-  ms-clientes:
-    <<: *servicio-nuevo
-    build:
-      context: ./ms-clientes
-      args:
-        SERVICE_PORT: "8085"
-    ports:
-      - "8085:8085"
-    environment:
-      <<: *env-comun
-      SPRING_APPLICATION_NAME: ms-clientes
-
   ms-pagos:
     <<: *servicio-nuevo
     build:
