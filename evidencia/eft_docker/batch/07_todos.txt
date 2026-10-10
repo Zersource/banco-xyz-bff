@@ -1,0 +1,16 @@
+# 1.4f Pasada final: docker compose --profile batch run --rm -e JOB=todos batch  (volumen limpio, dev,semana_3)
+exit code: 0
+duracion total del comando (incluye arranque del contenedor y de la JVM): 1.48 s
+profiles are active: "dev", "semana_3"
+Started BancoXyzBatchApplication in 0.551 seconds (process r
+
+Job: [SimpleJob: [name=dailyTransactionsJob]] completed status: [COMPLETED] in 202ms
+Job: [SimpleJob: [name=monthlyInterestJob]] completed status: [COMPLETED] in 167ms
+Job: [SimpleJob: [name=annualStatementJob]] completed status: [COMPLETED] in 73ms
+Job [dailyTransactionsJob] finalizado con EXITO. Anomalias detectadas y auditadas: 599
+Job [monthlyInterestJob] finalizado con EXITO. Anomalias detectadas y auditadas: 601
+Job [annualStatementJob] finalizado con EXITO. Anomalias detectadas y auditadas: 538
+
+BD (H2 Shell):
+TX  | RESUMEN | INTERESES | MOVS | ESTADOS | ANOMALIAS | EJEC_COMPLETED
+387 | 236     | 50        | 614  | 20      | 1738      | 3
