@@ -1,2 +1,8 @@
 server:
   port: 8084
+
+# Id unico por replica en Eureka (para escalar con docker compose --scale).
+# HOSTNAME es el id del contenedor; fuera de Docker se usa un valor aleatorio.
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${HOSTNAME:${random.value}}

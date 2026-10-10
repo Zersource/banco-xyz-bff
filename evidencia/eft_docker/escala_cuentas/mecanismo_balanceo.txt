@@ -1,0 +1,27 @@
+== 1. Como construye bff-movil el cliente de cuentas (codigo, solo lectura)
+  bff-movil/src/main/java/com/duoc/bffmovil/config/RestClientConfig.java:15: * Configuracion de las llamadas salientes: un RestClient.Builder con
+  bff-movil/src/main/java/com/duoc/bffmovil/config/RestClientConfig.java:30:    @LoadBalanced
+  bff-movil/src/main/java/com/duoc/bffmovil/config/RestClientConfig.java:31:    public RestClient.Builder restClientBuilder() {
+  bff-movil/src/main/java/com/duoc/bffmovil/client/CuentasClient.java:20: * servicio via Eureka (RestClient @LoadBalanced, ver RestClientConfig). Cada
+  bff-movil/src/main/java/com/duoc/bffmovil/client/CuentasClient.java:31:    private RestClient.Builder restClientBuilder;
+  bff-movil/src/main/java/com/duoc/bffmovil/client/CuentasClient.java:41:                .baseUrl("http://cuentas")
+  dependencias de balanceo en bff-movil/pom.xml:
+    spring-cloud-starter-circuitbreaker-resilience
+    spring-cloud-starter-config
+    spring-cloud-starter-loadbalancer
+    spring-cloud-starter-netflix-eureka-client
+
+== 2. DNS de Docker dentro de bff-movil para el host 'cuentas'
+  172.19.0.11
+  172.19.0.6
+
+== 3. Instancias que entrega Eureka (lo que consume Spring Cloud LoadBalancer)
+   cuentas:7ee70267c280 172.19.0.11:8084
+   cuentas:2877f74f68d5 172.19.0.6:8084
+
+== 4. Conclusion
+  RestClient con @LoadBalanced y baseUrl http://cuentas: el host 'cuentas' NO se resuelve por DNS;
+  el interceptor de Spring Cloud LoadBalancer lo toma como serviceId, pide las instancias a Eureka
+  y elige con RoundRobinLoadBalancer (alternancia estricta request a request, ver logs_replicas.txt).
+  El DNS de Docker tambien resolveria 'cuentas' a ambas IPs, pero no es el camino usado: la JVM
+  cachea la resolucion DNS y no produciria alternancia estricta por request.

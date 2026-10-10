@@ -1,0 +1,90 @@
+# curl -s -H 'Accept: application/json' http://localhost:8761/eureka/apps/CUENTAS  (Fri Oct  9 22:41:53 -03 2026)
+{
+    "application": {
+        "name": "CUENTAS",
+        "instance": [
+            {
+                "instanceId": "cuentas:7ee70267c280",
+                "hostName": "172.19.0.11",
+                "app": "CUENTAS",
+                "ipAddr": "172.19.0.11",
+                "status": "UP",
+                "overriddenStatus": "UNKNOWN",
+                "port": {
+                    "$": 8084,
+                    "@enabled": "true"
+                },
+                "securePort": {
+                    "$": 443,
+                    "@enabled": "false"
+                },
+                "countryId": 1,
+                "dataCenterInfo": {
+                    "@class": "com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo",
+                    "name": "MyOwn"
+                },
+                "leaseInfo": {
+                    "renewalIntervalInSecs": 30,
+                    "durationInSecs": 90,
+                    "registrationTimestamp": 1791596444539,
+                    "lastRenewalTimestamp": 1791596564127,
+                    "evictionTimestamp": 0,
+                    "serviceUpTimestamp": 1791596444133
+                },
+                "metadata": {
+                    "management.port": "8084"
+                },
+                "homePageUrl": "http://172.19.0.11:8084/",
+                "statusPageUrl": "http://172.19.0.11:8084/actuator/info",
+                "healthCheckUrl": "http://172.19.0.11:8084/actuator/health",
+                "vipAddress": "cuentas",
+                "secureVipAddress": "cuentas",
+                "isCoordinatingDiscoveryServer": "false",
+                "lastUpdatedTimestamp": "1791596444539",
+                "lastDirtyTimestamp": "1791596444118",
+                "actionType": "ADDED"
+            },
+            {
+                "instanceId": "cuentas:2877f74f68d5",
+                "hostName": "172.19.0.6",
+                "app": "CUENTAS",
+                "ipAddr": "172.19.0.6",
+                "status": "UP",
+                "overriddenStatus": "UNKNOWN",
+                "port": {
+                    "$": 8084,
+                    "@enabled": "true"
+                },
+                "securePort": {
+                    "$": 443,
+                    "@enabled": "false"
+                },
+                "countryId": 1,
+                "dataCenterInfo": {
+                    "@class": "com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo",
+                    "name": "MyOwn"
+                },
+                "leaseInfo": {
+                    "renewalIntervalInSecs": 30,
+                    "durationInSecs": 90,
+                    "registrationTimestamp": 1791596444539,
+                    "lastRenewalTimestamp": 1791596564015,
+                    "evictionTimestamp": 0,
+                    "serviceUpTimestamp": 1791596444028
+                },
+                "metadata": {
+                    "management.port": "8084"
+                },
+                "homePageUrl": "http://172.19.0.6:8084/",
+                "statusPageUrl": "http://172.19.0.6:8084/actuator/info",
+                "healthCheckUrl": "http://172.19.0.6:8084/actuator/health",
+                "vipAddress": "cuentas",
+                "secureVipAddress": "cuentas",
+                "isCoordinatingDiscoveryServer": "false",
+                "lastUpdatedTimestamp": "1791596444539",
+                "lastDirtyTimestamp": "1791596444006",
+                "actionType": "ADDED"
+            }
+        ]
+    }
+}
