@@ -1,0 +1,73 @@
+# 2.9 Evidencia final y requisitos (stack completo arriba desde el clon limpio /tmp/clean-clone, mismas imagenes y compose)
+
+== docker compose ps
+Sat Oct 10 02:39:14 -03 2026
+SERVICE         STATUS                   PORTS
+auth-server     Up 6 minutes (healthy)   0.0.0.0:9000->9000/tcp, [::]:9000->9000/tcp
+bff-cajero      Up 6 minutes (healthy)   0.0.0.0:8083->8083/tcp, [::]:8083->8083/tcp
+bff-movil       Up 6 minutes (healthy)   0.0.0.0:8082->8082/tcp, [::]:8082->8082/tcp
+bff-web         Up 6 minutes (healthy)   0.0.0.0:8081->8081/tcp, [::]:8081->8081/tcp
+clientes        Up 2 minutes (healthy)   0.0.0.0:8085->8085/tcp, [::]:8085->8085/tcp
+config-server   Up 6 minutes (healthy)   0.0.0.0:8888->8888/tcp, [::]:8888->8888/tcp
+cuentas         Up 4 minutes (healthy)   0.0.0.0:8084->8084/tcp, [::]:8084->8084/tcp
+eureka-server   Up 6 minutes (healthy)   0.0.0.0:8761->8761/tcp, [::]:8761->8761/tcp
+kafka           Up 6 minutes (healthy)   0.0.0.0:9094->9094/tcp, [::]:9094->9094/tcp
+pagos           Up 3 minutes (healthy)   0.0.0.0:8086->8086/tcp, [::]:8086->8086/tcp
+
+== docker stats --no-stream (10 contenedores, en reposo despues del e2e)
+Sat Oct 10 02:39:14 -03 2026
+NAME                          CPU %     MEM USAGE / LIMIT    MEM %
+clean-clone-bff-movil-1       0.20%     423.1MiB / 7.75GiB   5.33%
+clean-clone-bff-web-1         0.21%     416.6MiB / 7.75GiB   5.25%
+clean-clone-bff-cajero-1      0.21%     422.3MiB / 7.75GiB   5.32%
+clean-clone-cuentas-1         6.75%     423.7MiB / 7.75GiB   5.34%
+clean-clone-pagos-1           3.61%     524.6MiB / 7.75GiB   6.61%
+clean-clone-clientes-1        1.35%     386.4MiB / 7.75GiB   4.87%
+clean-clone-auth-server-1     0.62%     271MiB / 7.75GiB     3.41%
+clean-clone-eureka-server-1   0.81%     402.9MiB / 7.75GiB   5.08%
+clean-clone-kafka-1           2.78%     447.4MiB / 7.75GiB   5.64%
+clean-clone-config-server-1   0.24%     320.7MiB / 7.75GiB   4.04%
+SUMA: 4038.7 MiB = 3.94 GiB  (linea base de 9 contenedores en B2: 3076.0 MiB = 3.00 GiB)
+
+== docker images (proyecto + imagenes de terceros que usa; postgres:16/18 son de otros proyectos salvo 16-alpine)
+REPOSITORY                                    TAG           SIZE
+clean-clone-config-server                     latest        567MB
+clean-clone-cuentas                           latest        628MB
+clean-clone-pagos                             latest        679MB
+clean-clone-bff-web                           latest        598MB
+clean-clone-clientes                          latest        628MB
+clean-clone-bff-movil                         latest        595MB
+clean-clone-bff-cajero                        latest        598MB
+clean-clone-batch                             latest        520MB
+clean-clone-eureka-server                     latest        594MB
+clean-clone-auth-server                       latest        534MB
+postgres                                      16-alpine     411MB
+postgres                                      18            672MB
+postgres                                      16            663MB
+apache/kafka                                  3.9.1         626MB
+nginx                                         1.27-alpine   76.8MB
+
+== docker info
+  Memoria total asignada a Docker Desktop: 8321515520 bytes (10 CPU, aarch64, Docker Desktop, Server 29.6.2)
+  Docker Compose version v5.3.1
+
+== Restart policy de cada servicio (solo se reporta)
+   auth-server    unless-stopped
+   batch          on-failure:3
+   bff-cajero     unless-stopped
+   bff-movil      unless-stopped
+   bff-web        unless-stopped
+   clientes       unless-stopped
+   config-server  unless-stopped
+   cuentas        unless-stopped
+   eureka-server  unless-stopped
+   kafka          unless-stopped
+   pagos          unless-stopped
+
+== Plataforma: grep -rn platform */Dockerfile docker/ docker-compose*.y*ml
+  coincidencias: 0 -> ninguna imagen fija arquitectura; se construye en la EC2 (amd64), aqui arm64
+  imagenes base: eclipse-temurin:21-jre maven:3.9-eclipse-temurin-21 + apache/kafka:3.9.1, nginx:1.27-alpine, postgres:16-alpine (verificado con docker buildx imagetools inspect: las 5 publican linux/amd64 y linux/arm64)
+
+== Higiene: git ls-files | grep -iE '\.env$|\.p12|\.jks|keystore'
+  coincidencias: 0
+  (secretos de los clientes OAuth2 en claro en config-repo y compose: academico, ya documentado)
