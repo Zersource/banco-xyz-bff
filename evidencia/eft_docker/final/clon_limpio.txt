@@ -14,3 +14,7 @@ falla transitoria (docker/batch/test/recuperar_csv.sh) -> ExitCode RestartCount:
 docker compose down -v --remove-orphans -> ok
 
 Hallazgos del clon limpio: ninguno; nada dependia de archivos que solo existieran en la copia de trabajo.
+
+Opcional: build SIN cache (docker builder prune -af -> 14.22GB liberados; luego docker compose --profile batch build en el
+clon): exit 0, 95 s para las 11 imagenes, con descarga de dependencias Maven incluida. Las imagenes base (maven,
+eclipse-temurin, kafka) ya estaban descargadas en el Mac: en una EC2 nueva hay que sumar su pull.
