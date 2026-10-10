@@ -1,0 +1,16 @@
+# mvn -B clean verify en bff-movil (rama eft-docker-2, 4bdce96, Maven 3.9.16, JDK 21) -> exit 0; ultimas 15 lineas
+[INFO] --- surefire:3.2.5:test (default-test) @ bff-movil ---
+[INFO] No tests to run.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ bff-movil ---
+[INFO] Building jar: /Users/zer/banco-xyz-bff/bff-movil/target/bff-movil-1.0.0.jar
+[INFO] 
+[INFO] --- spring-boot:3.3.4:repackage (repackage) @ bff-movil ---
+[INFO] Replacing main artifact /Users/zer/banco-xyz-bff/bff-movil/target/bff-movil-1.0.0.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to /Users/zer/banco-xyz-bff/bff-movil/target/bff-movil-1.0.0.jar.original
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.035 s
+[INFO] Finished at: 2026-10-09T23:02:27-03:00
+[INFO] ------------------------------------------------------------------------
