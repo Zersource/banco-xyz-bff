@@ -1,0 +1,19 @@
+# 2.4 E2E en Docker: MODO=docker /bin/bash ./prueba-e2e.sh, dos corridas seguidas
+/bin/bash --version: GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)
+corrida 1: RESUMEN: 95/95 verificaciones OK (modo docker, secciones omitidas: 0) | exit code: 0 | duracion: 165 s
+corrida 2: RESUMEN: 95/95 verificaciones OK (modo docker, secciones omitidas: 0) | exit code: 0 | duracion: 188 s
+checks omitidos en modo docker: ninguno (secciones omitidas: 0; los checks de log y de topics usan docker compose logs/exec)
+dependencias externas (modo docker): curl, python3, docker compose v2 (stop/start/restart/logs/exec);
+  utilidades POSIX: grep -E, seq, mktemp -d, wc, tr, tail, sleep. Solo modo local: nc, pkill, nohup, java.
+idiomas no portables buscados (date -d, readlink -f, timeout, grep -P, xargs -r, base64 -d, sed -i, stat -f,
+  date -j/-v, md5, base64 -D, mapfile, declare -A, ${v,,}): ninguno. Bash (no POSIX sh) pero valido en 3.2:
+  linea 137 [[ =~ ]] (regex sin comillas), linea 322 here-string <<<.
+reinicio de SOLO pagos (docker compose restart pagos) + espera de Eureka (esperar_eureka PAGOS 90):
+  == Reiniciar SOLO pagos: los ids son UUID y no se repiten (ya no hay contador)
+    OK    transferencia previa al reinicio (esperado=COMPLETADA)
+    OK    bff-web vuelve a alcanzar a pagos tras el reinicio (esperado=3)
+    OK    id posterior al reinicio es UUID (esperado=true)
+    OK    id posterior distinto del anterior (esperado=true)
+    OK    transferencia posterior al reinicio (esperado=COMPLETADA)
+    OK    saldo origen -30 exacto (esperado=4271.0)
+    OK    saldo destino +30 exacto (esperado=8609.0)
