@@ -1,0 +1,11 @@
+Fri Oct  9 22:35:21 -03 2026
+NAME                            IMAGE                         COMMAND                  SERVICE         CREATED          STATUS                    PORTS
+banco-xyz-bff-auth-server-1     banco-xyz-bff-auth-server     "java -jar app.jar"      auth-server     14 minutes ago   Up 14 minutes (healthy)   0.0.0.0:9000->9000/tcp, [::]:9000->9000/tcp
+banco-xyz-bff-bff-cajero-1      banco-xyz-bff-bff-cajero      "java -jar app.jar"      bff-cajero      14 minutes ago   Up 14 minutes (healthy)   0.0.0.0:8083->8083/tcp, [::]:8083->8083/tcp
+banco-xyz-bff-bff-movil-1       banco-xyz-bff-bff-movil       "java -jar app.jar"      bff-movil       14 minutes ago   Up 14 minutes (healthy)   0.0.0.0:8082->8082/tcp, [::]:8082->8082/tcp
+banco-xyz-bff-bff-web-1         banco-xyz-bff-bff-web         "java -jar app.jar"      bff-web         14 minutes ago   Up 14 minutes (healthy)   0.0.0.0:8081->8081/tcp, [::]:8081->8081/tcp
+banco-xyz-bff-clientes-1        banco-xyz-bff-clientes        "java -jar app.jar"      clientes        14 minutes ago   Up 10 minutes (healthy)   0.0.0.0:8085->8085/tcp, [::]:8085->8085/tcp
+banco-xyz-bff-config-server-1   banco-xyz-bff-config-server   "java -jar app.jar"      config-server   14 minutes ago   Up 14 minutes (healthy)   0.0.0.0:8888->8888/tcp, [::]:8888->8888/tcp
+banco-xyz-bff-cuentas-1         banco-xyz-bff-cuentas         "java -jar app.jar"      cuentas         14 minutes ago   Up 11 minutes (healthy)   0.0.0.0:8084->8084/tcp, [::]:8084->8084/tcp
+banco-xyz-bff-eureka-server-1   banco-xyz-bff-eureka-server   "java -jar app.jar"      eureka-server   14 minutes ago   Up 14 minutes (healthy)   0.0.0.0:8761->8761/tcp, [::]:8761->8761/tcp
+banco-xyz-bff-kafka-1           apache/kafka:3.9.1            "/__cacert_entrypoin…"   kafka           14 minutes ago   Up 14 minutes (healthy)   0.0.0.0:9094->9094/tcp, [::]:9094->9094/tcp

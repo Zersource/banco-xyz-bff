@@ -1,0 +1,11 @@
+Fri Oct  9 22:35:21 -03 2026
+NAME                            CPU %     MEM USAGE / LIMIT    MEM %     NET I/O           PIDS
+banco-xyz-bff-bff-cajero-1      0.20%     350.9MiB / 7.75GiB   4.42%     200kB / 141kB     54
+banco-xyz-bff-bff-web-1         0.62%     526MiB / 7.75GiB     6.63%     193kB / 147kB     133
+banco-xyz-bff-bff-movil-1       0.19%     314.1MiB / 7.75GiB   3.96%     198kB / 146kB     54
+banco-xyz-bff-clientes-1        0.21%     298.2MiB / 7.75GiB   3.76%     97.1kB / 59.1kB   53
+banco-xyz-bff-cuentas-1         0.19%     305.5MiB / 7.75GiB   3.85%     130kB / 78kB      52
+banco-xyz-bff-auth-server-1     1.84%     242.6MiB / 7.75GiB   3.06%     257kB / 475kB     43
+banco-xyz-bff-eureka-server-1   0.69%     398.2MiB / 7.75GiB   5.02%     123kB / 123kB     77
+banco-xyz-bff-kafka-1           1.32%     331.6MiB / 7.75GiB   4.18%     7.13kB / 126B     107
+banco-xyz-bff-config-server-1   0.19%     308.9MiB / 7.75GiB   3.89%     15.8kB / 25kB     44
